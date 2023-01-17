@@ -1,4 +1,4 @@
-name: Run pre-commit in blueprint
+name: Run pre-commit in probtest
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
     - main
 
 jobs:
-  blueprint-pre-commit:
+  probtest-pre-commit:
     runs-on: ubuntu-latest
     defaults:
       run:
