@@ -1,0 +1,29 @@
+{
+  "name": "root",
+  "ancestry": [],
+  "children": [
+    {
+      "name": "wrt_output",
+      "ancestry": [
+        "root"
+      ],
+      "children": []
+    },
+    {
+      "name": "model_init",
+      "ancestry": [
+        "root"
+      ],
+      "children": [
+        {
+          "name": "compute_domain_decomp",
+          "ancestry": [
+            "root",
+            "model_init"
+          ],
+          "children": []
+        }
+      ]
+    }
+  ]
+}

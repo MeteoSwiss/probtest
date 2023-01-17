@@ -1,0 +1,33 @@
+pipeline {
+    agent {
+        node {
+            label 'daint'
+        }
+    }
+
+    stages {
+        stage('apply pre-commit hooks') {
+            steps {
+                sh './jenkins/scripts/pre_commit_formatting.sh'
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'formatted.txt', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('publish formatted files') {
+            steps {
+                sh './jenkins/scripts/publish_formatting.sh'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up workspace'
+            deleteDir()
+        }
+    }
+}

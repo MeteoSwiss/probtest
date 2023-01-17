@@ -1,0 +1,43 @@
+pipeline {
+    agent {
+        node {
+            label 'daint'
+        }
+    }
+
+    stages {
+        stage('generate testdata') {
+            steps {
+                sh './jenkins/scripts/step_generate_testdata.sh'
+            }
+        }
+
+        stage('run unittests amip') {
+            steps {
+                sh './jenkins/scripts/step_execute_unittest_amip.sh'
+            }
+        }
+
+        stage('run unittests mch') {
+            steps {
+                sh './jenkins/scripts/step_execute_unittest_mch.sh'
+            }
+        }
+    }
+
+    post {
+        success {
+            updateGitlabCommitStatus name: 'build', state: 'success'
+            addGitLabMRComment comment: ":white_check_mark: Jenkins Build $currentBuild.result\n\nResults available at: [Jenkins [$env.JOB_NAME#$env.BUILD_NUMBER]]($env.BUILD_URL)"
+        }
+        failure {
+            updateGitlabCommitStatus name: 'build', state: 'failed'
+            addGitLabMRComment comment: ":anguished: Jenkins Build $currentBuild.result\n\nResults available at: [Jenkins [$env.JOB_NAME#$env.BUILD_NUMBER]]($env.BUILD_URL)"
+        }
+        aborted {
+            updateGitlabCommitStatus name: 'build', state: 'canceled'
+            addGitLabMRComment comment: ":point_up: Jenkins Build $currentBuild.result\n\nResults available at: [Jenkins [$env.JOB_NAME#$env.BUILD_NUMBER]]($env.BUILD_URL)"
+        }
+    }
+
+}
