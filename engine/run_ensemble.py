@@ -74,8 +74,8 @@ def prepare_perturbed_run_script(
 
     for line in in_file:
         # replace input directory with the ones given in config file
-        for lhs, rhs_o, rhs_n in zip(lhs, rhs_old, rhs_new):
-            out_line = replace_assignment(line, lhs, rhs_n, rhs_o, seed)
+        for lh, rh_old, rh_new in zip(lhs, rhs_old, rhs_new):
+            out_line = replace_assignment(line, lh, rh_new, rh_old, seed)
             # replace first match
             if out_line != line:
                 break
