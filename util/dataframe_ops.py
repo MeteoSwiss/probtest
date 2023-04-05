@@ -58,21 +58,29 @@ def try_to_read_input_file(fid, f, file_specification):
                 file_parser = model_output_parser[specification["format"].lower()]
             except KeyError:
                 logger.error(
-                    "No parser defined for format {} of file {}.".format(
+                    "No parser defined for format `{}` of file `{}`.".format(
                         specification["format"], f
                     )
                 )
                 sys.exit(1)
 
+            logger.info("Use file_parser `{}` for fid `{}`.".format(spec_label, fid))
             var_dfs = file_parser("{}:{}".format(spec_label, fid), f, specification)
             break
     else:
-        logger.error("No specification to read file {} found.".format(f))
+        logger.error("No specification to read file `{}` found.".format(f))
         sys.exit(1)
 
     if var_dfs is None:
         # the do_nothing parser returns None
         return spec_label, None
+
+    if len(var_dfs) == 0:
+        logger.error("Could not find any variables in `{}`".format(f))
+        logger.error(
+            "Used file_parser `{}` with glob `{}` ".format(spec_label, spec_glob)
+        )
+        sys.exit(1)
 
     return spec_label, pd.concat(var_dfs, axis=0)
 
