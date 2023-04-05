@@ -50,6 +50,36 @@ def parse_csv(path, index_col):
     return pd.DataFrame(df, columns=new_cols)
 
 
+def try_to_read_input_file(fid, f, file_specification):
+    """Try to read input file f using the file_specification."""
+    for spec_label, spec_glob, specification in file_specification:
+        if pathlib.Path(f).match(spec_glob):
+            try:
+                file_parser = model_output_parser[specification["format"].lower()]
+            except KeyError:
+                logger.error(
+                    "No parser defined for format {} of file {}.".format(
+                        specification["format"], f
+                    )
+                )
+                sys.exit(1)
+
+            var_dfs = file_parser("{}:{}".format(spec_label, fid), f, specification)
+            break
+    else:
+        logger.error("No specification to read file {} found.".format(f))
+        sys.exit(1)
+
+    if var_dfs is None:
+        # the do_nothing parser returns None
+        return spec_label, None
+
+    return spec_label, pd.concat(var_dfs, axis=0)
+
+    # different variables in a file have same timestamps:
+    # concatenate along variable axis
+
+
 def df_from_file_ids(file_ids, input_dir, file_specification):
     """
     file_specification: [list(spec_label, spec_glob, specification), ...]
@@ -87,40 +117,11 @@ def df_from_file_ids(file_ids, input_dir, file_specification):
             continue
 
         for f in input_files:
-            for spec_label, spec_glob, specification in file_specification:
-                if pathlib.Path(f).match(spec_glob):
-                    try:
-                        file_parser = model_output_parser[
-                            specification["format"].lower()
-                        ]
-                    except KeyError:
-                        logger.error(
-                            "did not find any file reader to read format "
-                            + "{} of file {}. Continue.".format(
-                                specification["format"], f
-                            )
-                        )
-                        sys.exit(1)
-
-                    var_dfs = file_parser(
-                        "{}:{}".format(spec_label, fid),
-                        "{}/{}".format(input_dir, f),
-                        specification,
-                    )
-                    break
-            else:
-                logger.error(
-                    "did not find any file specification to read file "
-                    + "{}. Continue.".format(f)
-                )
-                continue
-
-            if var_dfs is None:
-                continue
-
-            # different variables in a file have same timestamps:
-            # concatenate along variable axis
-            dfs_of_fid_and_spec[(fid, spec_label)].append(pd.concat(var_dfs, axis=0))
+            spec_label, var_df = try_to_read_input_file(
+                fid, "{}/{}".format(input_dir, f), file_specification
+            )
+            if var_df is not None:
+                dfs_of_fid_and_spec[(fid, spec_label)].append(var_df)
 
     fid_dfs = []
     for key, file_dfs in dfs_of_fid_and_spec.items():
