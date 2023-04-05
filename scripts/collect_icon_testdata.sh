@@ -15,7 +15,13 @@ fi
 # generate config file for probtest
 # for a global case with multiple output types and a single timestep per output file
 EXPNAME=atm_amip_test
-python $PROBTEST_DIR/probtest.py init --codebase-install "$ICON_DIR" --experiment-name ${EXPNAME} --file-ids atm_3d,lnd --reference probtest_output --member_ids 1,2 --time_dim time || exit 1
+python $PROBTEST_DIR/probtest.py init \
+    --codebase-install "$ICON_DIR" \
+    --experiment-name ${EXPNAME} \
+    --file-ids "*atm_3d*.nc,*lnd*.nc" \
+    --reference probtest_output \
+    --member_ids 1,2 \
+    --time_dim time || exit 1
 python $PROBTEST_DIR/probtest.py run-ensemble --submit-command "$SUBMIT" || exit 1
 
 # copy input data
@@ -28,7 +34,13 @@ cp /users/icontest/pool/data/ICON/grids/private/mpim/icon_preprocessing/source/i
 
 # for a LAM case with a single output file that includes all timesteps
 EXPNAME=mch_opr_r04b07_lhn_12
-python $PROBTEST_DIR/probtest.py init --codebase-install "$ICON_DIR" --experiment-name ${EXPNAME} --file-ids atm_3d_ml,atm_3d_hl,atm_3d_pl --reference probtest_output --member_ids 1,2 --time_dim time || exit 1
+python $PROBTEST_DIR/probtest.py init \
+    --codebase-install "$ICON_DIR" \
+    --experiment-name ${EXPNAME} \
+    --file-ids "*atm_3d_ml*.nc,*atm_3d_hl*.nc,*atm_3d_pl*.nc" \
+    --reference probtest_output \
+    --member_ids 1,2 \
+    --time_dim time || exit 1
 python $PROBTEST_DIR/probtest.py run-ensemble --submit-command "$SUBMIT" || exit 1
 
 # copy input data

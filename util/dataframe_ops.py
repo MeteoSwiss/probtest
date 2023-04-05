@@ -118,10 +118,9 @@ def df_from_file_ids(file_ids, input_dir, file_specification):
     dfs_of_fid_and_spec = collections.defaultdict(list)
 
     for fid in file_ids:
-        file_regex = "*{}*".format(fid)
-        input_files, err = file_names_from_regex(input_dir, file_regex)
+        input_files, err = file_names_from_regex(input_dir, fid)
         if err > 0:
-            logger.info("did not find any files for ID {}. Continue.".format(fid))
+            logger.info("did not find any files for ID glob {}. Continue.".format(fid))
             continue
 
         for f in input_files:

@@ -89,8 +89,8 @@ cli_help = {
     "files": r"the files that need to be perturbed (comma separated list)",
     "variable_names": r"the variables that are perturbed (comma separated list)",
     "copy_all_files": r"copy all files from the model_input_dir directory",
-    "file_ids": r"a unique identifier of the files containing the variables to be "
-    + r"analysed (comma separated list)",
+    "file_ids": r"a unique identifier glob of the files containing the variables to be "
+    + r"analysed (comma separated list, e.g. '*atm*.nc,Meteogram*.nc')",
     "ensemble": r"For ensemble stats: the sub-directory where the ensemble outputs are",
     "file_specification": "\n".join(  # remove leading spaces
         line[4:]
