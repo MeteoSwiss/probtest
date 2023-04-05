@@ -84,7 +84,7 @@ repos:
           language: system
           entry: codespell
           exclude: tests/data/
-          args: ['-L astroid']
+          args: ['-L astroid,fof']
   -   repo: local
       hooks:
       -   id: black
