@@ -64,16 +64,12 @@ def get_variables(data, time_dim, horizontal_dims):
     #  with horizontal dimension
     all_variables = data.variables.keys()
 
-    if any(v for v in all_variables if "None" in data.variables[v].dims):
-        logger.error('"None" as variable dimension leads to undefined behavior.')
-        sys.exit(1)
-
     variables = []
 
     if isinstance(horizontal_dims, Iterable):
         horizontal_dims_unpacked = [x for hd in horizontal_dims for x in hd.split(":")]
 
-    if "None" != time_dim:
+    if time_dim is not None:
         if isinstance(horizontal_dims, Iterable):
             for v in all_variables:
                 if (
@@ -94,8 +90,7 @@ def get_variables(data, time_dim, horizontal_dims):
                     variables.append(v)
         else:
             logger.error(
-                '"None" == time_dim and hasattr(horizontal_dims, "__iter__") '
-                + "does not work."
+                "horizontal_dims have to be specified when no time_dim is given"
             )
             sys.exit(1)
 
@@ -145,7 +140,7 @@ def dataframe_from_ncfile(
         )
         sys.exit(1)
 
-    if "None" != time_dim:
+    if time_dim is not None:
         time = xarray_ds[time_dim].values
     else:
         time = [0]
