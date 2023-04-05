@@ -111,14 +111,13 @@ def cdo_table(
     # step 1: compute rel-diff netcdf files
     with tempfile.TemporaryDirectory() as tmpdir:
         for fid in file_ids:
-            file_regex = "*{}*.nc".format(fid)
-            ref_files, err = file_names_from_regex(model_output_dir, file_regex)
+            ref_files, err = file_names_from_regex(model_output_dir, fid)
             if err > 0:
                 logger.info("did not find any files for ID {}. Continue.".format(fid))
                 continue
             ref_files.sort()
             perturb_files, err = file_names_from_regex(
-                perturbed_model_output_dir.format(member_id=member_id), file_regex
+                perturbed_model_output_dir.format(member_id=member_id), fid
             )
             if err > 0:
                 logger.info("did not find any files for ID {}. Continue.".format(fid))
@@ -126,6 +125,8 @@ def cdo_table(
             perturb_files.sort()
 
             for rf, pf in zip(ref_files, perturb_files):
+                if not rf.endswith(".nc") or not pf.endswith(".nc"):
+                    continue
                 ref_data = xr.open_dataset("{}/{}".format(model_output_dir, rf))
                 perturb_data = xr.open_dataset(
                     "{}/{}".format(

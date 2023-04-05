@@ -15,7 +15,7 @@ fi
 for exp in atm_amip_test mch_opr_r04b07_lhn_12
 do
     if [[ "$exp" == "atm_amip_test" ]]; then
-        file_ids="*atm_3d*.nc,*lnd*.nc,*restart_atm*.nc"
+        file_ids="*atm_3d*.nc,*lnd*.nc,*restart_atm*"
     fi
     if [[ "$exp" == "mch_opr_r04b07_lhn_12" ]]; then
         file_ids="*atm_3d_ml*.nc,*atm_3d_hl*.nc,*atm_3d_pl*.nc"

@@ -31,6 +31,7 @@ def initialize_dummy_netcdf_file(name):
 
 class TestStatsNetcdf(unittest.TestCase):
     nc_file_name = "test_stats.nc"
+    nc_file_glob = "test_s*.nc"
     stats_file_names = "test_stats.csv"
 
     def setUp(self):
@@ -77,7 +78,7 @@ class TestStatsNetcdf(unittest.TestCase):
 
         df = create_stats_dataframe(
             input_dir=".",
-            file_ids=[self.nc_file_name.replace(".nc", "")],
+            file_ids=[self.nc_file_glob],
             stats_file_name=self.stats_file_names,
             file_specification=file_specification,
         )
