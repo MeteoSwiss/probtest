@@ -11,6 +11,7 @@ from util.constants import cdo_bins
 from util.dataframe_ops import df_from_file_ids
 from util.file_system import file_names_from_regex
 from util.log_handler import logger
+from util import model_output_parser
 
 
 def rel_diff(var1, var2):
@@ -29,7 +30,7 @@ def rel_diff(var1, var2):
     return rel_diff
 
 
-def rel_diff_stats(file_id, filename, varname, time_dim, xarray_ds):
+def rel_diff_stats(file_id, filename, varname, time_dim, horizontal_dims, xarray_ds):
     dims = xarray_ds[varname].dims
     dataarray = xarray_ds[varname]
     time = xarray_ds[time_dim].values
@@ -62,10 +63,6 @@ def rel_diff_stats(file_id, filename, varname, time_dim, xarray_ds):
 
 @click.command()
 @click.option(
-    "--time-dim",
-    help=cli_help["time_dim"],
-)
-@click.option(
     "--model-output-dir",
     help=cli_help["model_output_dir"],
 )
@@ -87,13 +84,18 @@ def rel_diff_stats(file_id, filename, varname, time_dim, xarray_ds):
     "--cdo-table-file",
     help=cli_help["cdo_table_file"],
 )
+@click.option(
+    "--file-specification",
+    type=list,
+    help=cli_help["file_specification"],
+)
 def cdo_table(
-    time_dim,
     model_output_dir,
     file_ids,
     member_ids,
     perturbed_model_output_dir,
     cdo_table_file,
+    file_specification,
 ):
     # TODO: A single perturbed run provides enough data to make proper statistics.
     #       refactor cdo_table interface to reflect that
@@ -102,6 +104,10 @@ def cdo_table(
             "Only a single member_id can be specified, using {}".format(member_ids[0])
         )
     member_id = member_ids[0]
+
+    # modify netcdf parse method:
+    model_output_parser.dataframe_from_ncfile = rel_diff_stats
+
     # step 1: compute rel-diff netcdf files
     with tempfile.TemporaryDirectory() as tmpdir:
         for fid in file_ids:
@@ -130,7 +136,7 @@ def cdo_table(
                 varnames = [
                     v
                     for v in list(ref_data.keys())
-                    if time_dim in ref_data.variables.get(v).dims
+                    if "time" in ref_data.variables.get(v).dims
                 ]
 
                 for v in varnames:
@@ -145,7 +151,7 @@ def cdo_table(
                 diff_data.close()
 
         # step 2: generate dataframe from precomputed relative differences
-        df = df_from_file_ids(rel_diff_stats, file_ids, tmpdir, time_dim)
+        df = df_from_file_ids(file_ids, tmpdir, file_specification)
 
         # normalize histogram component of DataFrame
         times = np.array(df.columns.levels[0], dtype=int)
