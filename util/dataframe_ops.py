@@ -50,6 +50,10 @@ def parse_csv(path, index_col):
     return pd.DataFrame(df, columns=new_cols)
 
 
+# reduce the amount of logging by logging each message only once.
+logged_parser_fid_combination = []
+
+
 def try_to_read_input_file(fid, f, file_specification):
     """Try to read input file f using the file_specification."""
     for spec_label, spec_glob, specification in file_specification:
@@ -63,8 +67,11 @@ def try_to_read_input_file(fid, f, file_specification):
                     )
                 )
                 sys.exit(1)
-
-            logger.info("Use file_parser `{}` for fid `{}`.".format(spec_label, fid))
+            logger.debug("Use file_parser `{}` for file `{}`".format(spec_label, f))
+            message = "Use file_parser `{}` for fid `{}`".format(spec_label, fid)
+            if message not in logged_parser_fid_combination:
+                logged_parser_fid_combination.append(message)
+                logger.info(message)
             var_dfs = file_parser("{}:{}".format(spec_label, fid), f, specification)
             break
     else:
