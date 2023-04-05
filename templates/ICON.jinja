@@ -7,15 +7,15 @@
             "perturbed_experiment_name": "{{experiment_name}}_member_id_{member_id}",
             "stats_file_name": "stats_{member_id}.csv",
             "tolerance_file_name": "{{reference}}/tolerance/{{experiment_name}}.csv",
-            "member_ids": {{member_ids}},
-            "file_ids": {{file_ids}},
+            "member_ids": ["{{member_ids}}"],
+            "file_ids": ["{{file_ids}}"],
             "time_dim": "{{time_dim}}",
             "horizontal_dims": ["ncells", "ncells_2", "nedges", "nvertices", "lat:lon", "d_body", "max_nlevs:nstations", "nstations"],
             "savedir": "{{codebase_install}}/experiments/{{experiment_name}}"
         },
     "perturb":
         {
-            "perturb_amplitude": {{perturb_amplitude}},
+            "perturb_amplitude": "{{perturb_amplitude}}",
             "variable_names": ["T", "QV"],
             "copy_all_files": false,
             "files": [],

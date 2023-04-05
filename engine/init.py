@@ -79,11 +79,17 @@ def init(
         loader=FileSystemLoader(template_partition[0]), undefined=StrictUndefined
     )
     template = env.get_template(template_partition[2])
+    # The template is supposed to be a valid json file so that in can work as
+    # a default PROBTEST_CONFIG (even without running init first)
 
-    # Format file_ids from list of strings to ["id1", "id2", "id3"]
-    format_file_ids = "[{}]".format(", ".join(['"{}"'.format(f) for f in file_ids]))
+    # Format file_ids from list of strings to "id1", "id2", "id3"
+    format_file_ids = ", ".join(['"{}"'.format(f) for f in file_ids])
     # Format member_ids from list of strings to ['1', '2', '3']
-    format_member_ids = "[{}]".format(", ".join(['"{}"'.format(m) for m in member_ids]))
+    format_member_ids = ", ".join(['"{}"'.format(m) for m in member_ids])
+
+    # Drop leading and tailing qutes as they are already in the template
+    format_file_ids = format_file_ids[1:-1]
+    format_member_ids = format_member_ids[1:-1]
 
     # emit warnings if variables are not set
     warn_template = "init argument '--{}' not set. default to '{}'"

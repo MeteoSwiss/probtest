@@ -6,8 +6,8 @@
         "perturbed_experiment_name": "{{experiment_name}}_member_id_{member_id}",
         "stats_file_name": "{{reference}}/reference/{{experiment_name}}_{member_id}.csv",
         "tolerance_file_name": "{{reference}}/tolerance/{{experiment_name}}.csv",
-        "member_ids": {{member_ids}},
-        "file_ids": {{file_ids}},
+        "member_ids": ["{{member_ids}}"],
+        "file_ids": ["{{file_ids}}"],
         "time_dim": "time",
         "horizontal_dims": ["ncells", "ncells_2", "nedges", "nvertices", "lat:lon"],
         "savedir": "{{reference}}/plots"
