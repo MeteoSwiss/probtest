@@ -1,13 +1,37 @@
 import sys
 from collections.abc import Iterable
 
+import numpy as np
 import pandas as pd
 import xarray
-import numpy as np
 
 from util.constants import compute_statistics
 from util.log_handler import logger
 from util.xarray_ops import statistics_over_horizontal_dim
+
+# Definition of available model output data parsers
+#
+# All available parsers are summarized in the dict `model_output_parser` at the
+# end of this module.
+#
+# Each parser expects two arguments:
+# file_id: str
+#    identifier of the file type
+# filename: str
+#    full file name
+# specification: dict
+#    Dictionary with type specific settings
+#
+# Each parser returns a list of Pandas DataFrame:
+#    index = pd.MultiIndex.from_product(
+#        [[file_id], [varname], height], names=("file_ID", "variable", "height")
+#    )
+#    columns = pd.MultiIndex.from_product(
+#        [time, compute_statistics], names=("time", "statistic")
+#    )
+#
+#    return [pd.DataFrame(matrix, index=index, columns=columns)]
+
 
 def parse_netcdf(file_id, filename, specification):
     logger.debug("parse NetCDF file {}".format(filename))
@@ -26,7 +50,7 @@ def parse_netcdf(file_id, filename, specification):
             varname=v,
             time_dim=time_dim,
             horizontal_dims=horizontal_dims,
-            xarray_ds=ds
+            xarray_ds=ds,
         )
         var_dfs.append(sub_df)
 
@@ -171,7 +195,7 @@ def parse_csv(file_id, filename, specification):
         # convert to proper multidimensional array
         array = np.array(csv).reshape(csv.index.size, n_time, -1)
         # transpose such that time is in last dimension
-        array = array.transpose(0, 2, 1) # index, "height", time
+        array = array.transpose(0, 2, 1)  # index, "height", time
         # collapse index and "height" dimensions
         array = array.reshape(-1, n_time)
         matrix = array.repeat(len(compute_statistics), 1)
@@ -186,29 +210,12 @@ def parse_csv(file_id, filename, specification):
     )
     return [pd.DataFrame(matrix, index=index, columns=columns)]
 
+
 def do_nothing(*args, **kwargs):
     return None
 
-"""
-Each parser expects two arguments:
-file_id: str
-    identifier of the file type
-filename: str
-    full file name
-specification: dict
-    Dictionary with type specific settings
 
-Each parser returns a list of Pandas DataFrame:
-    index = pd.MultiIndex.from_product(
-        [[file_id], [varname], height], names=("file_ID", "variable", "height")
-    )
-    columns = pd.MultiIndex.from_product(
-        [time, compute_statistics], names=("time", "statistic")
-    )
-
-    return [pd.DataFrame(matrix, index=index, columns=columns)]
-"""
-model_output_parser = { # global lookup dict
+model_output_parser = {  # global lookup dict
     "netcdf": parse_netcdf,
     "csv": parse_csv,
     "ignore": do_nothing,

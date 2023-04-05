@@ -4,8 +4,8 @@ import pathlib
 
 import click
 
-from util.log_handler import logger
 from util import dataframe_ops
+from util.log_handler import logger
 
 
 def load_defaults(sections):
@@ -92,7 +92,11 @@ cli_help = {
     "file_ids": r"a unique identifier of the files containing the variables to be "
     + r"analysed (comma separated list)",
     "ensemble": r"For ensemble stats: the sub-directory where the ensemble outputs are",
-    "file_specification": dataframe_ops.df_from_file_ids,
+    "file_specification": "\n".join(  # remove leading spaces
+        line[4:]
+        for line in dataframe_ops.df_from_file_ids.__doc__.split(r"\n")
+        if line.startswith("    ")
+    ),
     "input_file_ref": r"reference file to check against",
     "input_file_cur": r"current file to be tested",
     "factor": r"relaxation factor for the tolerance values",

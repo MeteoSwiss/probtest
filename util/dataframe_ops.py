@@ -1,9 +1,9 @@
+import collections
+import pathlib
 import sys
 
 import numpy as np
 import pandas as pd
-import pathlib
-import collections
 
 from util.constants import CHECK_THRESHOLD
 from util.file_system import file_names_from_regex
@@ -52,26 +52,25 @@ def parse_csv(path, index_col):
 
 def df_from_file_ids(file_ids, input_dir, file_specification):
     """
-file_specification: [list(spec_label, spec_glob, specification), ...]
-    spec_label: str
-        Name of the file specification
-    spec_glob: str
-        Glob to match specific files via pathlib.Path.match
-    specification: dict(format: str, **kwargs)
-        dictionary that specifies the file format defined by the key.
-        format: str
-            The format defines the corresponding parser function.
-        **kwargs:
-            Other keyword arguments can be used by the corresponding parser.
-            Examples:
-            time_dim: str
-                The time dimension in the model output files
-            horizontal_dims: str
-                List possible horizontal dimensions. If multiple horizontal
-                dimensions are used their names must be combined in one string
-                separated by ":".
+    file_specification: [list(spec_label, spec_glob, specification), ...]
+        spec_label: str
+            Name of the file specification
+        spec_glob: str
+            Glob to match specific files via pathlib.Path.match
+        specification: dict(format: str, **kwargs)
+            dictionary that specifies the file format defined by the key.
+            format: str
+                The format defines the corresponding parser function.
+            **kwargs:
+                Other keyword arguments can be used by the corresponding parser.
+                Examples:
+                time_dim: str
+                    The time dimension in the model output files
+                horizontal_dims: str
+                    List possible horizontal dimensions. If multiple horizontal
+                    dimensions are used their names must be combined in one string
+                    separated by ":".
     """
-
 
     # Collect data frames for each combination of file id (fid) and
     # specification (spec). Frames for the same fid and spec represent
@@ -91,15 +90,29 @@ file_specification: [list(spec_label, spec_glob, specification), ...]
             for spec_label, spec_glob, specification in file_specification:
                 if pathlib.Path(f).match(spec_glob):
                     try:
-                        file_parser = model_output_parser[specification["format"].lower()]
+                        file_parser = model_output_parser[
+                            specification["format"].lower()
+                        ]
                     except KeyError:
-                        logger.error("did not find any file reader to read format {} of file {}. Continue.".format(specification["format"], f))
+                        logger.error(
+                            "did not find any file reader to read format "
+                            + "{} of file {}. Continue.".format(
+                                specification["format"], f
+                            )
+                        )
                         sys.exit(1)
 
-                    var_dfs = file_parser("{}:{}".format(spec_label, fid), "{}/{}".format(input_dir, f), specification)
+                    var_dfs = file_parser(
+                        "{}:{}".format(spec_label, fid),
+                        "{}/{}".format(input_dir, f),
+                        specification,
+                    )
                     break
             else:
-                logger.error("did not find any file specification to read file {}. Continue.".format(f))
+                logger.error(
+                    "did not find any file specification to read file "
+                    + "{}. Continue.".format(f)
+                )
                 continue
 
             if var_dfs is None:
@@ -108,7 +121,6 @@ file_specification: [list(spec_label, spec_glob, specification), ...]
             # different variables in a file have same timestamps:
             # concatenate along variable axis
             dfs_of_fid_and_spec[(fid, spec_label)].append(pd.concat(var_dfs, axis=0))
-
 
     fid_dfs = []
     for key, file_dfs in dfs_of_fid_and_spec.items():
@@ -128,9 +140,6 @@ def unify_time_index(fid_dfs):
     """
     Unify the column index of all data frames by replacing the time with a
     continuous range from 0 to N-1
-
-    For each different number of columns, always The columns of the first data frame in the list for each  that have the same number of
-    columns as the first data frame. Modifies in place.
 
     fid_dfs: Iterable(pd.DataFrame)
     """

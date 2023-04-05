@@ -1,9 +1,6 @@
-import sys
 from pathlib import Path
 
 import click
-import numpy as np
-import pandas as pd
 
 from util.click_util import CommaSeperatedStrings, cli_help
 from util.dataframe_ops import df_from_file_ids

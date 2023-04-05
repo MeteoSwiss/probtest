@@ -6,12 +6,12 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
+from util import model_output_parser
 from util.click_util import CommaSeperatedStrings, cli_help
 from util.constants import cdo_bins
 from util.dataframe_ops import df_from_file_ids
 from util.file_system import file_names_from_regex
 from util.log_handler import logger
-from util import model_output_parser
 
 
 def rel_diff(var1, var2):
