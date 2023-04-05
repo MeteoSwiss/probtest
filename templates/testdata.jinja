@@ -8,8 +8,14 @@
         "tolerance_file_name": "{{reference}}/tolerance/{{experiment_name}}.csv",
         "member_ids": ["{{member_ids}}"],
         "file_ids": ["{{file_ids}}"],
-        "time_dim": "time",
-        "horizontal_dims": ["ncells", "ncells_2", "nedges", "nvertices", "lat:lon"],
+        "file_specification": [
+            ["ignored", "*restart_atm*",
+              { "format": "ignore" }
+            ],
+            ["NetCDF", "*.nc",
+              { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["ncells", "ncells_2"] }
+            ]
+        ],
         "savedir": "{{reference}}/plots"
     },
     "perturb": {

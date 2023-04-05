@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 
 import click
 
@@ -14,6 +15,11 @@ def load_defaults(sections):
         logger.warning(
             "careful, configfile {} does not exist in {}. No defaults.".format(
                 configfile, os.getcwd()
+            )
+        )
+        logger.warning(
+            "If you need e.g. ICON defaults, try: export PROBTEST_CONFIG={}".format(
+                pathlib.Path(__file__).parent.parent.absolute() / "templates/ICON.jinja"
             )
         )
     else:
@@ -61,6 +67,11 @@ class CommaSeperatedStrings(click.ParamType):
         return list(filter(lambda x: x != "", value.split(",")))
 
 
+time_dim_help = (
+    r"the time dimension in the model output files, can be deactivated by "
+    + r"using 'None'"
+)
+
 cli_help = {
     "model_input_dir": r"the directory where the model input is stored",
     "perturbed_model_input_dir": r"Template for the directory where the perturbed "
@@ -85,9 +96,28 @@ cli_help = {
     "file_ids": r"a unique identifier of the files containing the variables to be "
     + r"analysed (comma separated list)",
     "ensemble": r"For ensemble stats: the sub-directory where the ensemble outputs are",
-    "time_dim": r"the time dimension in the model output files, can be deactivated by "
-    + r"using 'None'",
-    "horizontal_dims": r"List possible horizontal dimensions. If multiple horizontal "
+    "time_dim": time_dim_help, # TODO: remove
+    "file_specification": r"Specify the parser for different model file types. File "
+    + r"types can be identified by a glob matching the file name. "
+    + r"file_specification should only be defined in `probtest.json` "
+    + r"(or the respective jinja template file)."
+    + r"The format is a list of 3-tuples: "
+    + r"[list(spec_label, spec_glob, specification), ...]"
+    + r"    spec_label: str"
+    + r"        Name of the file specification"
+    + r"    spec_glob: str"
+    + r"        Glob to match specific files via pathlib.Path.match"
+    + r"    specification: dict(format: str, **kwargs)"
+    + r"        dictionary that specifies the file format defined by the key."
+    + r"        format: str"
+    + r"            The format defines the corresponding parser function."
+    + r"        **kwargs: "
+    + r"            Other keyword arguments can be used by the corresponding parser."
+    + r"            Examples:"
+    + r"            time_dim: str"
+    + time_dim_help
+    + r"            horizontal_dims: str"
+    + r"List possible horizontal dimensions. If multiple horizontal "
     + r"dimensions are used their names must be combined in one string separated "
     + r"by ':'",
     "input_file_ref": r"reference file to check against",
@@ -132,3 +162,5 @@ cli_help = {
     "new_reference_threshold": r"The factor by which the current time can be faster "
     + r"than the reference before a warning gets printed.",
 }
+
+del time_dim_help

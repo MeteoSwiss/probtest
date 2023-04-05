@@ -30,7 +30,6 @@ from util.log_handler import logger
     default="probtest.json",
     help=cli_help["config"],
 )
-@click.option("--time_dim", help=cli_help["time_dim"], default="")
 @click.option(
     "--member_ids",
     type=CommaSeperatedStrings(),
@@ -68,7 +67,6 @@ def init(
     template_name,
     member_ids,
     perturb_amplitude,
-    time_dim,
     timing_current,
     timing_reference,
     append_time,
@@ -101,8 +99,6 @@ def init(
         logger.warning(warn_template.format("file_ids", format_file_ids))
     if not reference:
         logger.warning(warn_template.format("reference", ""))
-    if not time_dim:
-        logger.warning(warn_template.format("time_dim", ""))
     if not member_ids:
         logger.warning(warn_template.format("member_ids", format_member_ids))
     if not perturb_amplitude:
@@ -120,7 +116,6 @@ def init(
     render_dict["codebase_install"] = Path(codebase_install).resolve()
     render_dict["file_ids"] = format_file_ids
     render_dict["reference"] = Path(reference).resolve()
-    render_dict["time_dim"] = time_dim
     render_dict["member_ids"] = format_member_ids
     render_dict["perturb_amplitude"] = perturb_amplitude
     render_dict["timing_current"] = timing_current

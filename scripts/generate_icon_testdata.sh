@@ -15,7 +15,7 @@ fi
 for exp in atm_amip_test mch_opr_r04b07_lhn_12
 do
     if [[ "$exp" == "atm_amip_test" ]]; then
-        file_ids=atm_3d,lnd
+        file_ids=atm_3d,lnd,restart_atm
     fi
     if [[ "$exp" == "mch_opr_r04b07_lhn_12" ]]; then
         file_ids=atm_3d_ml,atm_3d_hl,atm_3d_pl
@@ -27,7 +27,6 @@ do
         --reference $PROBTEST_DATA \
         --template-name $PROBTEST_DIR/templates/testdata.jinja \
         --member_ids 1,2 \
-        --time_dim time \
         --timing-current $ICON_DATA/probtest_testdata \
         --timing-reference $ICON_DATA/performance_reference/probtest_testdata \
         || exit 1
