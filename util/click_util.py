@@ -92,10 +92,8 @@ cli_help = {
     "file_ids": r"a unique identifier glob of the files containing the variables to be "
     + r"analysed (comma separated list, e.g. '*atm*.nc,Meteogram*.nc')",
     "ensemble": r"For ensemble stats: the sub-directory where the ensemble outputs are",
-    "file_specification": "\n".join(  # remove leading spaces
-        line[4:]
-        for line in dataframe_ops.df_from_file_ids.__doc__.split(r"\n")
-        if line.startswith("    ")
+    "file_specification": "\n".join(  # get help from df_from_file_ids' docstring
+        line.lstrip() for line in dataframe_ops.df_from_file_ids.__doc__.split(r"\n")
     ),
     "input_file_ref": r"reference file to check against",
     "input_file_cur": r"current file to be tested",

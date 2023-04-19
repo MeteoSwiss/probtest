@@ -54,28 +54,32 @@ def parse_probtest_csv(path, index_col):
 logged_parser_fid_combination = []
 
 
-def try_to_read_input_file(fid, f, file_specification):
-    """Try to read input file f using the file_specification."""
+def try_to_read_input_file(fid, file_name, file_specification):
+    """Try to read input file file_name using the file_specification."""
     for spec_label, spec_glob, specification in file_specification:
-        if pathlib.Path(f).match(spec_glob):
+        if pathlib.Path(file_name).match(spec_glob):
             try:
                 file_parser = model_output_parser[specification["format"].lower()]
             except KeyError:
                 logger.error(
                     "No parser defined for format `{}` of file `{}`.".format(
-                        specification["format"], f
+                        specification["format"], file_name
                     )
                 )
                 sys.exit(1)
-            logger.debug("Use file_parser `{}` for file `{}`".format(spec_label, f))
+            logger.debug(
+                "Use file_parser `{}` for file `{}`".format(spec_label, file_name)
+            )
             message = "Use file_parser `{}` for fid `{}`".format(spec_label, fid)
             if message not in logged_parser_fid_combination:
                 logged_parser_fid_combination.append(message)
                 logger.info(message)
-            var_dfs = file_parser("{}:{}".format(spec_label, fid), f, specification)
+            var_dfs = file_parser(
+                "{}:{}".format(spec_label, fid), file_name, specification
+            )
             break
     else:
-        logger.error("No specification to read file `{}` found.".format(f))
+        logger.error("No specification to read file `{}` found.".format(file_name))
         sys.exit(1)
 
     if var_dfs is None:
@@ -83,7 +87,7 @@ def try_to_read_input_file(fid, f, file_specification):
         return spec_label, None
 
     if len(var_dfs) == 0:
-        logger.error("Could not find any variables in `{}`".format(f))
+        logger.error("Could not find any variables in `{}`".format(file_name))
         logger.error(
             "Used file_parser `{}` with glob `{}` ".format(spec_label, spec_glob)
         )
@@ -138,7 +142,7 @@ def df_from_file_ids(file_ids, input_dir, file_specification):
                 dfs_of_fid_and_spec[(fid, spec_label)].append(var_df)
 
     fid_dfs = []
-    for key, file_dfs in dfs_of_fid_and_spec.items():
+    for file_dfs in dfs_of_fid_and_spec.values():
         # same file IDs and file type specification will have same variables but
         # with different timestamps: concatenate along time axis
         fid_dfs.append(pd.concat(file_dfs, axis=1))
