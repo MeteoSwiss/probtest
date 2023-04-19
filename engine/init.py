@@ -85,7 +85,7 @@ def init(
     # Format member_ids from list of strings to ['1', '2', '3']
     format_member_ids = ", ".join(['"{}"'.format(m) for m in member_ids])
 
-    # Drop leading and tailing qutes as they are already in the template
+    # Drop leading and tailing quotes as they are already in the template
     format_file_ids = format_file_ids[1:-1]
     format_member_ids = format_member_ids[1:-1]
 
