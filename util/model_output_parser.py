@@ -39,7 +39,7 @@ def parse_netcdf(file_id, filename, specification):
     horizontal_dims = specification["horizontal_dims"]
     ds = xarray.open_dataset(filename, decode_cf=False)
 
-    var_tmp = get_variables(ds, time_dim, horizontal_dims)
+    var_tmp = __get_variables(ds, time_dim, horizontal_dims)
 
     var_dfs = []
 
@@ -58,7 +58,7 @@ def parse_netcdf(file_id, filename, specification):
     return var_dfs
 
 
-def get_variables(data, time_dim, horizontal_dims):
+def __get_variables(data, time_dim, horizontal_dims):
     # return a list of variable names from the dataset data that have a time dimension
     # and horizontal dimension or in case there is no time dimension just the variables
     #  with horizontal dimension
