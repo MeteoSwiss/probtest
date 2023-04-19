@@ -92,9 +92,9 @@ cli_help = {
     "file_ids": r"a unique identifier glob of the files containing the variables to be "
     + r"analysed (comma separated list, e.g. '*atm*.nc,Meteogram*.nc')",
     "ensemble": r"For ensemble stats: the sub-directory where the ensemble outputs are",
-    "file_specification": "\n".join(  # get help from df_from_file_ids' docstring
-        line.lstrip() for line in dataframe_ops.df_from_file_ids.__doc__.split(r"\n")
-    ),
+    "file_specification": "Specify how different file types shall be read. This "
+    + r"option must be defined in the json config file. See doc string of  "
+    + r"df_from_file_ids for the specification.",
     "input_file_ref": r"reference file to check against",
     "input_file_cur": r"current file to be tested",
     "factor": r"relaxation factor for the tolerance values",
