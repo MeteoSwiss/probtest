@@ -34,7 +34,7 @@ def compute_div_dataframe(df1, df2):
     return df1 / df2.replace({0: np.nan})
 
 
-def parse_csv(path, index_col):
+def parse_probtest_csv(path, index_col):
     df = pd.read_csv(path, index_col=index_col, header=[0, 1])
 
     times = df.columns.levels[0].astype(int)
