@@ -39,8 +39,7 @@ python $PROBTEST_DIR/probtest.py init \
     --experiment-name ${EXPNAME} \
     --file-ids "*atm_3d_ml*.nc,*atm_3d_hl*.nc,*atm_3d_pl*.nc" \
     --reference probtest_output \
-    --member_ids 1,2 \
-    --time_dim time || exit 1
+    --member_ids 1,2 || exit 1
 python $PROBTEST_DIR/probtest.py run-ensemble --submit-command "$SUBMIT" || exit 1
 
 # copy input data
