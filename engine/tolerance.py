@@ -6,7 +6,11 @@ import click
 import pandas as pd
 
 from util.click_util import CommaSeperatedStrings, cli_help
-from util.dataframe_ops import compute_rel_diff_dataframe, force_monotonic, parse_csv
+from util.dataframe_ops import (
+    compute_rel_diff_dataframe,
+    force_monotonic,
+    parse_probtest_csv,
+)
 from util.log_handler import logger
 
 
@@ -27,10 +31,12 @@ from util.log_handler import logger
 def tolerance(stats_file_name, tolerance_file_name, member_ids):
     # read in stats files
     dfs = [
-        parse_csv(stats_file_name.format(member_id=m_id), index_col=[0, 1, 2])
+        parse_probtest_csv(stats_file_name.format(member_id=m_id), index_col=[0, 1, 2])
         for m_id in member_ids
     ]
-    dfs.append(parse_csv(stats_file_name.format(member_id="ref"), index_col=[0, 1, 2]))
+    dfs.append(
+        parse_probtest_csv(stats_file_name.format(member_id="ref"), index_col=[0, 1, 2])
+    )
 
     ndata = len(dfs)
     if ndata < 2:

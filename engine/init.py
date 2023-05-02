@@ -30,7 +30,6 @@ from util.log_handler import logger
     default="probtest.json",
     help=cli_help["config"],
 )
-@click.option("--time_dim", help=cli_help["time_dim"], default="")
 @click.option(
     "--member_ids",
     type=CommaSeperatedStrings(),
@@ -68,7 +67,6 @@ def init(
     template_name,
     member_ids,
     perturb_amplitude,
-    time_dim,
     timing_current,
     timing_reference,
     append_time,
@@ -79,11 +77,17 @@ def init(
         loader=FileSystemLoader(template_partition[0]), undefined=StrictUndefined
     )
     template = env.get_template(template_partition[2])
+    # The template is supposed to be a valid json file so that in can work as
+    # a default PROBTEST_CONFIG (even without running init first)
 
-    # Format file_ids from list of strings to ["id1", "id2", "id3"]
-    format_file_ids = "[{}]".format(", ".join(['"{}"'.format(f) for f in file_ids]))
+    # Format file_ids from list of strings to "id1", "id2", "id3"
+    format_file_ids = ", ".join(['"{}"'.format(f) for f in file_ids])
     # Format member_ids from list of strings to ['1', '2', '3']
-    format_member_ids = "[{}]".format(", ".join(['"{}"'.format(m) for m in member_ids]))
+    format_member_ids = ", ".join(['"{}"'.format(m) for m in member_ids])
+
+    # Drop leading and tailing quotes as they are already in the template
+    format_file_ids = format_file_ids[1:-1]
+    format_member_ids = format_member_ids[1:-1]
 
     # emit warnings if variables are not set
     warn_template = "init argument '--{}' not set. default to '{}'"
@@ -95,8 +99,6 @@ def init(
         logger.warning(warn_template.format("file_ids", format_file_ids))
     if not reference:
         logger.warning(warn_template.format("reference", ""))
-    if not time_dim:
-        logger.warning(warn_template.format("time_dim", ""))
     if not member_ids:
         logger.warning(warn_template.format("member_ids", format_member_ids))
     if not perturb_amplitude:
@@ -114,7 +116,6 @@ def init(
     render_dict["codebase_install"] = Path(codebase_install).resolve()
     render_dict["file_ids"] = format_file_ids
     render_dict["reference"] = Path(reference).resolve()
-    render_dict["time_dim"] = time_dim
     render_dict["member_ids"] = format_member_ids
     render_dict["perturb_amplitude"] = perturb_amplitude
     render_dict["timing_current"] = timing_current

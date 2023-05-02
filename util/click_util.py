@@ -1,8 +1,10 @@
 import json
 import os
+import pathlib
 
 import click
 
+from util import dataframe_ops
 from util.log_handler import logger
 
 
@@ -14,6 +16,11 @@ def load_defaults(sections):
         logger.warning(
             "careful, configfile {} does not exist in {}. No defaults.".format(
                 configfile, os.getcwd()
+            )
+        )
+        logger.warning(
+            "If you need e.g. ICON defaults, try: export PROBTEST_CONFIG={}".format(
+                pathlib.Path(__file__).parent.parent.absolute() / "templates/ICON.jinja"
             )
         )
     else:
@@ -82,14 +89,12 @@ cli_help = {
     "files": r"the files that need to be perturbed (comma separated list)",
     "variable_names": r"the variables that are perturbed (comma separated list)",
     "copy_all_files": r"copy all files from the model_input_dir directory",
-    "file_ids": r"a unique identifier of the files containing the variables to be "
-    + r"analysed (comma separated list)",
+    "file_ids": r"a unique identifier glob of the files containing the variables to be "
+    + r"analysed (comma separated list, e.g. '*atm*.nc,Meteogram*.nc')",
     "ensemble": r"For ensemble stats: the sub-directory where the ensemble outputs are",
-    "time_dim": r"the time dimension in the model output files, can be deactivated by "
-    + r"using 'None'",
-    "horizontal_dims": r"List possible horizontal dimensions. If multiple horizontal "
-    + r"dimensions are used their names must be combined in one string separated "
-    + r"by ':'",
+    "file_specification": "Specify how different file types shall be read. This "
+    + r"option must be defined in the json config file. See doc string of  "
+    + r"df_from_file_ids for the specification.",
     "input_file_ref": r"reference file to check against",
     "input_file_cur": r"current file to be tested",
     "factor": r"relaxation factor for the tolerance values",
@@ -132,3 +137,5 @@ cli_help = {
     "new_reference_threshold": r"The factor by which the current time can be faster "
     + r"than the reference before a warning gets printed.",
 }
+
+del dataframe_ops
