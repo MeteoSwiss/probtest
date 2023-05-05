@@ -28,7 +28,14 @@ member_ids="1,2,3,4,5,6,7,8,9,941"
 python "${SCRIPT_DIR}/probtest.py" init \
   --codebase-install "${ICON_DIR}" \
   --experiment-name "${EXP}" \
-  --file-ids atm_3d_DOM01_ml,atm_3d_DOM02_ml,atm_3d_DOM01_hl,atm_3d_DOM02_hl,atm_3d_DOM01_pl,atm_3d_DOM02_pl,atm_3d_ll_DOM01_ml,atm_3d_ll_DOM02_ml \
+  --file-id NetCDF "*atm_3d_DOM01_ml*" \
+  --file-id NetCDF "*atm_3d_DOM02_ml*" \
+  --file-id NetCDF "*atm_3d_DOM01_hl*" \
+  --file-id NetCDF "*atm_3d_DOM02_hl*" \
+  --file-id NetCDF "*atm_3d_DOM01_pl*" \
+  --file-id NetCDF "*atm_3d_DOM02_pl*" \
+  --file-id NetCDF "*atm_3d_ll_DOM01_ml*" \
+  --file-id NetCDF "*atm_3d_ll_DOM02_ml*" \
   --reference "${REFERENCE_DIR}" \
   --member_ids ${member_ids} \
   --config "${PROBTEST_CONFIG}"

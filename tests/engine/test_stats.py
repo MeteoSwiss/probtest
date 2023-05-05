@@ -61,24 +61,13 @@ class TestStatsNetcdf(unittest.TestCase):
         os.remove(self.stats_file_names)
 
     def test_stats(self):
-        file_specification = [
-            [
-                "Test data",
-                "*.nc",
-                dict(format="netcdf", time_dim="t", horizontal_dims=["x"]),
-            ],
-            [
-                # The file_ids glob matches to many files, so we use the "ignore"
-                # format to ignore them
-                "other files",
-                "*",
-                dict(format="ignore"),
-            ],
-        ]
+        file_specification = {
+            "Test data": dict(format="netcdf", time_dim="t", horizontal_dims=["x"]),
+        }
 
         df = create_stats_dataframe(
             input_dir=".",
-            file_ids=[self.nc_file_glob],
+            file_id=["Test data", self.nc_file_glob],
             stats_file_name=self.stats_file_names,
             file_specification=file_specification,
         )
@@ -121,24 +110,20 @@ class TestStatsCsv(unittest.TestCase):
         os.remove(self.stats_file_name)
 
     def test_stats(self):
-        file_specification = [
-            [
-                "Test data",
-                "*csv.dat",
-                dict(
-                    format="csv",
-                    parser_args=dict(
-                        delimiter="\\s+",
-                        header=0,
-                        index_col=0,
-                    ),
+        file_specification = {
+            "Test data": dict(
+                format="csv",
+                parser_args=dict(
+                    delimiter="\\s+",
+                    header=0,
+                    index_col=0,
                 ),
-            ],
-        ]
+            ),
+        }
 
         df = create_stats_dataframe(
             input_dir=".",
-            file_ids=[self.dat_file_name],
+            file_id=["Test data", self.dat_file_name],
             stats_file_name=self.stats_file_name,
             file_specification=file_specification,
         )

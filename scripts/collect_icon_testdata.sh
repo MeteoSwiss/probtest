@@ -18,7 +18,8 @@ EXPNAME=atm_amip_test
 python $PROBTEST_DIR/probtest.py init \
     --codebase-install "$ICON_DIR" \
     --experiment-name ${EXPNAME} \
-    --file-ids "*atm_3d*.nc,*lnd*.nc" \
+    --file-id NetCDF "*atm_3d*.nc" \
+    --file-id NetCDF "*lnd*.nc" \
     --reference probtest_output \
     --member_ids 1,2 \
     --time_dim time || exit 1
@@ -37,7 +38,9 @@ EXPNAME=mch_opr_r04b07_lhn_12
 python $PROBTEST_DIR/probtest.py init \
     --codebase-install "$ICON_DIR" \
     --experiment-name ${EXPNAME} \
-    --file-ids "*atm_3d_ml*.nc,*atm_3d_hl*.nc,*atm_3d_pl*.nc" \
+    --file-id NetCDF "*atm_3d_ml*.nc" \
+    --file-id NetCDF "*atm_3d_hl*.nc" \
+    --file-id NetCDF "*atm_3d_pl*.nc" \
     --reference probtest_output \
     --member_ids 1,2 || exit 1
 python $PROBTEST_DIR/probtest.py run-ensemble --submit-command "$SUBMIT" || exit 1

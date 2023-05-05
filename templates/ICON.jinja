@@ -8,40 +8,24 @@
             "stats_file_name": "stats_{member_id}.csv",
             "tolerance_file_name": "{{reference}}/tolerance/{{experiment_name}}.csv",
             "member_ids": ["{{member_ids}}"],
-            "file_ids": ["{{file_ids}}"],
-            "file_specification": [
-                ["latlon", "*_ll_*.nc",
-                  { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["lat:lon"] }
-                ],
-                ["meteogram", "Meteogram_patch*.nc",
-                  { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["max_nlevs:nstations", "nstations"] }
-                ],
-                ["dace", "fof*.nc",
-                  { "format": "netcdf", "time_dim": null, "horizontal_dims": ["d_body"]}
-                ],
-                ["NetCDF", "*.nc",
-                  { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["ncells", "ncells_2", "nedges", "nvertices"] }
-                ],
-                ["total_integrals", "total_integrals.dat",
-                  { "format": "csv", "parser_args": {
+            "file_specification": [{
+                "latlon": { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["lat:lon"] },
+                "meteogram": { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["max_nlevs:nstations", "nstations"] },
+                "dace":{ "format": "netcdf", "time_dim": null, "horizontal_dims": ["d_body"]},
+                "NetCDF": { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["ncells", "ncells_2", "nedges", "nvertices"] },
+                "total_integrals": { "format": "csv", "parser_args": {
                     "delimiter": "\\s+",
                     "skiprows": 1,
                     "index_col": 0,
                     "names": ["timestep", "m", "mdry", "e", "kine", "inne", "pote", "msp"]
-                  }}
-                ],
-                ["tracer_total_integrals", "tracer_total_integrals.dat",
-                  { "format": "csv", "parser_args": {
+                  }},
+                "tracer_total_integrals": { "format": "csv", "parser_args": {
                     "delimiter": "\\s+",
                     "skiprows": 1,
                     "index_col": [0,2],
                     "names": ["timestep", "time_hr", "tracer_nr", "total", "relative_error_to_previous", "relative_error_to_1"]
                   }}
-                ],
-                ["ignored", "something_that_should_not_be_matched",
-                  { "format": "ignore" }
-                ]
-            ],
+            }],
             "savedir": "{{codebase_install}}/experiments/{{experiment_name}}"
         },
     "perturb":

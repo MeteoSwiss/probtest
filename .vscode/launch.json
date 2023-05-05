@@ -173,8 +173,15 @@
                 "test-experiment",
                 "--reference",
                 "/dummy/references",
-                "--file-ids",
-                "fid1,fid2,fid3",
+                "--file-id",
+                "NetCDF"
+                "*fid1*",
+                "--file-id",
+                "NetCDF"
+                "*fid2*",
+                "--file-id",
+                "NetCDF"
+                "*fid3*",
                 "--config",
                 "dummy.json",
                 "--timing-current",

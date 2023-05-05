@@ -89,8 +89,10 @@ cli_help = {
     "files": r"the files that need to be perturbed (comma separated list)",
     "variable_names": r"the variables that are perturbed (comma separated list)",
     "copy_all_files": r"copy all files from the model_input_dir directory",
-    "file_ids": r"a unique identifier glob of the files containing the variables to be "
-    + r"analysed (comma separated list, e.g. '*atm*.nc,Meteogram*.nc')",
+    "file_ids": r"Deprecated",
+    "file_id": r"A unique identifier GLOB of the files containing the variables to be "
+    + r"analysed and the file specification FORMAT. Put glob in quotes to avoid glob "
+    + r"expansion by shell.",
     "ensemble": r"For ensemble stats: the sub-directory where the ensemble outputs are",
     "file_specification": "Specify how different file types shall be read. This "
     + r"option must be defined in the json config file. See doc string of  "

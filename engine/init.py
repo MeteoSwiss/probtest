@@ -1,3 +1,4 @@
+import json
 import pathlib
 from pathlib import Path
 
@@ -19,10 +20,12 @@ from util.log_handler import logger
 )
 @click.option("--experiment-name", help=cli_help["experiment_name"], default="")
 @click.option(
-    "--file-ids",
-    type=CommaSeperatedStrings(),
-    default=[],
-    help=cli_help["file_ids"],
+    "--file-id",
+    nargs=2,
+    type=str,
+    multiple=True,
+    metavar="FORMAT GLOB",
+    help=cli_help["file_id"],
 )
 @click.option("--reference", help=cli_help["reference"], default="")
 @click.option(
@@ -61,7 +64,7 @@ from util.log_handler import logger
 def init(
     codebase_install,
     experiment_name,
-    file_ids,
+    file_id,
     reference,
     config,
     template_name,
@@ -71,7 +74,6 @@ def init(
     timing_reference,
     append_time,
 ):
-    # load jinja file
     template_partition = str(template_name).rpartition("/")
     env = Environment(
         loader=FileSystemLoader(template_partition[0]), undefined=StrictUndefined
@@ -80,13 +82,10 @@ def init(
     # The template is supposed to be a valid json file so that in can work as
     # a default PROBTEST_CONFIG (even without running init first)
 
-    # Format file_ids from list of strings to "id1", "id2", "id3"
-    format_file_ids = ", ".join(['"{}"'.format(f) for f in file_ids])
     # Format member_ids from list of strings to ['1', '2', '3']
     format_member_ids = ", ".join(['"{}"'.format(m) for m in member_ids])
 
     # Drop leading and tailing quotes as they are already in the template
-    format_file_ids = format_file_ids[1:-1]
     format_member_ids = format_member_ids[1:-1]
 
     # emit warnings if variables are not set
@@ -95,8 +94,8 @@ def init(
         logger.warning(warn_template.format("codebase_install", ""))
     if not experiment_name:
         logger.warning(warn_template.format("experiment_name", ""))
-    if not file_ids:
-        logger.warning(warn_template.format("file_ids", format_file_ids))
+    if not file_id:
+        logger.warning(warn_template.format("file_id", ""))
     if not reference:
         logger.warning(warn_template.format("reference", ""))
     if not member_ids:
@@ -114,7 +113,6 @@ def init(
     render_dict = {}
     render_dict["experiment_name"] = experiment_name
     render_dict["codebase_install"] = Path(codebase_install).resolve()
-    render_dict["file_ids"] = format_file_ids
     render_dict["reference"] = Path(reference).resolve()
     render_dict["member_ids"] = format_member_ids
     render_dict["perturb_amplitude"] = perturb_amplitude
@@ -122,10 +120,15 @@ def init(
     render_dict["timing_reference"] = timing_reference
     render_dict["append_time"] = append_time
 
-    # render and print jinja file
-    probtest_config = open(config, "w")
-    probtest_config.write(template.render(render_dict))
-    probtest_config.close()
+    # render jinja
+    rendered = template.render(render_dict)
+    # append file_id via json
+    json_dict = json.loads(rendered)
+    json_dict["default"]["file_id"] = file_id
+    rendered = json.dumps(json_dict, indent=2)
+    # print file
+    with open(config, "w") as probtest_config:
+        probtest_config.write(rendered)
 
     print("Successfully wrote probtest configuration to " + config)
     return 0

@@ -11,8 +11,8 @@ def monotonically_increasing(L):
     return all(x <= y for x, y in zip(L[:-1], L[1:]))
 
 
-def create_stats_dataframe(input_dir, file_ids, stats_file_name, file_specification):
-    df = df_from_file_ids(file_ids, input_dir, file_specification)
+def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specification):
+    df = df_from_file_ids(file_id, input_dir, file_specification)
 
     logger.info("writing stats file to {}".format(stats_file_name))
 
@@ -37,9 +37,12 @@ def create_stats_dataframe(input_dir, file_ids, stats_file_name, file_specificat
     help=cli_help["model_output_dir"],
 )
 @click.option(
-    "--file-ids",
-    type=CommaSeperatedStrings(),
-    help=cli_help["file_ids"],
+    "--file-id",
+    nargs=2,
+    type=str,
+    multiple=True,
+    metavar="FORMAT GLOB",
+    help=cli_help["file_id"],
 )
 @click.option(
     "--member_ids",
@@ -59,18 +62,21 @@ def stats(
     ensemble,
     stats_file_name,
     model_output_dir,
-    file_ids,
+    file_id,
     member_ids,
     perturbed_model_output_dir,
     file_specification,
 ):
+    file_specification = file_specification[0]  # can't store dicts as defaults in click
+    assert isinstance(file_specification, dict), "must be dict"
+
     # compute stats for the ensemble run
     if ensemble:
         for m_id in member_ids:
             input_dir = perturbed_model_output_dir.format(member_id=m_id)
             create_stats_dataframe(
                 input_dir,
-                file_ids,
+                file_id,
                 stats_file_name.format(member_id=m_id),
                 file_specification,
             )
@@ -80,7 +86,7 @@ def stats(
     # stats_{member_id} -> stats_ref (used again in "tolerance")
     create_stats_dataframe(
         model_output_dir,
-        file_ids,
+        file_id,
         stats_file_name.format(member_id="ref"),
         file_specification,
     )

@@ -25,7 +25,11 @@ export PROBTEST_CONFIG=${EXP}.json
 python "${SCRIPT_DIR}/probtest.py" init \
   --codebase-install "${ICON_DIR}" \
   --experiment-name "${EXP}" \
-  --file-ids "*trc_3d*.nc,*phy_3d*.nc,*lnd*.nc,*atm_3d*.nc,*atm_2d*.nc" \
+  --file-id NetCDF "*trc_3d*.nc" \
+  --file-id NetCDF "*phy_3d*.nc" \
+  --file-id NetCDF "*lnd*.nc" \
+  --file-id NetCDF "*atm_3d*.nc" \
+  --file-id NetCDF "*atm_2d*.nc" \
   --reference "${REFERENCE_DIR}" \
   --config "${PROBTEST_CONFIG}"
 
