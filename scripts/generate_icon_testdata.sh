@@ -31,7 +31,7 @@ do
     python $PROBTEST_DIR/probtest.py init \
         --codebase-install "$ICON_DATA" \
         --experiment-name "$exp" \
-        ${file_id[*]} \
+        "${file_id[@]}" \
         --reference "$PROBTEST_DATA" \
         --template-name "$PROBTEST_DIR/templates/testdata.jinja" \
         --member_ids 1,2 \
