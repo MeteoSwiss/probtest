@@ -64,7 +64,7 @@ def read_input_file(label, file_name, specification):
 
     if len(var_dfs) == 0:
         logger.error("Could not find any variables in `{}`".format(file_name))
-        logger.error("Fid: `{}` ".format(label))
+        logger.error("Wrong file format or specification? Fid: `{}` ".format(label))
         sys.exit(1)
 
     # different variables in a file have same timestamps:
