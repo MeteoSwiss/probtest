@@ -67,7 +67,7 @@ class TestStatsNetcdf(unittest.TestCase):
 
         df = create_stats_dataframe(
             input_dir=".",
-            file_id=["Test data", self.nc_file_glob],
+            file_id=[["Test data", self.nc_file_glob]],
             stats_file_name=self.stats_file_names,
             file_specification=file_specification,
         )
@@ -123,7 +123,7 @@ class TestStatsCsv(unittest.TestCase):
 
         df = create_stats_dataframe(
             input_dir=".",
-            file_id=["Test data", self.dat_file_name],
+            file_id=[["Test data", self.dat_file_name]],
             stats_file_name=self.stats_file_name,
             file_specification=file_specification,
         )
