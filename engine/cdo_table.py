@@ -108,6 +108,9 @@ def cdo_table(
         )
     member_id = member_ids[0]
 
+    file_specification = file_specification[0]  # can't store dicts as defaults in click
+    assert isinstance(file_specification, dict), "must be dict"
+
     # modify netcdf parse method:
     model_output_parser.dataframe_from_ncfile = rel_diff_stats
 
