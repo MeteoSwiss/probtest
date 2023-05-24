@@ -18,7 +18,6 @@ do
         file_id=(
             --file-id NetCDF "*atm_3d*.nc"
             --file-id NetCDF "*lnd*.nc"
-            --file-id ignore "*restart_atm*"
         )
     fi
     if [[ "$exp" == "mch_opr_r04b07_lhn_12" ]]; then
