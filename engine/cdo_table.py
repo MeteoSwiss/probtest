@@ -10,7 +10,7 @@ from util import model_output_parser
 from util.click_util import CommaSeperatedStrings, cli_help
 from util.constants import cdo_bins
 from util.dataframe_ops import df_from_file_ids
-from util.file_system import file_names_from_regex
+from util.file_system import file_names_from_pattern
 from util.log_handler import logger
 
 
@@ -71,7 +71,7 @@ def rel_diff_stats(file_id, filename, varname, time_dim, horizontal_dims, xarray
     nargs=2,
     type=str,
     multiple=True,
-    metavar="FORMAT GLOB",
+    metavar="FILE_FORMAT FILE_PATTERN",
     help=cli_help["file_id"],
 )
 @click.option(
@@ -116,20 +116,20 @@ def cdo_table(
 
     # step 1: compute rel-diff netcdf files
     with tempfile.TemporaryDirectory() as tmpdir:
-        for file_format, fid_glob in file_id:
-            ref_files, err = file_names_from_regex(model_output_dir, fid_glob)
+        for file_format, file_pattern in file_id:
+            ref_files, err = file_names_from_pattern(model_output_dir, file_pattern)
             if err > 0:
                 logger.info(
-                    "did not find any files for ID {}. Continue.".format(fid_glob)
+                    "did not find any files for ID {}. Continue.".format(file_pattern)
                 )
                 continue
             ref_files.sort()
-            perturb_files, err = file_names_from_regex(
-                perturbed_model_output_dir.format(member_id=member_id), fid_glob
+            perturb_files, err = file_names_from_pattern(
+                perturbed_model_output_dir.format(member_id=member_id), file_pattern
             )
             if err > 0:
                 logger.info(
-                    "did not find any files for ID {}. Continue.".format(fid_glob)
+                    "did not find any files for ID {}. Continue.".format(file_pattern)
                 )
                 continue
             perturb_files.sort()

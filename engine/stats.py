@@ -41,7 +41,7 @@ def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specificati
     nargs=2,
     type=str,
     multiple=True,
-    metavar="FORMAT GLOB",
+    metavar="FILE_FORMAT FILE_PATTERN",
     help=cli_help["file_id"],
 )
 @click.option(

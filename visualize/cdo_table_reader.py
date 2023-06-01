@@ -14,9 +14,9 @@ pd.set_option("expand_frame_repr", False)
     help=cli_help["variables"],
 )
 @click.option(
-    "--file-ids",
+    "--file-id",
     type=CommaSeperatedStrings(),
-    help=cli_help["file_ids"],
+    help=cli_help["file_id"],
 )
 @click.option(
     "--times",
@@ -32,9 +32,17 @@ pd.set_option("expand_frame_repr", False)
     "--cdo-table-file",
     help=cli_help["cdo_table_file"],
 )
-def cdo_table_reader(variables, file_ids, times, histogram, cdo_table_file):
+def cdo_table_reader(variables, file_id, times, histogram, cdo_table_file):
     variables = variables if variables else slice(None)
-    file_ids = file_ids if file_ids else slice(None)
+
+    if file_id:  # untested code
+        file_ids = [
+            "{}:{}".format(file_format, file_pattern)
+            for file_format, file_pattern in file_id
+        ]
+    else:
+        file_ids = slice(None)
+
     times = times if times else slice(None)
     hist = slice(None) if histogram else "rel_diff"
 

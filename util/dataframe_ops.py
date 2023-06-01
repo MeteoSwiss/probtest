@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from util.constants import CHECK_THRESHOLD
-from util.file_system import file_names_from_regex
+from util.file_system import file_names_from_pattern
 from util.log_handler import logger
 from util.model_output_parser import model_output_parser
 
@@ -74,7 +74,11 @@ def read_input_file(label, file_name, specification):
 
 def df_from_file_ids(file_id, input_dir, file_specification):
     """
-    file_id: [[file_format, file_glob], [file_format, file_glob], ...]
+    file_id: [[file_format, file_pattern], [file_format, file_pattern], ...]
+        List of 2-tuples. The 2-tuple combines two strings. The first sets the
+        file_format and must be a key in file_specification. The second string
+        is a file name pattern. file_pattern is extended to real file names using
+        glob. file_pattern may contain simple shell-style wildcards such as "*".
     file_specification: {file_format: specification, ...}
         file_format: str
             Name of the file specification
@@ -99,11 +103,13 @@ def df_from_file_ids(file_id, input_dir, file_specification):
     # Time-concatenated frames from different ids and/or specifications will be
     # concatenated along variable-axis (axis=0).
     fid_dfs = []
-    for file_format, fid_glob in file_id:
-        input_files, err = file_names_from_regex(input_dir, fid_glob)
+    for file_format, file_pattern in file_id:
+        input_files, err = file_names_from_pattern(input_dir, file_pattern)
         if err > 0:
             logger.info(
-                "did not find any files for ID glob {}. Continue.".format(fid_glob)
+                "Can not find any files for file_pattern {}. Continue.".format(
+                    file_pattern
+                )
             )
             continue
 
@@ -111,8 +117,8 @@ def df_from_file_ids(file_id, input_dir, file_specification):
             specification = file_specification[file_format]
         except KeyError:
             logger.error(
-                "No parser defined for format `{}` of fid_glob `{}`.".format(
-                    file_format, fid_glob
+                "No parser defined for format `{}` of file_pattern `{}`.".format(
+                    file_format, file_pattern
                 )
             )
             sys.exit(1)
@@ -120,7 +126,7 @@ def df_from_file_ids(file_id, input_dir, file_specification):
         file_dfs = []
         for f in input_files:
             var_df = read_input_file(
-                label="{}:{}".format(file_format, fid_glob),
+                label="{}:{}".format(file_format, file_pattern),
                 file_name="{}/{}".format(input_dir, f),
                 specification=specification,
             )
