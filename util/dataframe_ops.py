@@ -74,14 +74,14 @@ def read_input_file(label, file_name, specification):
 
 def df_from_file_ids(file_id, input_dir, file_specification):
     """
-    file_id: [[file_format, file_pattern], [file_format, file_pattern], ...]
+    file_id: [[file_type, file_pattern], [file_type, file_pattern], ...]
         List of 2-tuples. The 2-tuple combines two strings. The first sets the
-        file_format and must be a key in file_specification. The second string
+        file_type and must be a key in file_specification. The second string
         is a file name pattern. file_pattern is extended to real file names using
         glob. file_pattern may contain simple shell-style wildcards such as "*".
-    file_specification: {file_format: specification, ...}
-        file_format: str
-            Name of the file specification
+    file_specification: {file_type: specification, ...}
+        file_type: str
+            Name of the file type specification
         specification: dict(format: str, **kwargs)
             dictionary that specifies the file format defined by the key.
             format: str
@@ -103,7 +103,7 @@ def df_from_file_ids(file_id, input_dir, file_specification):
     # Time-concatenated frames from different ids and/or specifications will be
     # concatenated along variable-axis (axis=0).
     fid_dfs = []
-    for file_format, file_pattern in file_id:
+    for file_type, file_pattern in file_id:
         input_files, err = file_names_from_pattern(input_dir, file_pattern)
         if err > 0:
             logger.info(
@@ -114,11 +114,11 @@ def df_from_file_ids(file_id, input_dir, file_specification):
             continue
 
         try:
-            specification = file_specification[file_format]
+            specification = file_specification[file_type]
         except KeyError:
             logger.error(
                 "No parser defined for format `{}` of file_pattern `{}`.".format(
-                    file_format, file_pattern
+                    file_type, file_pattern
                 )
             )
             sys.exit(1)
@@ -126,7 +126,7 @@ def df_from_file_ids(file_id, input_dir, file_specification):
         file_dfs = []
         for f in input_files:
             var_df = read_input_file(
-                label="{}:{}".format(file_format, file_pattern),
+                label="{}:{}".format(file_type, file_pattern),
                 file_name="{}/{}".format(input_dir, f),
                 specification=specification,
             )

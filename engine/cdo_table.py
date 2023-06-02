@@ -71,7 +71,7 @@ def rel_diff_stats(file_id, filename, varname, time_dim, horizontal_dims, xarray
     nargs=2,
     type=str,
     multiple=True,
-    metavar="FILE_FORMAT FILE_PATTERN",
+    metavar="FILE_TYPE FILE_PATTERN",
     help=cli_help["file_id"],
 )
 @click.option(
@@ -116,11 +116,13 @@ def cdo_table(
 
     # step 1: compute rel-diff netcdf files
     with tempfile.TemporaryDirectory() as tmpdir:
-        for file_format, file_pattern in file_id:
+        for file_type, file_pattern in file_id:
             ref_files, err = file_names_from_pattern(model_output_dir, file_pattern)
             if err > 0:
                 logger.info(
-                    "did not find any files for ID {}. Continue.".format(file_pattern)
+                    "did not find any files for pattern {}. Continue.".format(
+                        file_pattern
+                    )
                 )
                 continue
             ref_files.sort()
@@ -129,7 +131,9 @@ def cdo_table(
             )
             if err > 0:
                 logger.info(
-                    "did not find any files for ID {}. Continue.".format(file_pattern)
+                    "did not find any files for pattern {}. Continue.".format(
+                        file_pattern
+                    )
                 )
                 continue
             perturb_files.sort()

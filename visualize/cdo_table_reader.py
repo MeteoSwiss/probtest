@@ -37,8 +37,8 @@ def cdo_table_reader(variables, file_id, times, histogram, cdo_table_file):
 
     if file_id:  # untested code
         file_ids = [
-            "{}:{}".format(file_format, file_pattern)
-            for file_format, file_pattern in file_id
+            "{}:{}".format(file_type, file_pattern)
+            for file_type, file_pattern in file_id
         ]
     else:
         file_ids = slice(None)

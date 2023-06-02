@@ -24,7 +24,7 @@ from util.log_handler import logger
     nargs=2,
     type=str,
     multiple=True,
-    metavar="FILE_FORMAT FILE_PATTERN",
+    metavar="FILE_TYPE FILE_PATTERN",
     help=cli_help["file_id"],
 )
 @click.option("--reference", help=cli_help["reference"], default="")
