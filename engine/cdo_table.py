@@ -10,7 +10,7 @@ from util import model_output_parser
 from util.click_util import CommaSeperatedStrings, cli_help
 from util.constants import cdo_bins
 from util.dataframe_ops import df_from_file_ids
-from util.file_system import file_names_from_regex
+from util.file_system import file_names_from_pattern
 from util.log_handler import logger
 
 
@@ -67,9 +67,12 @@ def rel_diff_stats(file_id, filename, varname, time_dim, horizontal_dims, xarray
     help=cli_help["model_output_dir"],
 )
 @click.option(
-    "--file-ids",
-    type=CommaSeperatedStrings(),
-    help=cli_help["file_ids"],
+    "--file-id",
+    nargs=2,
+    type=str,
+    multiple=True,
+    metavar="FILE_TYPE FILE_PATTERN",
+    help=cli_help["file_id"],
 )
 @click.option(
     "--member_ids",
@@ -91,7 +94,7 @@ def rel_diff_stats(file_id, filename, varname, time_dim, horizontal_dims, xarray
 )
 def cdo_table(
     model_output_dir,
-    file_ids,
+    file_id,
     member_ids,
     perturbed_model_output_dir,
     cdo_table_file,
@@ -105,22 +108,33 @@ def cdo_table(
         )
     member_id = member_ids[0]
 
+    file_specification = file_specification[0]  # can't store dicts as defaults in click
+    assert isinstance(file_specification, dict), "must be dict"
+
     # modify netcdf parse method:
     model_output_parser.dataframe_from_ncfile = rel_diff_stats
 
     # step 1: compute rel-diff netcdf files
     with tempfile.TemporaryDirectory() as tmpdir:
-        for fid in file_ids:
-            ref_files, err = file_names_from_regex(model_output_dir, fid)
+        for file_type, file_pattern in file_id:
+            ref_files, err = file_names_from_pattern(model_output_dir, file_pattern)
             if err > 0:
-                logger.info("did not find any files for ID {}. Continue.".format(fid))
+                logger.info(
+                    "did not find any files for pattern {}. Continue.".format(
+                        file_pattern
+                    )
+                )
                 continue
             ref_files.sort()
-            perturb_files, err = file_names_from_regex(
-                perturbed_model_output_dir.format(member_id=member_id), fid
+            perturb_files, err = file_names_from_pattern(
+                perturbed_model_output_dir.format(member_id=member_id), file_pattern
             )
             if err > 0:
-                logger.info("did not find any files for ID {}. Continue.".format(fid))
+                logger.info(
+                    "did not find any files for pattern {}. Continue.".format(
+                        file_pattern
+                    )
+                )
                 continue
             perturb_files.sort()
 
@@ -152,7 +166,7 @@ def cdo_table(
                 diff_data.close()
 
         # step 2: generate dataframe from precomputed relative differences
-        df = df_from_file_ids(file_ids, tmpdir, file_specification)
+        df = df_from_file_ids(file_id, tmpdir, file_specification)
 
         # normalize histogram component of DataFrame
         times = np.array(df.columns.levels[0], dtype=int)

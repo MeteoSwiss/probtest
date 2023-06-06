@@ -79,7 +79,7 @@ cli_help = {
     "perturbed_experiment_name": r"Template for the name of the perturbed experiments. "
     + r"Must contain '\{member_id\}'.",
     "tolerance_file_name": r"the name of the file containing the tolerances "
-    + r"(per timestep and variable)",
+    + r"(per time step and variable)",
     "stats_file_name": r"the name of the stats file. No absolute path here, it will "
     + r"always be create in the (perturbed) model_output_dir.",
     "member_ids": r"member_id of the ensemble. Each member_id will generate a new set "
@@ -89,8 +89,11 @@ cli_help = {
     "files": r"the files that need to be perturbed (comma separated list)",
     "variable_names": r"the variables that are perturbed (comma separated list)",
     "copy_all_files": r"copy all files from the model_input_dir directory",
-    "file_ids": r"a unique identifier glob of the files containing the variables to be "
-    + r"analysed (comma separated list, e.g. '*atm*.nc,Meteogram*.nc')",
+    "file_id": r"A unique identifier and file pattern FILE_PATTERN of the files "
+    + r"containing the variables to be analysed and the file specification label "
+    + r"FILE_TYPE. FILE_PATTERN may contain simple shell-style wildcards such as "
+    + r"\"*\" and will be expanded internally by glob. Put FILE_PATTERN in quotes to "
+    + r"avoid early glob expansion by the calling shell.",
     "ensemble": r"For ensemble stats: the sub-directory where the ensemble outputs are",
     "file_specification": "Specify how different file types shall be read. This "
     + r"option must be defined in the json config file. See doc string of  "
@@ -111,10 +114,10 @@ cli_help = {
     "perturbed_run_script_name": r"Template for the perturbed experiment name. Must "
     + r"contain '\{member_id\}'.",
     "lhs": r"replace assignments in the runscript. For multiples, use comma separated "
-    + r"list. Note that the new right handside can depend on \{member_id\} define left "
-    + r"handside",
-    "rhs_new": r"define new right handside",
-    "rhs_old": r"define old right handside (optional, put None if not needed)",
+    + r"list. Note that the new right hand side can depend on \{member_id\} define "
+    + r"left hand side",
+    "rhs_new": r"define new right hand side",
+    "rhs_old": r"define old right hand side (optional, put None if not needed)",
     "submit_command": r"How a model simulation is submitted",
     "parallel": r"can the jobs run in parallel?",
     "dry": r"only generate runscripts, do not run the model",
@@ -123,7 +126,7 @@ cli_help = {
     "variables": r"select variables to print CDO diff from ensemble",
     "times": r"select times to print CDO diff from ensemble",
     "histogram": r"print out full histogram of relative differences",
-    "codebase_install": r"the directory where the codebase is installed",
+    "codebase_install": r"the directory where the code base is installed",
     "reference": r"the directory where reference files are read from and written to",
     "config": r"the name of the config file that is being generated",
     "template_name": r"path to the template for the config file",

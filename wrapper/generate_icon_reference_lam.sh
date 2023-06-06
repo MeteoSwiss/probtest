@@ -22,7 +22,7 @@ ICON_DIR=$(pwd)
 export PROBTEST_CONFIG=${EXP}.json
 
 # initialize configuration file
-python ${SCRIPT_DIR}/probtest.py init --codebase-install ${ICON_DIR} --experiment-name ${EXP} --file-ids atm_3d --reference ${REFERENCE_DIR} --config ${PROBTEST_CONFIG}
+python ${SCRIPT_DIR}/probtest.py init --codebase-install ${ICON_DIR} --experiment-name ${EXP} --file-id NetCDF "*atm_3d*" --reference ${REFERENCE_DIR} --config ${PROBTEST_CONFIG}
 
 python ${SCRIPT_DIR}/probtest.py run-ensemble --submit-command "sbatch --wait --account=g110" || exit 1
 python ${SCRIPT_DIR}/probtest.py stats --ensemble || exit 1

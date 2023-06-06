@@ -1,12 +1,10 @@
-import collections
-import pathlib
 import sys
 
 import numpy as np
 import pandas as pd
 
 from util.constants import CHECK_THRESHOLD
-from util.file_system import file_names_from_regex
+from util.file_system import file_names_from_pattern
 from util.log_handler import logger
 from util.model_output_parser import model_output_parser
 
@@ -50,62 +48,40 @@ def parse_probtest_csv(path, index_col):
     return pd.DataFrame(df, columns=new_cols)
 
 
-# reduce the amount of logging by logging each message only once.
-logged_parser_fid_combination = []
-
-
-def try_to_read_input_file(fid, file_name, file_specification):
-    """Try to read input file file_name using the file_specification."""
-    for spec_label, spec_glob, specification in file_specification:
-        if pathlib.Path(file_name).match(spec_glob):
-            try:
-                file_parser = model_output_parser[specification["format"].lower()]
-            except KeyError:
-                logger.error(
-                    "No parser defined for format `{}` of file `{}`.".format(
-                        specification["format"], file_name
-                    )
-                )
-                sys.exit(1)
-            logger.debug(
-                "Use file_parser `{}` for file `{}`".format(spec_label, file_name)
-            )
-            message = "Use file_parser `{}` for fid `{}`".format(spec_label, fid)
-            if message not in logged_parser_fid_combination:
-                logged_parser_fid_combination.append(message)
-                logger.info(message)
-            var_dfs = file_parser(
-                "{}:{}".format(spec_label, fid), file_name, specification
-            )
-            break
-    else:
-        logger.error("No specification to read file `{}` found.".format(file_name))
-        sys.exit(1)
-
-    if var_dfs is None:
-        # the do_nothing parser returns None
-        return spec_label, None
-
-    if len(var_dfs) == 0:
-        logger.error("Could not find any variables in `{}`".format(file_name))
+def read_input_file(label, file_name, specification):
+    """Read input file file_name using the specification."""
+    try:
+        file_parser = model_output_parser[specification["format"].lower()]
+    except KeyError:
         logger.error(
-            "Used file_parser `{}` with glob `{}` ".format(spec_label, spec_glob)
+            "No parser defined for format `{}` of file `{}`.".format(
+                specification["format"], file_name
+            )
         )
         sys.exit(1)
 
-    return spec_label, pd.concat(var_dfs, axis=0)
+    var_dfs = file_parser(label, file_name, specification)
+
+    if len(var_dfs) == 0:
+        logger.error("Could not find any variables in `{}`".format(file_name))
+        logger.error("Wrong file format or specification? Fid: `{}` ".format(label))
+        sys.exit(1)
 
     # different variables in a file have same timestamps:
     # concatenate along variable axis
+    return pd.concat(var_dfs, axis=0)
 
 
-def df_from_file_ids(file_ids, input_dir, file_specification):
+def df_from_file_ids(file_id, input_dir, file_specification):
     """
-    file_specification: [list(spec_label, spec_glob, specification), ...]
-        spec_label: str
-            Name of the file specification
-        spec_glob: str
-            Glob to match specific files via pathlib.Path.match
+    file_id: [[file_type, file_pattern], [file_type, file_pattern], ...]
+        List of 2-tuples. The 2-tuple combines two strings. The first sets the
+        file_type and must be a key in file_specification. The second string
+        is a file name pattern. file_pattern is extended to real file names using
+        glob. file_pattern may contain simple shell-style wildcards such as "*".
+    file_specification: {file_type: specification, ...}
+        file_type: str
+            Name of the file type specification
         specification: dict(format: str, **kwargs)
             dictionary that specifies the file format defined by the key.
             format: str
@@ -126,26 +102,43 @@ def df_from_file_ids(file_ids, input_dir, file_specification):
     # different timestamps and have to be concatenated along time-axis (axis=1).
     # Time-concatenated frames from different ids and/or specifications will be
     # concatenated along variable-axis (axis=0).
-    dfs_of_fid_and_spec = collections.defaultdict(list)
-
-    for fid in file_ids:
-        input_files, err = file_names_from_regex(input_dir, fid)
+    fid_dfs = []
+    for file_type, file_pattern in file_id:
+        input_files, err = file_names_from_pattern(input_dir, file_pattern)
         if err > 0:
-            logger.info("did not find any files for ID glob {}. Continue.".format(fid))
+            logger.info(
+                "Can not find any files for file_pattern {}. Continue.".format(
+                    file_pattern
+                )
+            )
             continue
 
-        for f in input_files:
-            spec_label, var_df = try_to_read_input_file(
-                fid, "{}/{}".format(input_dir, f), file_specification
+        try:
+            specification = file_specification[file_type]
+        except KeyError:
+            logger.error(
+                "No parser defined for format `{}` of file_pattern `{}`.".format(
+                    file_type, file_pattern
+                )
             )
-            if var_df is not None:
-                dfs_of_fid_and_spec[(fid, spec_label)].append(var_df)
+            sys.exit(1)
 
-    fid_dfs = []
-    for file_dfs in dfs_of_fid_and_spec.values():
+        file_dfs = []
+        for f in input_files:
+            var_df = read_input_file(
+                label="{}:{}".format(file_type, file_pattern),
+                file_name="{}/{}".format(input_dir, f),
+                specification=specification,
+            )
+            file_dfs.append(var_df)
+
         # same file IDs and file type specification will have same variables but
         # with different timestamps: concatenate along time axis
         fid_dfs.append(pd.concat(file_dfs, axis=1))
+
+    if len(fid_dfs) == 0:
+        logger.error("Could not find any file.")
+        sys.exit(2)
 
     fid_dfs = unify_time_index(fid_dfs)
     # different file IDs will have different variables but with same timestamps:

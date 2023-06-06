@@ -206,12 +206,7 @@ def parse_csv(file_id, filename, specification):
     return [pd.DataFrame(matrix, index=index, columns=columns)]
 
 
-def do_nothing(*args, **kwargs):
-    return None
-
-
 model_output_parser = {  # global lookup dict
     "netcdf": parse_netcdf,
     "csv": parse_csv,
-    "ignore": do_nothing,
 }
