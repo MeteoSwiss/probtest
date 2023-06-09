@@ -10,14 +10,16 @@ def file_names_from_pattern(dir_name, file_pattern):
     Parameters
     ----------
     dir_name : str
-    file_pattern: str
+    file_pattern : str
         file_pattern may contain simple shell-style wildcards such as "*".
         file_pattern may contain "/" to specify subdirectories.
 
     Returns
     -------
-    file_names: list of str
+    file_names : list of str
         A list of matched file names that are relative to dir_name.
+    err : int
+        non-zero if error occurred
     """
     err = 0
     matched_pattern = Path(dir_name).glob(file_pattern)
