@@ -44,9 +44,10 @@ class TestStatsNetcdf(unittest.TestCase):
         data.variables["v1"][:, :, 0] = 0
         data.variables["v1"][:, :, -1] = 2
 
-        data.createVariable("v2", np.float64, dimensions=("t", "x"))
+        data.createVariable("v2", np.float64, dimensions=("t", "x"), fill_value=42)
         data.variables["v2"][:] = np.ones((TIME_DIM_SIZE, HOR_DIM_SIZE)) * 2
         data.variables["v2"][:, 0] = 1
+        data.variables["v2"][:, 1] = 42  # shall be ignored in max-statistic
         data.variables["v2"][:, -1] = 3
 
         data.createVariable("v3", np.float64, dimensions=("t", "x"))
@@ -62,7 +63,12 @@ class TestStatsNetcdf(unittest.TestCase):
 
     def test_stats(self):
         file_specification = {
-            "Test data": dict(format="netcdf", time_dim="t", horizontal_dims=["x"]),
+            "Test data": dict(
+                format="netcdf",
+                time_dim="t",
+                horizontal_dims=["x"],
+                fill_value_key="_FillValue",  # This should be the name for fill_value.
+            ),
         }
 
         df = create_stats_dataframe(

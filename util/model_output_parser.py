@@ -37,6 +37,7 @@ def parse_netcdf(file_id, filename, specification):
     logger.debug("parse NetCDF file {}".format(filename))
     time_dim = specification["time_dim"]
     horizontal_dims = specification["horizontal_dims"]
+    fill_value_key = specification.get("fill_value_key", None)
     ds = xarray.open_dataset(filename, decode_cf=False)
 
     var_tmp = __get_variables(ds, time_dim, horizontal_dims)
@@ -51,6 +52,7 @@ def parse_netcdf(file_id, filename, specification):
             time_dim=time_dim,
             horizontal_dims=horizontal_dims,
             xarray_ds=ds,
+            fill_value_key=fill_value_key,
         )
         var_dfs.append(sub_df)
 
@@ -98,10 +100,13 @@ def __get_variables(data, time_dim, horizontal_dims):
 
 
 def dataframe_from_ncfile(
-    file_id, filename, varname, time_dim, horizontal_dims, xarray_ds
+    file_id, filename, varname, time_dim, horizontal_dims, xarray_ds, fill_value_key
 ):
     statistics = statistics_over_horizontal_dim(
-        xarray_ds[varname], horizontal_dims, compute_statistics
+        xarray_ds[varname],
+        horizontal_dims,
+        compute_statistics,
+        fill_value_key,
     )
 
     first_stat = statistics[0]
