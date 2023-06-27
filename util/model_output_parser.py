@@ -7,6 +7,7 @@ import xarray
 
 from util.constants import compute_statistics
 from util.log_handler import logger
+from util.utils import numbers
 from util.xarray_ops import statistics_over_horizontal_dim
 
 # Definition of available model output data parsers
@@ -37,6 +38,7 @@ def parse_netcdf(file_id, filename, specification):
     logger.debug("parse NetCDF file {}".format(filename))
     time_dim = specification["time_dim"]
     horizontal_dims = specification["horizontal_dims"]
+    fill_value_key = specification.get("fill_value_key", None)
     ds = xarray.open_dataset(filename, decode_cf=False)
 
     var_tmp = __get_variables(ds, time_dim, horizontal_dims)
@@ -51,6 +53,7 @@ def parse_netcdf(file_id, filename, specification):
             time_dim=time_dim,
             horizontal_dims=horizontal_dims,
             xarray_ds=ds,
+            fill_value_key=fill_value_key,
         )
         var_dfs.append(sub_df)
 
@@ -63,6 +66,9 @@ def __get_variables(data, time_dim, horizontal_dims):
     # and horizontal dimension or in case there is no time dimension just the variables
     #  with horizontal dimension
     all_variables = data.variables.keys()
+    all_variables = [
+        v for v in all_variables if np.issubdtype(data.variables[v].dtype, np.number)
+    ]
 
     variables = []
 
@@ -98,10 +104,13 @@ def __get_variables(data, time_dim, horizontal_dims):
 
 
 def dataframe_from_ncfile(
-    file_id, filename, varname, time_dim, horizontal_dims, xarray_ds
+    file_id, filename, varname, time_dim, horizontal_dims, xarray_ds, fill_value_key
 ):
     statistics = statistics_over_horizontal_dim(
-        xarray_ds[varname], horizontal_dims, compute_statistics
+        xarray_ds[varname],
+        horizontal_dims,
+        compute_statistics,
+        fill_value_key,
     )
 
     first_stat = statistics[0]
@@ -118,12 +127,20 @@ def dataframe_from_ncfile(
         for i, stat in enumerate(statistics):
             matrix[i :: len(statistics), :] = stat.values
     elif len(first_stat.dims) == 1:
-        height = np.array([-1])
-        # matrix needs to have 2 dimensions for DataFrame constructor
-        matrix = np.empty((statistics[0].size * len(statistics), 1))
-        # weave mean max min into time dimension
-        for i, stat in enumerate(statistics):
-            matrix[i :: len(statistics), 0] = stat.values
+        if first_stat.dims[0] == time_dim:
+            height = np.array([-1])
+            # matrix needs to have 2 dimensions for DataFrame constructor
+            matrix = np.empty((first_stat.size * len(statistics), 1))
+            # weave mean max min into time dimension
+            for i, stat in enumerate(statistics):
+                matrix[i :: len(statistics), 0] = stat.values
+        else:
+            height = xarray_ds[first_stat.dims[0]].values
+            # matrix needs to have 2 dimensions for DataFrame constructor
+            matrix = np.empty((len(statistics), first_stat.size))
+            # weave mean max min into time dimension
+            for i, stat in enumerate(statistics):
+                matrix[i, :] = stat.values
     elif len(first_stat.dims) == 0:
         height = np.array([-1])
         # matrix needs to have 2 dimensions for DataFrame constructor
@@ -143,7 +160,9 @@ def dataframe_from_ncfile(
     if time_dim is not None:
         time = xarray_ds[time_dim].values
     else:
-        time = [0]
+        # Derive a pseudo time from filename. This is required to process multiple
+        # files of the same file type if the file type has not time dimension.
+        time = [numbers(filename)]
 
     index = pd.MultiIndex.from_product(
         [[file_id], [varname], height], names=("file_ID", "variable", "height")

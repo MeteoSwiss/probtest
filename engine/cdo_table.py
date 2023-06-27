@@ -30,7 +30,9 @@ def rel_diff(var1, var2):
     return rel_diff
 
 
-def rel_diff_stats(file_id, filename, varname, time_dim, horizontal_dims, xarray_ds):
+def rel_diff_stats(
+    file_id, filename, varname, time_dim, horizontal_dims, xarray_ds, fill_value_key
+):
     dims = xarray_ds[varname].dims
     dataarray = xarray_ds[varname]
     time = xarray_ds[time_dim].values
@@ -45,9 +47,12 @@ def rel_diff_stats(file_id, filename, varname, time_dim, horizontal_dims, xarray
 
     # compute histogram of relative differences
     for i in range(amax.size):
-        hist, edges = np.histogram(
-            dataarray[{time_dim: i}].values.flatten(), bins=[0] + cdo_bins
-        )
+        data = dataarray[{time_dim: i}].values.flatten()
+        if fill_value_key and fill_value_key in dataarray.attrs:
+            mask = data != dataarray.attrs[fill_value_key]
+            data = data[mask]
+
+        hist, edges = np.histogram(data, bins=[0] + cdo_bins)
         matrix[i * ncol] = amax[i]
         matrix[i * ncol + 1 : i * ncol + ncol] = hist
 

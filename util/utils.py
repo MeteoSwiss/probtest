@@ -1,4 +1,5 @@
 import hashlib
+import re
 
 
 def unique_elements(inlist):
@@ -30,3 +31,8 @@ def generate_seed_from_member_id(member_id, use_64_bits=True):
             byteorder="little",
             signed=True,
         )
+
+
+def numbers(s):
+    "join all numbers from a string and return as an int (base 10)"
+    return int("".join(re.findall(r"\d+", s)))
