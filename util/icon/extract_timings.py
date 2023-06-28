@@ -18,7 +18,10 @@ sec_regex = r"(\d+[.]?\d*)s"
 number_regex = r"(\d+[.]?\d*)"
 
 dateline_regex1 = r"(?:[A-Z][a-z]{2} +){2}\d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{3,4} 20\d{2}"
-dateline_regex2 = r"(?:[A-Z][a-z]{2} +)\d{1,2} (?:[A-Z][a-z]{2} +)20\d{2} \d{2}:\d{2}:\d{2} [A-Z]{2} [A-Z]{3,4}"
+dateline_regex2 = (
+    r"(?:[A-Z][a-z]{2} +)\d{1,2} (?:[A-Z][a-z]{2} +)20\d{2} \d{2}:\d{2}:\d{2} "
+    "[A-Z]{2} [A-Z]{3,4}"
+)
 
 dict_regex = "({} *:) *(.*)"
 
