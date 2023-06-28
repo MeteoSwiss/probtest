@@ -25,6 +25,7 @@ dict_regex = "({} *:) *(.*)"
 icon_date_format1 = "%a %b %d %H:%M:%S %Z %Y"
 icon_date_format2 = "%a %d %b %Y %H:%M:%S %p %Z"
 
+
 def _convert_dateline_to_start_end_dateime(dateline, icon_date_format):
     # LOG.check files have more dates than we need
     # The dates we are interested in are always at the same position relative to the
@@ -116,11 +117,17 @@ def read_logfile(filename):
         dateline2 = re.findall(dateline_regex2, full_file)
 
         if dateline1:
-          start_datetime_converted, finish_datetime_converted = _convert_dateline_to_start_end_dateime(dateline1, icon_date_format1)
+            (
+                start_datetime_converted,
+                finish_datetime_converted,
+            ) = _convert_dateline_to_start_end_dateime(dateline1, icon_date_format1)
         elif dateline2:
-          start_datetime_converted, finish_datetime_converted = _convert_dateline_to_start_end_dateime(dateline2, icon_date_format2)
+            (
+                start_datetime_converted,
+                finish_datetime_converted,
+            ) = _convert_dateline_to_start_end_dateime(dateline2, icon_date_format2)
         else:
-          raise Exception("Could not match any regex for start and end time.")
+            raise Exception("Could not match any regex for start and end time.")
 
         meta_data["start_time"] = start_datetime_converted
         meta_data["finish_time"] = finish_datetime_converted
