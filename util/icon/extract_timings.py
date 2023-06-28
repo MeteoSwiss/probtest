@@ -17,12 +17,30 @@ minute_regex = r"(\d+[.]?\d*)m(\d+[.]?\d*)s"
 sec_regex = r"(\d+[.]?\d*)s"
 number_regex = r"(\d+[.]?\d*)"
 
-date_regex = r"(?:[A-Z][a-z]{2} +){2}\d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{3,4} 20\d{2}"
-dateline_regex = date_regex
+dateline_regex1 = r"(?:[A-Z][a-z]{2} +){2}\d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{3,4} 20\d{2}"
+dateline_regex2 = r"(?:[A-Z][a-z]{2} +)\d{1,2} (?:[A-Z][a-z]{2} +)20\d{2} \d{2}:\d{2}:\d{2} [A-Z]{2} [A-Z]{3,4}"
 
 dict_regex = "({} *:) *(.*)"
 
-icon_date_format = "%a %b %d %H:%M:%S %Z %Y"
+icon_date_format1 = "%a %b %d %H:%M:%S %Z %Y"
+icon_date_format2 = "%a %d %b %Y %H:%M:%S %p %Z"
+
+def _convert_dateline_to_start_end_dateime(dateline, icon_date_format):
+    # LOG.check files have more dates than we need
+    # The dates we are interested in are always at the same position relative to the
+    #  other dates
+    if len(dateline) > 2:
+        dateline = [dateline[1], dateline[2]]
+
+    start_time, finish_time = dateline
+
+    finish_datetime = datetime.strptime(finish_time, icon_date_format)
+    finish_datetime_converted = finish_datetime.strftime(datetime_format)
+
+    start_datetime = datetime.strptime(start_time, icon_date_format)
+    start_datetime_converted = start_datetime.strftime(datetime_format)
+
+    return (start_datetime_converted, finish_datetime_converted)
 
 
 def read_logfile(filename):
@@ -94,21 +112,15 @@ def read_logfile(filename):
         meta_data = {}
 
         # get start and finish time from job
-        dateline = re.findall(dateline_regex, full_file)
+        dateline1 = re.findall(dateline_regex1, full_file)
+        dateline2 = re.findall(dateline_regex2, full_file)
 
-        # LOG.check files have more dates than we need
-        # The dates we are interested in are always at the same position relative to the
-        #  other dates
-        if len(dateline) > 2:
-            dateline = [dateline[1], dateline[2]]
-
-        start_time, finish_time = dateline
-
-        finish_datetime = datetime.strptime(finish_time, icon_date_format)
-        finish_datetime_converted = finish_datetime.strftime(datetime_format)
-
-        start_datetime = datetime.strptime(start_time, icon_date_format)
-        start_datetime_converted = start_datetime.strftime(datetime_format)
+        if dateline1:
+          start_datetime_converted, finish_datetime_converted = _convert_dateline_to_start_end_dateime(dateline1, icon_date_format1)
+        elif dateline2:
+          start_datetime_converted, finish_datetime_converted = _convert_dateline_to_start_end_dateime(dateline2, icon_date_format2)
+        else:
+          raise Exception("Could not match any regex for start and end time.")
 
         meta_data["start_time"] = start_datetime_converted
         meta_data["finish_time"] = finish_datetime_converted
