@@ -8,8 +8,9 @@ import pandas as pd
 from util.icon.extract_timings import read_logfile
 from util.tree import TimingTree
 
-timing_file = "tests/data/timing_example.txt"
+timing_file_1 = "tests/data/timing_example_1.txt"
 timing_file_2 = "tests/data/timing_example_2.txt"
+timing_file_3 = "tests/data/timing_example_3.txt"
 
 json_reference = "tests/data/reference"
 json_tree_reference = "tests/data/reference_tree.json"
@@ -58,7 +59,7 @@ class TestTimingTree(unittest.TestCase):
             )
 
     def test_read_timing(self):
-        tt = TimingTree.from_logfile(timing_file, read_logfile)
+        tt = TimingTree.from_logfile(timing_file_1, read_logfile)
 
         self.assertIsNotNone(tt.data, msg="did not properly initialize data")
         self.assertIsNotNone(tt.meta_data, msg="did not properly initialize meta data")
@@ -66,12 +67,12 @@ class TestTimingTree(unittest.TestCase):
 
     def test_json_load(self):
         tt_json = TimingTree.from_json(json_reference)
-        tt = TimingTree.from_logfile(timing_file, read_logfile)
+        tt = TimingTree.from_logfile(timing_file_1, read_logfile)
 
         self.assert_trees_equal(tt_json, tt)
 
     def test_intersection(self):
-        tt1 = TimingTree.from_logfile(timing_file, read_logfile)
+        tt1 = TimingTree.from_logfile(timing_file_1, read_logfile)
         tt2 = TimingTree.from_logfile(timing_file_2, read_logfile)
 
         intersection_nodes = tt1.root[-1].intersection(tt2.root[-1])
@@ -133,7 +134,7 @@ class TestTimingTree(unittest.TestCase):
         )
 
     def test_sub(self):
-        tt1 = TimingTree.from_logfile(timing_file, read_logfile)
+        tt1 = TimingTree.from_logfile(timing_file_1, read_logfile)
         tt2 = TimingTree.from_logfile(timing_file_2, read_logfile)
 
         sub_nodes = tt1.root[-1].sub(tt2.root[-1])
@@ -147,7 +148,7 @@ class TestTimingTree(unittest.TestCase):
         )
 
     def test_grow(self):
-        tt1 = TimingTree.from_logfile(timing_file, read_logfile)
+        tt1 = TimingTree.from_logfile(timing_file_1, read_logfile)
         tt2 = TimingTree.from_logfile(timing_file_2, read_logfile)
 
         diff_nodes = tt1.root[-1].sub(tt2.root[-1])
@@ -165,7 +166,7 @@ class TestTimingTree(unittest.TestCase):
         return
 
     def test_add(self):
-        tt1 = TimingTree.from_logfile(timing_file, read_logfile)
+        tt1 = TimingTree.from_logfile(timing_file_1, read_logfile)
         tt2 = TimingTree.from_logfile(timing_file_2, read_logfile)
         tt_added = TimingTree.from_json(json_add_reference)
 
