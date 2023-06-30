@@ -6,7 +6,7 @@
             "experiment_name": "{{experiment_name}}",
             "perturbed_experiment_name": "{{experiment_name}}_member_id_{member_id}",
             "stats_file_name": "stats_{member_id}.csv",
-            "tolerance_file_name": "{{reference}}/tolerance/{{experiment_name}}.csv",
+            "tolerance_file_name": "{{reference}}/{{experiment_name}}_tolerance.csv",
             "member_ids": ["{{member_ids}}"],
             "file_specification": [{
                 "latlon": { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["lat:lon"] },
@@ -45,7 +45,7 @@
         },
     "check":
         {
-            "input_file_ref": "{{reference}}/reference/{{experiment_name}}.csv",
+            "input_file_ref": "{{reference}}/{{experiment_name}}_reference.csv",
             "input_file_cur": "{{codebase_install}}/experiments/{{experiment_name}}/statistics.csv",
             "factor": 5
         },
