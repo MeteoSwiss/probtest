@@ -59,11 +59,14 @@ class TestTimingTree(unittest.TestCase):
             )
 
     def test_read_timing(self):
-        tt = TimingTree.from_logfile(timing_file_1, read_logfile)
+        for timing_file in (timing_file_1, timing_file_2, timing_file_3):
+            tt = TimingTree.from_logfile(timing_file, read_logfile)
 
-        self.assertIsNotNone(tt.data, msg="did not properly initialize data")
-        self.assertIsNotNone(tt.meta_data, msg="did not properly initialize meta data")
-        self.assertIsNotNone(tt.root, msg="did not properly initialize tree")
+            self.assertIsNotNone(tt.data, msg="did not properly initialize data")
+            self.assertIsNotNone(
+                tt.meta_data, msg="did not properly initialize meta data"
+            )
+            self.assertIsNotNone(tt.root, msg="did not properly initialize tree")
 
     def test_json_load(self):
         tt_json = TimingTree.from_json(json_reference)
