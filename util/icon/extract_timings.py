@@ -115,9 +115,9 @@ def read_logfile(filename):
         # start parsing meta data from log
         meta_data = {}
 
+        # get start and finish time from job
         found_dateline_yes = False
         for dateline_regex, icon_date_format in zip(dateline_regexs, icon_date_formats):
-            # get start and finish time from job
             dateline = re.findall(dateline_regex, full_file)
 
             if dateline:
