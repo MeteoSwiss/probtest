@@ -9,7 +9,7 @@ from util.log_handler import logger
 
 timing_start_regex = r"(?: +L? ?[a-zA-Z_.]+)"
 timing_element_regex = r"(?:\[?\d+[.msh]?\d*s?\]? +)"
-timing_regex = timing_start_regex + " +" + timing_element_regex + "{6,20}.*"
+timing_regex = timing_start_regex + " +" + timing_element_regex + "{6,20} *(?!.)"
 header_regex = r" name +.*calls.*"
 indent_regex = r"^ *L? "
 hour_regex = r"(\d+)h(\d+)m(\d+)s"
