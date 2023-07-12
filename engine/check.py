@@ -9,6 +9,15 @@ from util.dataframe_ops import (
 )
 from util.log_handler import logger
 
+def check_intersection(df_ref,df_cur):
+    num_vars = len(df_cur.index)
+    num_common_vars = len(list(set(df_ref.index) & set(df_cur.index)))
+    if num_common_vars == 0:
+        logger.info("No intersection between variables in input and reference file.")
+        logger.info("RESULT: check FAILED")
+        exit(1)
+    elif num_vars > num_common_vars:
+        logger.info("WARNING: {} out of {} variables are tested against reference. Missing reference for {} variable/s.".format(num_common_vars, num_vars, num_vars-num_common_vars))
 
 def check_variable(diff_df, df_tol):
     out = diff_df - df_tol
@@ -51,6 +60,8 @@ def check(input_file_ref, input_file_cur, tolerance_file_name, factor):
         )
     )
 
+    # check if variables are available in reference file
+    check_intersection(df_ref,df_cur)
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
     # take maximum over height
