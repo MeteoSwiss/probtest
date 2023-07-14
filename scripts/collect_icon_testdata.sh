@@ -34,7 +34,7 @@ cp ${list_of_logs[-1]} icon_data/${EXPNAME}/LOG.exp.${EXPNAME}.run.12345678.o ||
 cp /users/icontest/pool/data/ICON/grids/private/mpim/icon_preprocessing/source/initial_condition/ifs2icon_1979010100_R02B04_G.nc icon_data/${EXPNAME}/initial_condition.nc || exit 1
 
 # for a LAM case with a single output file that includes all timesteps
-EXPNAME=mch_opr_r04b07_lhn_12
+EXPNAME=mch_opr_r04b07_lhn_12_emvorado
 python $PROBTEST_DIR/probtest.py init \
     --codebase-install "$ICON_DIR" \
     --experiment-name ${EXPNAME} \
