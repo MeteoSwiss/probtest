@@ -83,7 +83,7 @@ python probtest.py {command} --help
 
 ### Example: Check the output of an experiment
 
-Objective: Run the mch_opr_r04b07_lhn_12_emvorado ICON experiment and check if the output of the run is ok. Probtest requires some additional python packages. On daint, there is a pre-installed python environment which can be loaded with:
+Objective: Run the mch_opr_r04b07 ICON experiment and check if the output of the run is ok. Probtest requires some additional python packages. On daint, there is a pre-installed python environment which can be loaded with:
 
 ```
 source /project/g110/icon/probtest/conda/miniconda/bin/activate
@@ -100,7 +100,7 @@ Alternatively, all requirements can be easily installed with conda:
 Once set up, probtest can generate the config file according to your needs:
 
 ```
-probtest.py init --codebase-install /path/to/the/ICON/Installation/ --experiment-name mch_opr_r04b07_lhn_12_emvorado --reference /path/to/icon-test-references/daint_cpu_pgi/ --file-id NetCDF "*atm_3d_ml*" --file-id NetCDF "*atm_3d_hl*"
+probtest.py init --codebase-install /path/to/the/ICON/Installation/ --experiment-name mch_opr_r04b07 --reference /path/to/icon-test-references/daint_cpu_pgi/ --file-id NetCDF "*atm_3d_ml*" --file-id NetCDF "*atm_3d_hl*"
 ```
 
 This will create a `probtest.json` file in the current directory. This file contains all information needed by probtest to process the ICON experiment.
@@ -117,19 +117,19 @@ Note the `--ensemble` option which is set to take precedence over the default `F
 
 - `stats_ref.csv`: contains the post-processed output from the unperturbed reference run
 - `stats_{member_id}.csv`: contain the post-processed output from the perturbed reference runs (only needed temporarily to generate the tolerance file)
-- `tolerance/mch_opr_r04b07_lhn_12_emvorado.csv`: contains tolerance ranges computed from the stats-files
+- `tolerance/mch_opr_r04b07.csv`: contains tolerance ranges computed from the stats-files
 
-These can then be used to compare against the output of a test binary (usually a GPU binary). For that, manually run the `exp.mch_opr_r04b07_lhn_12_emvorado.run` experiment with the test binary to produce the test output. Then use probtest to generate the stats file for this output:
+These can then be used to compare against the output of a test binary (usually a GPU binary). For that, manually run the `exp.mch_opr_r04b07.run` experiment with the test binary to produce the test output. Then use probtest to generate the stats file for this output:
 
 ```
-python probtest.py stats --model-output-dir /path/to/test-icon/experiments/mch_opr_r04b07_lhn_12_emvorado --stats-file-name stats_cur.csv
+python probtest.py stats --model-output-dir /path/to/test-icon/experiments/mch_opr_r04b07 --stats-file-name stats_cur.csv
 ```
 
 Note how `--model-output-dir` is set to take precedence over the default which points to the reference binary output to now point to the test binary output as well as the name of the generated file with `--stats-file-name` to avoid name clash with the stats file from the reference. This command will generate the following file:
 
 - `stats_cur.csv`: contains the post-processed output of the test binary model output.
 
-Now all files needed to perform a probtest check are available; the reference file `stats_ref.csv`, the test file `stats_cur.csv` as well as the tolerance range `tolerance/mch_opr_r04b07_lhn_12_emvorado.csv`. Providing these files to `check` will perform the check:
+Now all files needed to perform a probtest check are available; the reference file `stats_ref.csv`, the test file `stats_cur.csv` as well as the tolerance range `tolerance/mch_opr_r04b07.csv`. Providing these files to `check` will perform the check:
 
 ```
 python probtest.py check --input-file-ref stats_ref.csv --input-file-cur stats_cur.csv
@@ -181,7 +181,7 @@ Adjust the `.env` file to reflect the directory structure:
 
 `PROBTEST_REF_DATA`: path to the `probtest_data` subdirectory of the reference data.
 `PROBTEST_CUR_DATA`: path to the output directory you chose in the last step.
-`PROBTEST_TEST_EXPERIMENT`: full sets of reference data are generated for both the `mch_opr_r04b07_lhn_12_emvorado` and `atm_amip_test` experiments. Chose one of the two or run both sequentially.
+`PROBTEST_TEST_EXPERIMENT`: full sets of reference data are generated for both the `mch_opr_r04b07` and `atm_amip_test` experiments. Chose one of the two or run both sequentially.
 
 Finally, you can execute the end to end tests in one of two ways:
 
