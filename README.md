@@ -59,7 +59,7 @@ Read the timing output from the model. These timings are stored in a tree format
 
 ### performance-check
 
-Compares two performance databases generated with [performance](###performance) and checks if the current one is _too slow_ compared to the reference. 
+Compares two performance databases generated with [performance](###performance) and checks if the current one is _too slow_ compared to the reference.
 
 ### performance-meta-data
 
