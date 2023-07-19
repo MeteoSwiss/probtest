@@ -21,8 +21,7 @@ python $PROBTEST_DIR/probtest.py init \
     --file-id NetCDF "*atm_3d*.nc" \
     --file-id NetCDF "*lnd*.nc" \
     --reference probtest_output \
-    --member_ids 1,2 \
-    --time_dim time || exit 1
+    --member_ids 1,2 || exit 1
 python $PROBTEST_DIR/probtest.py run-ensemble --submit-command "$SUBMIT" || exit 1
 
 # copy input data
