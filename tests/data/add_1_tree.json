@@ -44,16 +44,6 @@
                   "children": []
                 },
                 {
-                  "name": "nh_solve.edgecomp",
-                  "ancestry": [
-                    "root",
-                    "total",
-                    "integrate_nh",
-                    "nh_solve"
-                  ],
-                  "children": []
-                },
-                {
                   "name": "nh_solve.vnupd",
                   "ancestry": [
                     "root",
@@ -467,6 +457,13 @@
           "children": []
         }
       ]
+    },
+    {
+      "name": "back_traj",
+      "ancestry": [
+        "root"
+      ],
+      "children": []
     },
     {
       "name": "nh_diagnostics",
