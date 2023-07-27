@@ -9,12 +9,8 @@ from util.log_handler import logger
 
 timing_start_regex = r"(?: +L? ?[a-zA-Z_.]+)"
 timing_element_regex = r"(?:\[?\d+[.msh]?\d*s?\]? +)"
-timing_regex = timing_start_regex + " +" + timing_element_regex + "{11} *(?!.)"
-header_regex = (
-    r" name *# calls *t_min *min rank *t_avg *"
-    + r"t_max *max rank *total min \(s\) *total min rank *"
-    + r"total max \(s\) *total max rank * total avg \(s\)"
-)
+timing_regex = timing_start_regex + " +" + timing_element_regex + "{6,20} *(?!.)"
+header_regex = r"name +.*calls.*"
 indent_regex = r"^ *L? "
 hour_regex = r"(\d+)h(\d+)m(\d+)s"
 minute_regex = r"(\d+[.]?\d*)m(\d+[.]?\d*)s"
@@ -39,7 +35,6 @@ def _convert_dateline_to_start_end_datetime(dateline, icon_date_format):
     #  other dates
     if len(dateline) > 2:
         dateline = [dateline[1], dateline[2]]
-
     start_time, finish_time = dateline
 
     finish_datetime = datetime.strptime(finish_time, icon_date_format)
@@ -104,7 +99,6 @@ def read_logfile(filename):
                     logger.critical("header: {}".format(" -- ".join(header_elements)))
                     logger.critical("table : {}".format(" -- ".join(elements)))
                     sys.exit(1)
-
                 # find indentation level for each table line
                 first = re.search(indent_regex, table_line).group(0)
                 # assume 1 indent is 3 white spaces
@@ -113,9 +107,9 @@ def read_logfile(filename):
                 timing_data_k["name"].append(elements[0])
                 for i in np.arange(1, len(elements)):
                     timing_data_k[header_elements[i]].append(parse_time(elements[i]))
-
-            timing_data.append(timing_data_k)
-
+            # We are not interested in the small wrt_output table
+            if len(timing_data_k["indent"]) > 5:
+                timing_data.append(timing_data_k)
         # start parsing meta data from log
         meta_data = {}
 
@@ -130,10 +124,8 @@ def read_logfile(filename):
                     finish_datetime_converted,
                 ) = _convert_dateline_to_start_end_datetime(dateline, icon_date_format)
                 found_dateline_yes = True
-
         if not found_dateline_yes:
             raise Exception("Could not match any regex for start and end time.")
-
         meta_data["start_time"] = start_datetime_converted
         meta_data["finish_time"] = finish_datetime_converted
 
@@ -143,7 +135,6 @@ def read_logfile(filename):
 
         meta_data["revision"] = revision.group(2)
         meta_data["branch"] = branch.group(2)
-
     meta_data["n_tables"] = len(timing_data)
     meta_data["entries"] = [len(e["indent"]) for e in timing_data]
 
