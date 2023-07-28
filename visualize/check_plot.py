@@ -14,6 +14,12 @@ from util.dataframe_ops import (
 )
 from util.log_handler import logger
 
+def delete_uninitialized_fields(df):
+    mask = (df == 0) | df.isnull()
+    uninitialized = df.index[mask.all(axis=1)]
+    df_filtered = df.drop(uninitialized)
+    return df_filtered
+
 prop_cycle = plt.rcParams["axes.prop_cycle"]
 colors = prop_cycle.by_key()["color"]
 
@@ -59,6 +65,8 @@ def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, save
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
     # take maximum over height
     diff_df = diff_df.groupby(["file_ID", "variable"]).max()
+    # Delete uninitialized fields as they are not interesting for plotting
+    diff_df = delete_uninitialized_fields(diff_df)
     # error relative to tolerance
     div = (diff_df - df_tol)
 
