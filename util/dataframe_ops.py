@@ -22,14 +22,21 @@ def force_monotonic(dataframe):
 
 
 def compute_rel_diff_dataframe(df1, df2):
-    out = (df1 - df2).abs() / df1.abs()
-    smalls = df1.abs() < CHECK_THRESHOLD
-    out[smalls] = 0.0
+    average = (df1 + df2) / 2
+    out = (df1 - df2) / average
+    out = out.abs()
+    # put 0 if both numbers are very small
+    zeros = (df1.abs() < CHECK_THRESHOLD) & (df2.abs() < CHECK_THRESHOLD)
+    out[zeros] = 0.0
     return out
 
 
 def compute_div_dataframe(df1, df2):
-    return df1 / df2.replace({0: np.nan})
+    # avoid division by 0 and put nan instead
+    out = df1 / df2.replace({0: np.nan})
+    # put 0 if numerator is 0 as well
+    out[df1 == 0] = 0
+    return out
 
 
 def parse_probtest_csv(path, index_col):
