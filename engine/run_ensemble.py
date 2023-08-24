@@ -231,10 +231,10 @@ def run_ensemble(
         )
 
         if not dry:
-            logger.info("running the model with '{}'".format(" ".join(job)))
             job = submit_command.split() + [
                 perturbed_run_script_name.format(member_id=m_id)
             ]
+            logger.info("running the model with '{}'".format(" ".join(job)))
             append_job(job, job_list, parallel)
 
     finalize_jobs(job_list, dry, parallel)
