@@ -1,6 +1,7 @@
 import os
 import re
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -98,14 +99,31 @@ def append_job(job, job_list, parallel):
     if not parallel:
         p.communicate()
         time.sleep(5)
+        if has_job_failed(p):
+            sys.exit(1)
     else:
         job_list.append(p)
 
 
 def finalize_jobs(job_list, dry, parallel):
     if parallel and not dry:
+        some_job_failed = False
         for job in job_list:
             job.communicate()
+            if has_job_failed(job):
+                some_job_failed = True
+        if some_job_failed:
+            sys.exit(1)
+
+
+def has_job_failed(job):
+    """Test job return code.
+    If return code != 0 return .True. and log a warning.
+    """
+    if job.returncode != 0:
+        logger.warning(
+            "Job {} failed with return code {}.".format(job.args, job.returncode)
+        )
 
 
 @click.command()
