@@ -58,7 +58,8 @@ class TestCheck(unittest.TestCase):
         self.check(self.df1, self.df2)
 
     def test_check_one_zero(self):
-        """Probtest should not pass if any of the values is 0 and the other is much larger"""
+        """Probtest should not pass if any of the values is 0
+        and the other is much larger"""
         df1 = self.df1.copy()
         df1.loc["var_1", (2, "max")] = 0
         df2 = self.df2.copy()
