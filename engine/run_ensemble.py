@@ -98,14 +98,29 @@ def append_job(job, job_list, parallel):
     if not parallel:
         p.communicate()
         time.sleep(5)
+        test_job_returncode(p)
     else:
         job_list.append(p)
 
 
 def finalize_jobs(job_list, dry, parallel):
     if parallel and not dry:
+        last_exception = None
         for job in job_list:
             job.communicate()
+            try:
+                test_job_returncode(job)
+            except subprocess.CalledProcessError as e:
+                logger.error(e)
+                last_exception = e
+        if last_exception:
+            raise last_exception
+
+
+def test_job_returncode(job):
+    """Test job return code."""
+    if job.returncode != 0:
+        raise subprocess.CalledProcessError(returncode=job.returncode, cmd=job.args)
 
 
 @click.command()
@@ -213,10 +228,10 @@ def run_ensemble(
         )
 
         if not dry:
-            logger.info("running the model with '{}'".format(" ".join(job)))
             job = submit_command.split() + [
                 perturbed_run_script_name.format(member_id=m_id)
             ]
+            logger.info("running the model with '{}'".format(" ".join(job)))
             append_job(job, job_list, parallel)
 
     finalize_jobs(job_list, dry, parallel)
