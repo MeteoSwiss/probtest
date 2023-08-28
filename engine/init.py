@@ -36,7 +36,7 @@ from util.log_handler import logger
 @click.option(
     "--member_ids",
     type=CommaSeperatedStrings(),
-    default=["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+    default=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
     help=cli_help["member_ids"],
 )
 @click.option(
