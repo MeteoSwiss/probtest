@@ -108,7 +108,7 @@ Alternatively, all requirements can be easily installed with conda:
 Once set up, probtest can generate the config file according to your needs:
 
 ```
-probtest.py init --codebase-install /path/to/the/ICON/Installation/ --experiment-name mch_opr_r04b07 --reference /path/to/icon-test-references/daint_cpu_pgi/ --file-id NetCDF "*atm_3d_ml*" --file-id NetCDF "*atm_3d_hl*"
+python probtest.py init --codebase-install /path/to/the/ICON/Installation/ --experiment-name mch_opr_r04b07 --reference /path/to/icon-test-references/daint_cpu_pgi/ --file-id NetCDF "*atm_3d_ml*" --file-id NetCDF "*atm_3d_hl*"
 ```
 
 This will create a `probtest.json` file in the current directory. This file contains all information needed by probtest to process the ICON experiment.
@@ -179,7 +179,7 @@ To execute all tests, you first need to download the probtest input data, then r
     REFERENCE_DATA=./reference_data # Directory to read reference data
     PROBTEST_CUR_DATA=./probtest_data # Directory to write probtest output
     scp -r daint:/project/g110/probtest_testdata/i-4140_p-2d4f $REFERENCE_DATA
-    python probtest.py init --codebase-install $REFERENCE_DATA/icon_data --reference $PROBTEST_CUR_DATA --template-name templates/testdata.jinja --experiment-name atm_amip_test --config testdata.json --file-id NetCDF "*atm_3d_ml*" --file-id NetCDF "*atm_3d_hl* --member-num 2
+    python probtest.py init --codebase-install $REFERENCE_DATA/icon_data --reference $PROBTEST_CUR_DATA --template-name templates/testdata.jinja --experiment-name atm_amip_test --config testdata.json --file-id NetCDF "*atm_3d_ml*" --file-id NetCDF "*atm_3d_hl*" --member-num 2
 
 Now you can run and debug any probtest command from the _Run_ tab in VS code. (Note that the template `testdata.jinja` treats `codebase-install` differently than the default `ICON.jinja`.)
 
