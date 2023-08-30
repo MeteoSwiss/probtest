@@ -82,9 +82,10 @@ cli_help = {
     + r"(per time step and variable)",
     "stats_file_name": r"the name of the stats file. No absolute path here, it will "
     + r"always be create in the (perturbed) model_output_dir.",
-    "member_ids": r"member_id of the ensemble. Each member_id will generate a new set "
-    + r"of input files (comma separated list) these also serve as ID for input/output "
-    + r"directories, a seed is generate by the hash of the member_id",
+    "member_num": r"number of ensemble members",
+    "member_type": r"precision of experiment (e.g. double or mixed). "
+    + r"The type is part of the created member_id, which is equal to "
+    + r"(member_type+'_'+str(member_num))",
     "perturb_amplitude": r"the amplitude of the relative perturbation",
     "files": r"the files that need to be perturbed (comma separated list)",
     "variable_names": r"the variables that are perturbed (comma separated list)",

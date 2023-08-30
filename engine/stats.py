@@ -2,7 +2,7 @@ from pathlib import Path
 
 import click
 
-from util.click_util import CommaSeperatedStrings, cli_help
+from util.click_util import cli_help
 from util.dataframe_ops import df_from_file_ids
 from util.log_handler import logger
 
@@ -45,9 +45,16 @@ def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specificati
     help=cli_help["file_id"],
 )
 @click.option(
-    "--member_ids",
-    type=CommaSeperatedStrings(),
-    help=cli_help["member_ids"],
+    "--member-num",
+    type=int,
+    default=10,
+    help=cli_help["member_num"],
+)
+@click.option(
+    "--member-type",
+    type=str,
+    default="",
+    help=cli_help["member_type"],
 )
 @click.option(
     "--perturbed-model-output-dir",
@@ -63,7 +70,8 @@ def stats(
     stats_file_name,
     model_output_dir,
     file_id,
-    member_ids,
+    member_num,
+    member_type,
     perturbed_model_output_dir,
     file_specification,
 ):
@@ -72,7 +80,10 @@ def stats(
 
     # compute stats for the ensemble run
     if ensemble:
-        for m_id in member_ids:
+        for m_num in range(1, member_num + 1):
+            m_id = str(m_num)
+            if member_type:
+                m_id = member_type + "_" + m_id
             input_dir = perturbed_model_output_dir.format(member_id=m_id)
             create_stats_dataframe(
                 input_dir,

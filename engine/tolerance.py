@@ -5,7 +5,7 @@ import sys
 import click
 import pandas as pd
 
-from util.click_util import CommaSeperatedStrings, cli_help
+from util.click_util import cli_help
 from util.dataframe_ops import (
     compute_rel_diff_dataframe,
     force_monotonic,
@@ -24,15 +24,25 @@ from util.log_handler import logger
     help=cli_help["tolerance_file_name"],
 )
 @click.option(
-    "--member_ids",
-    type=CommaSeperatedStrings(),
-    help=cli_help["member_ids"],
+    "--member-num",
+    type=int,
+    default=10,
+    help=cli_help["member_num"],
 )
-def tolerance(stats_file_name, tolerance_file_name, member_ids):
+@click.option(
+    "--member-type",
+    type=str,
+    default="",
+    help=cli_help["member_type"],
+)
+def tolerance(stats_file_name, tolerance_file_name, member_num, member_type):
     # read in stats files
     dfs = [
         parse_probtest_csv(stats_file_name.format(member_id=m_id), index_col=[0, 1, 2])
-        for m_id in member_ids
+        for m_id in (
+            (str(m_num) if not member_type else member_type + "_" + str(m_num))
+            for m_num in range(1, member_num + 1)
+        )
     ]
     dfs.append(
         parse_probtest_csv(stats_file_name.format(member_id="ref"), index_col=[0, 1, 2])

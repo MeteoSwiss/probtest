@@ -6,7 +6,8 @@
         "perturbed_experiment_name": "{{experiment_name}}_member_id_{member_id}",
         "stats_file_name": "{{reference}}/reference/{{experiment_name}}_{member_id}.csv",
         "tolerance_file_name": "{{reference}}/tolerance/{{experiment_name}}.csv",
-        "member_ids": ["{{member_ids}}"],
+        "member_num": {{ member_num }},
+        "member_type": "{{member_type}}",
         "file_id": [ ["NetCDF", "*.nc"]],
         "file_specification": [{
             "NetCDF": { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["ncells", "ncells_2"] }
@@ -43,7 +44,7 @@
     "cdo": {
         "cdo_table_file": "{{reference}}/cdo_table/{{experiment_name}}.csv",
         "histogram": true,
-        "member_ids": ["1"]
+        "member_num": 1
     },
     "run": {
         "run_script_name": "exp.{{experiment_name}}.run",

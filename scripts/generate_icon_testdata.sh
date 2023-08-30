@@ -33,7 +33,7 @@ do
         "${file_id[@]}" \
         --reference "$PROBTEST_DATA" \
         --template-name "$PROBTEST_DIR/templates/testdata.jinja" \
-        --member_ids 1,2 \
+        --member-num 2 \
         --timing-current "$ICON_DATA/probtest_testdata" \
         --timing-reference "$ICON_DATA/performance_reference/probtest_testdata" \
         || exit 1

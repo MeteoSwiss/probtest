@@ -7,7 +7,7 @@ import pandas as pd
 import xarray as xr
 
 from util import model_output_parser
-from util.click_util import CommaSeperatedStrings, cli_help
+from util.click_util import cli_help
 from util.constants import cdo_bins
 from util.dataframe_ops import df_from_file_ids
 from util.file_system import file_names_from_pattern
@@ -80,9 +80,16 @@ def rel_diff_stats(
     help=cli_help["file_id"],
 )
 @click.option(
-    "--member_ids",
-    type=CommaSeperatedStrings(),
-    help=cli_help["member_ids"],
+    "--member-num",
+    type=int,
+    default=10,
+    help=cli_help["member_num"],
+)
+@click.option(
+    "--member-type",
+    type=str,
+    default="",
+    help=cli_help["member_type"],
 )
 @click.option(
     "--perturbed-model-output-dir",
@@ -100,18 +107,22 @@ def rel_diff_stats(
 def cdo_table(
     model_output_dir,
     file_id,
-    member_ids,
+    member_num,
+    member_type,
     perturbed_model_output_dir,
     cdo_table_file,
     file_specification,
 ):
     # TODO: A single perturbed run provides enough data to make proper statistics.
     #       refactor cdo_table interface to reflect that
-    if len(member_ids) > 1:
+    if member_type:
+        member_id = member_type + "_1"
+    else:
+        member_id = "1"
+    if member_num > 1:
         logger.warning(
-            "Only a single member_id can be specified, using {}".format(member_ids[0])
+            "Only a single member_id can be specified, using {}".format(member_id)
         )
-    member_id = member_ids[0]
 
     file_specification = file_specification[0]  # can't store dicts as defaults in click
     assert isinstance(file_specification, dict), "must be dict"

@@ -5,7 +5,7 @@ from pathlib import Path
 import click
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
-from util.click_util import CommaSeperatedStrings, cli_help
+from util.click_util import cli_help
 from util.log_handler import logger
 
 
@@ -34,10 +34,16 @@ from util.log_handler import logger
     help=cli_help["config"],
 )
 @click.option(
-    "--member_ids",
-    type=CommaSeperatedStrings(),
-    default=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
-    help=cli_help["member_ids"],
+    "--member-num",
+    type=int,
+    default=10,
+    help=cli_help["member_num"],
+)
+@click.option(
+    "--member-type",
+    type=str,
+    default="",
+    help=cli_help["member_type"],
 )
 @click.option(
     "--perturb-amplitude",
@@ -68,7 +74,8 @@ def init(
     reference,
     config,
     template_name,
-    member_ids,
+    member_num,
+    member_type,
     perturb_amplitude,
     timing_current,
     timing_reference,
@@ -82,12 +89,6 @@ def init(
     # The template is supposed to be a valid json file so that in can work as
     # a default PROBTEST_CONFIG (even without running init first)
 
-    # Format member_ids from list of strings to ['1', '2', '3']
-    format_member_ids = ", ".join(['"{}"'.format(m) for m in member_ids])
-
-    # Drop leading and tailing quotes as they are already in the template
-    format_member_ids = format_member_ids[1:-1]
-
     # emit warnings if variables are not set
     warn_template = "init argument '--{}' not set. default to '{}'"
     if not codebase_install:
@@ -98,8 +99,10 @@ def init(
         logger.warning(warn_template.format("file_id", ""))
     if not reference:
         logger.warning(warn_template.format("reference", ""))
-    if not member_ids:
-        logger.warning(warn_template.format("member_ids", format_member_ids))
+    if not member_num:
+        logger.warning(warn_template.format("member_num", member_num))
+    if not member_type:
+        logger.warning(warn_template.format("member_type", member_type))
     if not perturb_amplitude:
         logger.warning(warn_template.format("perturb_amplitude", perturb_amplitude))
     if not timing_current:
@@ -114,7 +117,8 @@ def init(
     render_dict["experiment_name"] = experiment_name
     render_dict["codebase_install"] = Path(codebase_install).resolve()
     render_dict["reference"] = Path(reference).resolve()
-    render_dict["member_ids"] = format_member_ids
+    render_dict["member_num"] = member_num
+    render_dict["member_type"] = member_type
     render_dict["perturb_amplitude"] = perturb_amplitude
     render_dict["timing_current"] = timing_current
     render_dict["timing_reference"] = timing_reference

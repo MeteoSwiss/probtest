@@ -36,7 +36,6 @@ python "${SCRIPT_DIR}/probtest.py" init \
 python ${SCRIPT_DIR}/probtest.py run-ensemble --submit-command "sbatch --wait --account=g110" || exit 1
 python ${SCRIPT_DIR}/probtest.py stats --ensemble || exit 1
 python ${SCRIPT_DIR}/probtest.py tolerance || exit 1
-# python ${SCRIPT_DIR}/probtest.py cdo-table --member_ids 1
 python ${SCRIPT_DIR}/probtest.py check --input-file-ref stats_ref.csv --input-file-cur stats_1.csv
 python ${SCRIPT_DIR}/probtest.py check-plot --input-file-ref stats_ref.csv --input-file-cur stats_1.csv
 

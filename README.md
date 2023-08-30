@@ -71,7 +71,7 @@ Visualize the performance database generated with [performance](###performance).
 
 ## Quick start guide
 
-Even though probtest is used exclusively with ICON at the moment, it does not contain any information about the model or it's directory structure. This makes it very flexible and applicable to any circumstance (e.g. usable by Buildbot, Jenkins and human users alike). However, it also requires a lot of information about the model and the data to be processed upon invocation. Since a typical probtest usage involves multiple commands (e.g. run-ensemble -> stats -> tolerance -> check) this leads to a lot of redundancy in the invocation. Therefore, probtest can read commonly used input variables (e.g. the model output directory, the experiment name, the name of the submit script, ...) from a configuration file in json format. To further ease the process, these configuration files can be created from templates using the `init` command. A template for ICON is contained in this repository in the `templates` subdirectory.
+Even though probtest is used exclusively with ICON at the moment, it does not contain any information about the model or its directory structure. This makes it very flexible and applicable to any circumstance (e.g. usable by Buildbot, Jenkins and human users alike). However, it also requires a lot of information about the model and the data to be processed upon invocation. Since a typical probtest usage involves multiple commands (e.g. run-ensemble -> stats -> tolerance -> check) this leads to a lot of redundancy in the invocation. Therefore, probtest can read commonly used input variables (e.g. the model output directory, the experiment name, the name of the submit script, ...) from a configuration file in json format. To further ease the process, these configuration files can be created from templates using the `init` command. A template for ICON is contained in this repository in the `templates` subdirectory.
 
 ### The init command
 
@@ -125,7 +125,7 @@ Note the `--ensemble` option which is set to take precedence over the default `F
 
 - `stats_ref.csv`: contains the post-processed output from the unperturbed reference run
 - `stats_{member_id}.csv`: contain the post-processed output from the perturbed reference runs (only needed temporarily to generate the tolerance file)
-- `tolerance/mch_opr_r04b07.csv`: contains tolerance ranges computed from the stats-files
+- `mch_opr_r04b07_tolerance.csv`: contains tolerance ranges computed from the stats-files
 
 These can then be used to compare against the output of a test binary (usually a GPU binary). For that, manually run the `exp.mch_opr_r04b07.run` experiment with the test binary to produce the test output. Then use probtest to generate the stats file for this output:
 
@@ -137,7 +137,7 @@ Note how `--model-output-dir` is set to take precedence over the default which p
 
 - `stats_cur.csv`: contains the post-processed output of the test binary model output.
 
-Now all files needed to perform a probtest check are available; the reference file `stats_ref.csv`, the test file `stats_cur.csv` as well as the tolerance range `tolerance/mch_opr_r04b07.csv`. Providing these files to `check` will perform the check:
+Now all files needed to perform a probtest check are available; the reference file `stats_ref.csv`, the test file `stats_cur.csv` as well as the tolerance range `mch_opr_r04b07_tolerance.csv`. Providing these files to `check` will perform the check:
 
 ```
 python probtest.py check --input-file-ref stats_ref.csv --input-file-cur stats_cur.csv
@@ -157,7 +157,7 @@ Code is formatted using black and isort. Please install the pre-commit hooks (af
 pre-commit install
 ```
 
-This hook will be executed automatically whenever you commit. It will check your files and format them according to it's rules. If files have to be formatted, committing will fail. Just commit again to finalize the commit. You can also run the following command, to trigger the pre-commit action without actually committing:
+This hook will be executed automatically whenever you commit. It will check your files and format them according to its rules. If files have to be formatted, committing will fail. Just commit again to finalize the commit. You can also run the following command, to trigger the pre-commit action without actually committing:
 
 ```
 pre-commit run --all-files
@@ -179,7 +179,7 @@ To execute all tests, you first need to download the probtest input data, then r
     REFERENCE_DATA=./reference_data # Directory to read reference data
     PROBTEST_CUR_DATA=./probtest_data # Directory to write probtest output
     scp -r daint:/project/g110/probtest_testdata/i-4140_p-2d4f $REFERENCE_DATA
-    python probtest.py init --codebase-install $REFERENCE_DATA/icon_data --reference $PROBTEST_CUR_DATA --template-name templates/testdata.jinja --experiment-name atm_amip_test --config testdata.json --file-id NetCDF "*atm_3d_ml*" --file-id NetCDF "*atm_3d_hl*" --member_ids=1,2
+    python probtest.py init --codebase-install $REFERENCE_DATA/icon_data --reference $PROBTEST_CUR_DATA --template-name templates/testdata.jinja --experiment-name atm_amip_test --config testdata.json --file-id NetCDF "*atm_3d_ml*" --file-id NetCDF "*atm_3d_hl* --member-num 2
 
 Now you can run and debug any probtest command from the _Run_ tab in VS code. (Note that the template `testdata.jinja` treats `codebase-install` differently than the default `ICON.jinja`.)
 

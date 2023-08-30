@@ -56,9 +56,16 @@ def perturb_array(array, s, a):
     help=cli_help["files"],
 )
 @click.option(
-    "--member_ids",
-    type=CommaSeperatedStrings(),
-    help=cli_help["member_ids"],
+    "--member-num",
+    type=int,
+    default=10,
+    help=cli_help["member_num"],
+)
+@click.option(
+    "--member-type",
+    type=str,
+    default="",
+    help=cli_help["member_type"],
 )
 @click.option(
     "--variable-names",
@@ -79,12 +86,16 @@ def perturb(
     model_input_dir,
     perturbed_model_input_dir,
     files,
-    member_ids,
+    member_num,
+    member_type,
     variable_names,
     perturb_amplitude,
     copy_all_files,
 ):
-    for m_id in member_ids:
+    for m_num in range(1, member_num + 1):
+        m_id = str(m_num)
+        if member_type:
+            m_id = member_type + "_" + m_id
         perturbed_model_input_dir_member_id = perturbed_model_input_dir.format(
             member_id=m_id
         )
