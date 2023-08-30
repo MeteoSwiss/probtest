@@ -26,7 +26,11 @@ def compute_rel_diff_dataframe(df1, df2):
     out = (df1 - df2) / average
     out = out.abs()
     # put 0 if both numbers are very small
-    zeros = np.logical_and(df1.abs() < CHECK_THRESHOLD, df2.abs() < CHECK_THRESHOLD)
+    # Note: The `&` operator behaves differently than np.logial_and in this case.
+    #       If the indices in df1 and df2 are different (pd.__version__ == 2.0.3):
+    #       - `&`: Locations that are not in both data frames become False
+    #       - logial_and: Locations that are not in both data frames become nan
+    zeros = (df1.abs() < CHECK_THRESHOLD) & (df2.abs() < CHECK_THRESHOLD)
     out[zeros] = 0.0
     return out
 
