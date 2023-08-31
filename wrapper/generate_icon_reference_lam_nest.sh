@@ -34,7 +34,6 @@ python "${SCRIPT_DIR}/probtest.py" init \
   --file-id NetCDF "*atm_3d_ll_DOM01_ml*" \
   --file-id NetCDF "*atm_3d_ll_DOM02_ml*" \
   --reference "${REFERENCE_DIR}" \
-  --member-type "double" \
   --config "${PROBTEST_CONFIG}"
 
 python ${SCRIPT_DIR}/probtest.py run-ensemble --submit-command "sbatch --wait --account=g110" || exit 1

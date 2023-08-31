@@ -86,12 +86,6 @@ def rel_diff_stats(
     help=cli_help["member_num"],
 )
 @click.option(
-    "--member-type",
-    type=str,
-    default="",
-    help=cli_help["member_type"],
-)
-@click.option(
     "--perturbed-model-output-dir",
     help=cli_help["perturbed_model_output_dir"],
 )
@@ -108,17 +102,13 @@ def cdo_table(
     model_output_dir,
     file_id,
     member_num,
-    member_type,
     perturbed_model_output_dir,
     cdo_table_file,
     file_specification,
 ):
     # TODO: A single perturbed run provides enough data to make proper statistics.
     #       refactor cdo_table interface to reflect that
-    if member_type:
-        member_id = member_type + "_1"
-    else:
-        member_id = "1"
+    member_id = "1"
     if member_num > 1:
         logger.warning(
             "Only a single member_id can be specified, using {}".format(member_id)

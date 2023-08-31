@@ -40,12 +40,6 @@ from util.log_handler import logger
     help=cli_help["member_num"],
 )
 @click.option(
-    "--member-type",
-    type=str,
-    default="",
-    help=cli_help["member_type"],
-)
-@click.option(
     "--perturb-amplitude",
     type=float,
     default=1e-14,
@@ -75,7 +69,6 @@ def init(
     config,
     template_name,
     member_num,
-    member_type,
     perturb_amplitude,
     timing_current,
     timing_reference,
@@ -101,8 +94,6 @@ def init(
         logger.warning(warn_template.format("reference", ""))
     if not member_num:
         logger.warning(warn_template.format("member_num", member_num))
-    if not member_type:
-        logger.warning(warn_template.format("member_type", member_type))
     if not perturb_amplitude:
         logger.warning(warn_template.format("perturb_amplitude", perturb_amplitude))
     if not timing_current:
@@ -118,7 +109,6 @@ def init(
     render_dict["codebase_install"] = Path(codebase_install).resolve()
     render_dict["reference"] = Path(reference).resolve()
     render_dict["member_num"] = member_num
-    render_dict["member_type"] = member_type
     render_dict["perturb_amplitude"] = perturb_amplitude
     render_dict["timing_current"] = timing_current
     render_dict["timing_reference"] = timing_reference
