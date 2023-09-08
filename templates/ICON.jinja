@@ -15,6 +15,7 @@
                 "emvorado_fof":{ "format": "netcdf", "time_dim": null, "horizontal_dims": ["d_body", "d_radar"], "fill_value_key": "_FillValue"},
                 "emvorado_vrsim_volscan":{ "format": "netcdf", "time_dim": null, "horizontal_dims": ["n_azimuth:n_range", "n_azimuth", "n_range", "records" ], "fill_value_key": "_FillValue"},
                 "NetCDF": { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["ncells", "ncells_2", "nedges", "nvertices"] },
+                "NetCDF_no_time_dim": { "format": "netcdf", "time_dim": null, "horizontal_dims": [ "ncells" ] },
                 "total_integrals": { "format": "csv", "parser_args": {
                     "delimiter": "\\s+",
                     "skiprows": 1,
