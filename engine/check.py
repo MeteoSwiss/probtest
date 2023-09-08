@@ -17,7 +17,27 @@ def check_intersection(df_ref,df_cur):
         logger.info("RESULT: check FAILED")
         exit(1)
     elif num_vars > num_common_vars:
-        logger.info("WARNING: {} out of {} variables are tested against reference. Missing reference for {} variable/s.".format(num_common_vars, num_vars, num_vars-num_common_vars))
+        logger.info("WARNING: {} out of {} variables are tested against reference. "
+        "Missing reference for {} variable/s.".format(
+            num_common_vars, num_vars, num_vars-num_common_vars
+            )
+        )
+    if len(df_ref.columns) > len(df_cur.columns):
+        logger.info(
+            "WARNING: The reference includes less timesteps than the test case. "
+            "Only the first {} time step(s) are tested.".format(
+            len(df_cur.columns)/3
+            )
+        )
+        df_ref = df_ref.iloc[:,:len(df_cur.columns)]
+    elif len(df_ref.columns) < len(df_cur.columns):
+        logger.info("WARNING: The reference includes less timesteps than the test case. "
+            "Only the first {} time step(s) are tested.".format(
+            len(df_ref.columns)/3
+            )
+        )
+        df_cur = df_cur.iloc[:,:len(df_ref.columns)]
+    return df_ref, df_cur
 
 def check_variable(diff_df, df_tol):
     out = diff_df - df_tol
@@ -61,7 +81,7 @@ def check(input_file_ref, input_file_cur, tolerance_file_name, factor):
     )
 
     # check if variables are available in reference file
-    check_intersection(df_ref,df_cur)
+    df_ref, df_cur = check_intersection(df_ref,df_cur)
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
     # take maximum over height
