@@ -63,6 +63,12 @@ def perturb_array(array, s, a):
     help=cli_help["member_num"],
 )
 @click.option(
+    "--member-type",
+    type=str,
+    default="",
+    help=cli_help["member_type"],
+)
+@click.option(
     "--variable-names",
     type=CommaSeperatedStrings(),
     help=cli_help["variable_names"],
@@ -82,14 +88,17 @@ def perturb(
     perturbed_model_input_dir,
     files,
     member_num,
+    member_type,
     variable_names,
     perturb_amplitude,
     copy_all_files,
 ):
     for m_num in range(1, member_num + 1):
-        m_id = experiment_name + "_" + str(m_num)
+        m_id = str(m_num)
+        if member_type:
+            m_id = member_type + "_" + m_id
         perturbed_model_input_dir_member_id = perturbed_model_input_dir.format(
-            member_id=str(m_num)
+            member_id=m_id
         )
         data = create_perturb_files(
             model_input_dir,
@@ -101,7 +110,7 @@ def perturb(
             for vn in variable_names:
                 d.variables[vn][:] = perturb_array(
                     d.variables[vn][:],
-                    generate_seed_from_member_id(m_id, use_64_bits=False),
+                    generate_seed_from_member_id(experiment_name+str(m_num), use_64_bits=False),
                     perturb_amplitude,
                 )
             d.close()

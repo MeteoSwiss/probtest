@@ -51,6 +51,12 @@ def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specificati
     help=cli_help["member_num"],
 )
 @click.option(
+    "--member-type",
+    type=str,
+    default="",
+    help=cli_help["member_type"],
+)
+@click.option(
     "--perturbed-model-output-dir",
     help=cli_help["perturbed_model_output_dir"],
 )
@@ -65,6 +71,7 @@ def stats(
     model_output_dir,
     file_id,
     member_num,
+    member_type,
     perturbed_model_output_dir,
     file_specification,
 ):
@@ -74,11 +81,14 @@ def stats(
     # compute stats for the ensemble run
     if ensemble:
         for m_num in range(1, member_num + 1):
-            input_dir = perturbed_model_output_dir.format(member_id=str(m_num))
+            m_id = str(m_num)
+            if member_type:
+                m_id = member_type + "_" + m_id
+            input_dir = perturbed_model_output_dir.format(member_id=m_id)
             create_stats_dataframe(
                 input_dir,
                 file_id,
-                stats_file_name.format(member_id=str(m_num)),
+                stats_file_name.format(member_id=m_id),
                 file_specification,
             )
 

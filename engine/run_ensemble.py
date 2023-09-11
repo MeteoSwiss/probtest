@@ -159,6 +159,12 @@ def test_job_returncode(job):
     help=cli_help["member_num"],
 )
 @click.option(
+    "--member-type",
+    type=str,
+    default="",
+    help=cli_help["member_type"],
+)
+@click.option(
     "--parallel/--no-parallel",
     is_flag=True,
     help=cli_help["parallel"],
@@ -192,6 +198,7 @@ def run_ensemble(
     perturbed_experiment_name,
     submit_command,
     member_num,
+    member_type,
     parallel,
     dry,
     lhs,
@@ -212,26 +219,28 @@ def run_ensemble(
     Path(perturbed_run_dir).mkdir(exist_ok=True, parents=True)
     os.chdir(perturbed_run_dir)
     for m_num in range(1, member_num + 1):
-        m_id = experiment_name + "_" + str(m_num)
+        m_id = str(m_num)
+        if member_type:
+            m_id = member_type + "_" + m_id
         runscript = "{}/{}".format(run_dir, run_script_name)
         perturbed_runscript = "{}/{}".format(
-            perturbed_run_dir, perturbed_run_script_name.format(member_id=str(m_num))
+            perturbed_run_dir, perturbed_run_script_name.format(member_id=m_id)
         )
 
         prepare_perturbed_run_script(
             runscript,
             perturbed_runscript,
             experiment_name,
-            perturbed_experiment_name.format(member_id=str(m_num)),
+            perturbed_experiment_name.format(member_id=m_id),
             lhs,
             rhs_new,
             rhs_old,
-            generate_seed_from_member_id(m_id),
+            generate_seed_from_member_id(experiment_name+str(m_num)),
         )
 
         if not dry:
             job = submit_command.split() + [
-                perturbed_run_script_name.format(member_id=str(m_num))
+                perturbed_run_script_name.format(member_id=m_id)
             ]
             logger.info("running the model with '{}'".format(" ".join(job)))
             append_job(job, job_list, parallel)

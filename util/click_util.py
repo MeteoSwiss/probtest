@@ -81,8 +81,11 @@ cli_help = {
     "tolerance_file_name": r"the name of the file containing the tolerances "
     + r"(per time step and variable)",
     "stats_file_name": r"the name of the stats file. No absolute path here, it will "
-    + r"always be create in the (perturbed) model_output_dir",
+    + r"always be created in the (perturbed) model_output_dir.",
     "member_num": r"number of ensemble members",
+    "member_type": r"precision of experiment (e.g. double or mixed). "
+    + r"The type is part of the created member_id, which is equal to "
+    + r"(member_type+'_'+str(member_num))",
     "perturb_amplitude": r"the amplitude of the relative perturbation",
     "files": r"the files that need to be perturbed (comma separated list)",
     "variable_names": r"the variables that are perturbed (comma separated list)",

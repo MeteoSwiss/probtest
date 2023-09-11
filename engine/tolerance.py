@@ -15,7 +15,6 @@ from util.log_handler import logger
 
 
 @click.command()
-@click.option("--experiment-name", help=cli_help["experiment_name"], default="")
 @click.option(
     "--stats-file-name",
     help=cli_help["stats_file_name"],
@@ -30,11 +29,19 @@ from util.log_handler import logger
     default=10,
     help=cli_help["member_num"],
 )
-def tolerance(stats_file_name, tolerance_file_name, member_num, experiment_name):
+@click.option(
+    "--member-type",
+    type=str,
+    default="",
+    help=cli_help["member_type"],
+)
+def tolerance(stats_file_name, tolerance_file_name, member_num, member_type):
     # read in stats files
     dfs = [
         parse_probtest_csv(stats_file_name.format(member_id=m_id), index_col=[0, 1, 2])
-        for m_id in (str(m_num) for m_num in range(1, member_num + 1)
+        for m_id in (
+            (str(m_num) if not member_type else member_type + "_" + str(m_num))
+            for m_num in range(1, member_num + 1)
         )
     ]
     dfs.append(
