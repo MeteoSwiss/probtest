@@ -10,30 +10,49 @@ from util.dataframe_ops import (
 from util.log_handler import logger
 
 def check_intersection(df_ref,df_cur):
-    num_vars = len(df_cur.index)
+    # Check if reference and test case have any interaction
     num_common_vars = len(list(set(df_ref.index) & set(df_cur.index)))
     if num_common_vars == 0:
         logger.info("No intersection between variables in input and reference file.")
         logger.info("RESULT: check FAILED")
         exit(1)
-    elif num_vars > num_common_vars:
-        logger.info("WARNING: {} out of {} variables are tested against reference. "
-        "Missing reference for {} variable/s.".format(
-            num_common_vars, num_vars, num_vars-num_common_vars
-            )
-        )
+
+    # Check if there are variable missing in the reference or test case
+    non_common_vars = list(set(df_ref.index) ^ set(df_cur.index))
+    missing_in_ref = []
+    missing_in_cur = []
+    for var in non_common_vars:
+        if var in df_cur.index:
+            missing_in_ref.append(var[1])
+        else:
+            missing_in_cur.append(var[1])
+    # Remove multiple entries of a variable due to different altitude levels
+    missing_in_ref = list(set(missing_in_ref))
+    missing_in_cur = list(set(missing_in_cur))
+    if missing_in_ref:
+        print("WARNING: The following variables are in the test case but not in the reference case "
+            "and therefore not tested:", ", ".join(missing_in_ref), end='\n')
+    if missing_in_cur:
+        print("WARNING: The following variables are in the reference case but not in the test case "
+            "and therefore not tested:", ", ".join(missing_in_cur), end='\n')
+
+    # Remove rows without intersection
+    df_ref = df_ref[~df_ref.index.isin(non_common_vars)]
+    df_cur = df_cur[~df_cur.index.isin(non_common_vars)]
+
+    # Make sure they have the same number of time steps
     if len(df_ref.columns) > len(df_cur.columns):
         logger.info(
-            "WARNING: The reference includes less timesteps than the test case. "
-            "Only the first {} time step(s) are tested.".format(
-            len(df_cur.columns)/3
+            "WARNING: The reference includes more timesteps than the test case. "
+            "Only the first {} time step(s) are tested.\n".format(
+            len(df_cur.columns)//3
             )
         )
         df_ref = df_ref.iloc[:,:len(df_cur.columns)]
     elif len(df_ref.columns) < len(df_cur.columns):
         logger.info("WARNING: The reference includes less timesteps than the test case. "
-            "Only the first {} time step(s) are tested.".format(
-            len(df_ref.columns)/3
+            "Only the first {} time step(s) are tested.\n".format(
+            len(df_ref.columns)//3
             )
         )
         df_cur = df_cur.iloc[:,:len(df_ref.columns)]
