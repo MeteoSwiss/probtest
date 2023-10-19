@@ -10,10 +10,9 @@ from util.dataframe_ops import (
 from util.log_handler import logger
 
 def check_intersection(df_ref,df_cur):
-    # Check if reference and test case have any interaction
-    num_common_vars = len(list(set(df_ref.index) & set(df_cur.index)))
-    if num_common_vars == 0:
-        logger.info("No intersection between variables in input and reference file.")
+    # Check if reference and test case have any intersection
+    if not set(df_ref.index.intersection(df_cur.index)):
+        logger.info("WARNING: No intersection between variables in input and reference file.")
         logger.info("RESULT: check FAILED")
         exit(1)
 
