@@ -68,12 +68,12 @@ def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, save
     # Delete uninitialized fields as they are not interesting for plotting
     diff_df = delete_uninitialized_fields(diff_df)
     # error relative to tolerance
-    div = (diff_df - df_tol)
+    err_rel_tol = (diff_df - df_tol)
 
     # Select a subset of variables if there are too many variables
     max_nsubplots = 30
     if len(diff_df.index.values) > max_nsubplots:
-        selected_keys = div.max(axis=1, skipna=True).nlargest(max_nsubplots).keys()
+        selected_keys = err_rel_tol.max(axis=1, skipna=True).nlargest(max_nsubplots).keys()
         diff_df = diff_df.loc[selected_keys]
         print(
             "Limit the subplots to the graphs with the {}"
