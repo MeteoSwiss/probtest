@@ -211,7 +211,7 @@ The tests can be run from the command line as well. The variables in the `.env` 
 
 in your shell to export the variables set in the `.env` file. Next, execute the end to end tests as described above. The \<icon-commit\> and \<probtest-commit> in the command below are only the first four digits of the respective commit hashes.
 
-    ICON_DATA=/project/g110/probtest_testdata/i-<icon-commit>_p-<probtest-commit>/icon_data PROBTEST_DATA_DIR=./probtest_data ./scripts/generate_icon_testdata.sh
+    ICON_DATA=/project/g110/probtest_testdata/i-<icon-commit>_p-<probtest-commit>/icon_data PROBTEST_DATA=./probtest_data ./scripts/generate_icon_testdata.sh
 
 If the test data is generated without any error, you can execute the `unittest`s with:
 
