@@ -23,8 +23,6 @@ do
     if [[ "$exp" == "mch_opr_r04b07" ]]; then
         file_id=(
             --file-id NetCDF "*atm_3d_ml*.nc"
-            --file-id NetCDF "*atm_3d_hl*.nc"
-            --file-id NetCDF "*atm_3d_pl*.nc"
         )
     fi
     python $PROBTEST_DIR/probtest.py init \
