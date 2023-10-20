@@ -235,7 +235,7 @@ def run_ensemble(
             lhs,
             rhs_new,
             rhs_old,
-            generate_seed_from_member_id(experiment_name+str(m_num)),
+            generate_seed_from_member_id(str(m_num)),
         )
 
         if not dry:

@@ -84,6 +84,7 @@ def perturb_array(array, s, a):
     help=cli_help["copy_all_files"],
 )
 def perturb(
+    experiment_name,
     model_input_dir,
     perturbed_model_input_dir,
     files,
@@ -110,7 +111,7 @@ def perturb(
             for vn in variable_names:
                 d.variables[vn][:] = perturb_array(
                     d.variables[vn][:],
-                    generate_seed_from_member_id(experiment_name+str(m_num), use_64_bits=False),
+                    generate_seed_from_member_id(str(m_num), use_64_bits=False),
                     perturb_amplitude,
                 )
             d.close()
