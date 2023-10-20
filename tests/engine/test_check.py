@@ -24,8 +24,8 @@ class TestCheck(unittest.TestCase):
         self.df2 = pd.DataFrame(
             np.linspace(1.1, 2.1, 4 * 12).T.reshape(4, 12), index=index, columns=columns
         )
-        self.df1[:2] *= -1  # some negative test data
-        self.df2[:2] *= -1
+        self.df1 *= -1  # some negative test data
+        self.df2 *= -1
         # Relative differences (df1-df2)/((df1+df2)/2) are between 0.2 and 0.1.
 
         self.tol1 = pd.DataFrame(
