@@ -7,7 +7,7 @@ import pandas as pd
 import xarray as xr
 
 from util import model_output_parser
-from util.click_util import cli_help
+from util.click_util import cli_help, CommaSeperatedInts
 from util.constants import cdo_bins
 from util.dataframe_ops import df_from_file_ids
 from util.file_system import file_names_from_pattern
@@ -81,8 +81,8 @@ def rel_diff_stats(
 )
 @click.option(
     "--member-num",
-    type=int,
-    default=10,
+    type=CommaSeperatedInts(),
+    default="10",
     help=cli_help["member_num"],
 )
 @click.option(
@@ -119,10 +119,6 @@ def cdo_table(
         member_id = member_type + "_1"
     else:
         member_id = "1"
-    if member_num > 1:
-        logger.warning(
-            "Only a single member_id can be specified, using {}".format(member_id)
-        )
 
     file_specification = file_specification[0]  # can't store dicts as defaults in click
     assert isinstance(file_specification, dict), "must be dict"

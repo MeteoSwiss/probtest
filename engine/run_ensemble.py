@@ -6,7 +6,7 @@ from pathlib import Path
 
 import click
 
-from util.click_util import CommaSeperatedStrings, cli_help
+from util.click_util import CommaSeperatedStrings, CommaSeperatedInts, cli_help
 from util.log_handler import logger
 from util.utils import get_seed_from_member_num
 
@@ -154,8 +154,8 @@ def test_job_returncode(job):
 )
 @click.option(
     "--member-num",
-    type=int,
-    default=10,
+    default="10",
+    type=CommaSeperatedInts(),
     help=cli_help["member_num"],
 )
 @click.option(
@@ -218,7 +218,9 @@ def run_ensemble(
     # run the ensemble
     Path(perturbed_run_dir).mkdir(exist_ok=True, parents=True)
     os.chdir(perturbed_run_dir)
-    for m_num in range(1, member_num + 1):
+    if len(member_num) == 1:
+        member_num = [i for i in range(1, member_num[0]+1)]
+    for m_num in member_num:
         m_id = str(m_num)
         if member_type:
             m_id = member_type + "_" + m_id

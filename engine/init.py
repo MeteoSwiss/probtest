@@ -5,7 +5,7 @@ from pathlib import Path
 import click
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
-from util.click_util import cli_help
+from util.click_util import cli_help, CommaSeperatedInts
 from util.log_handler import logger
 
 
@@ -35,8 +35,8 @@ from util.log_handler import logger
 )
 @click.option(
     "--member-num",
-    type=int,
-    default=10,
+    type=CommaSeperatedInts(),
+    default="10",
     help=cli_help["member_num"],
 )
 @click.option(
