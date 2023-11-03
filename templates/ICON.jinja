@@ -7,7 +7,7 @@
             "perturbed_experiment_name": "{{experiment_name}}_member_id_{member_id}",
             "stats_file_name": "stats_{member_id}.csv",
             "tolerance_file_name": "{{reference}}/{{experiment_name}}_tolerance.csv",
-            "member_num": "{{member_num}}",
+            "member_num": "{{','.join(member_num)}}",
             "member_type": "{{member_type}}",
             "file_specification": [{
                 "latlon": { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["lat:lon"] },
