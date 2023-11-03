@@ -117,6 +117,7 @@ def init(
     render_dict["experiment_name"] = experiment_name
     render_dict["codebase_install"] = Path(codebase_install).resolve()
     render_dict["reference"] = Path(reference).resolve()
+    render_dict["member_num"] = member_num
     render_dict["member_type"] = member_type
     render_dict["perturb_amplitude"] = perturb_amplitude
     render_dict["timing_current"] = timing_current
