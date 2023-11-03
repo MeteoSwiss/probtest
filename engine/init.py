@@ -117,7 +117,6 @@ def init(
     render_dict["experiment_name"] = experiment_name
     render_dict["codebase_install"] = Path(codebase_install).resolve()
     render_dict["reference"] = Path(reference).resolve()
-    render_dict["member_num"] = member_num
     render_dict["member_type"] = member_type
     render_dict["perturb_amplitude"] = perturb_amplitude
     render_dict["timing_current"] = timing_current
@@ -129,6 +128,7 @@ def init(
     # append file_id via json
     json_dict = json.loads(rendered)
     json_dict["default"]["file_id"] = file_id
+    json_dict["default"]["member_num"] = member_num
     rendered = json.dumps(json_dict, indent=2)
     # print file
     with open(config, "w") as probtest_config:
