@@ -129,7 +129,7 @@ def init(
     # append file_id via json
     json_dict = json.loads(rendered)
     json_dict["default"]["file_id"] = file_id
-    json_dict["default"]["member_num"] = member_num
+    json_dict["default"]["member_num"] = CommaSeparatedInts().convert(json_dict["default"]["member_num"], None, None)
     rendered = json.dumps(json_dict, indent=2)
     # print file
     with open(config, "w") as probtest_config:
