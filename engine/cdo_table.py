@@ -7,7 +7,7 @@ import pandas as pd
 import xarray as xr
 
 from util import model_output_parser
-from util.click_util import CommaSeperatedInts, cli_help
+from util.click_util import cli_help
 from util.constants import cdo_bins
 from util.dataframe_ops import df_from_file_ids
 from util.file_system import file_names_from_pattern
@@ -80,12 +80,6 @@ def rel_diff_stats(
     help=cli_help["file_id"],
 )
 @click.option(
-    "--member-num",
-    type=CommaSeperatedInts(),
-    default="10",
-    help=cli_help["member_num"],
-)
-@click.option(
     "--member-type",
     type=str,
     default="",
@@ -107,7 +101,6 @@ def rel_diff_stats(
 def cdo_table(
     model_output_dir,
     file_id,
-    member_num,
     member_type,
     perturbed_model_output_dir,
     cdo_table_file,
