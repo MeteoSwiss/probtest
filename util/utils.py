@@ -1,6 +1,8 @@
 import pathlib
 import re
 
+import numpy as np
+
 
 def unique_elements(inlist):
     unique = []
@@ -18,20 +20,21 @@ def last_idx_of(list, element):
     return len(list) - list[::-1].index(element) - 1
 
 
-def get_seed_from_member_num(member_num):
+def get_seed_from_member_num(member_num, use_64_bits=True):
     # Ensure member_num is a valid positive integer
     if member_num <= 0 or member_num > 100:
         raise ValueError("Invalid member number 'member_num'.")
 
     path_seeds = pathlib.Path(__file__).parent.parent.absolute() / "seeds.txt"
-    try:
-        with open(path_seeds, "r") as file:
-            # Read the specified line and extract the number
-            for i, line in enumerate(file, 1):
-                if i == member_num:
-                    return int(line.strip())
-    except FileNotFoundError:
-        raise FileNotFoundError(f"File not found: {path_seeds}")
+    with open(path_seeds, "r") as file:
+        # Read the specified line and extract the number
+        for i, line in enumerate(file, 1):
+            if i == member_num:
+                seed = int(line.strip())
+    if not use_64_bits:
+        seed = np.uint32(seed & 0xFFFFFFFF)
+
+    return seed
 
 
 def numbers(s):
