@@ -7,7 +7,7 @@ import pandas as pd
 import xarray as xr
 
 from util import model_output_parser
-from util.click_util import cli_help, CommaSeperatedInts
+from util.click_util import CommaSeperatedInts, cli_help
 from util.constants import cdo_bins
 from util.dataframe_ops import df_from_file_ids
 from util.file_system import file_names_from_pattern

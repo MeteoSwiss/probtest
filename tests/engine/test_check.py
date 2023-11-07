@@ -20,14 +20,10 @@ class TestCheck(unittest.TestCase):
 
         array1 = np.linspace(0.9, 1.9, 4 * 12).reshape(4, 12)
         array1[:2] *= -1  # make some test data negative
-        self.df1 = pd.DataFrame(
-            array1, index=index, columns=columns
-        )
+        self.df1 = pd.DataFrame(array1, index=index, columns=columns)
         array2 = np.linspace(1.1, 2.1, 4 * 12).transpose().reshape(4, 12)
         array2[:2] *= -1  # make some test data negative
-        self.df2 = pd.DataFrame(
-            array2, index=index, columns=columns
-        )
+        self.df2 = pd.DataFrame(array2, index=index, columns=columns)
         # Relative differences (df1-df2)/((df1+df2)/2) are between 0.2 and 0.1.
 
         self.tol1 = pd.DataFrame(

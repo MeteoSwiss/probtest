@@ -7,18 +7,16 @@ from matplotlib import pyplot as plt
 
 from util.click_util import cli_help
 from util.constants import compute_statistics
-from util.dataframe_ops import (
-    compute_div_dataframe,
-    compute_rel_diff_dataframe,
-    parse_probtest_csv,
-)
+from util.dataframe_ops import compute_rel_diff_dataframe, parse_probtest_csv
 from util.log_handler import logger
+
 
 def delete_uninitialized_fields(df):
     mask = (df == 0) | df.isnull()
     uninitialized = df.index[mask.all(axis=1)]
     df_filtered = df.drop(uninitialized)
     return df_filtered
+
 
 prop_cycle = plt.rcParams["axes.prop_cycle"]
 colors = prop_cycle.by_key()["color"]
@@ -67,12 +65,16 @@ def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, save
     diff_df = diff_df.groupby(["file_ID", "variable"]).max()
     # Delete uninitialized fields as they are not interesting for plotting
     diff_df = delete_uninitialized_fields(diff_df)
-    error_relative_to_tolerance = (diff_df - df_tol)
+    error_relative_to_tolerance = diff_df - df_tol
 
     # Select a subset of variables if there are too many variables
     max_nsubplots = 30
     if len(diff_df.index.values) > max_nsubplots:
-        selected_keys = error_relative_to_tolerance.max(axis=1, skipna=True).nlargest(max_nsubplots).keys()
+        selected_keys = (
+            error_relative_to_tolerance.max(axis=1, skipna=True)
+            .nlargest(max_nsubplots)
+            .keys()
+        )
         diff_df = diff_df.loc[selected_keys]
         print(
             "Limit the subplots to the graphs with the {}"

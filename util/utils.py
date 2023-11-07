@@ -1,6 +1,5 @@
-import hashlib
-import re
 import pathlib
+import re
 
 
 def unique_elements(inlist):
@@ -26,7 +25,7 @@ def get_seed_from_member_num(member_num):
 
     path_seeds = pathlib.Path(__file__).parent.parent.absolute() / "seeds.txt"
     try:
-        with open(path_seeds, 'r') as file:
+        with open(path_seeds, "r") as file:
             # Read the specified line and extract the number
             for i, line in enumerate(file, 1):
                 if i == member_num:

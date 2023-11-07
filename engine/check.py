@@ -9,10 +9,13 @@ from util.dataframe_ops import (
 )
 from util.log_handler import logger
 
-def check_intersection(df_ref,df_cur):
+
+def check_intersection(df_ref, df_cur):
     # Check if reference and test case have any intersection
     if not set(df_ref.index.intersection(df_cur.index)):
-        logger.info("WARNING: No intersection between variables in input and reference file.")
+        logger.info(
+            "WARNING: No intersection between variables in input and reference file."
+        )
         logger.info("RESULT: check FAILED")
         exit(1)
 
@@ -29,11 +32,19 @@ def check_intersection(df_ref,df_cur):
     missing_in_ref = list(set(missing_in_ref))
     missing_in_cur = list(set(missing_in_cur))
     if missing_in_ref:
-        print("WARNING: The following variables are in the test case but not in the reference case "
-            "and therefore not tested:", ", ".join(missing_in_ref), end='\n')
+        print(
+            "WARNING: The following variables are in the test case but not in the"
+            " reference case and therefore not tested:",
+            ", ".join(missing_in_ref),
+            end="\n",
+        )
     if missing_in_cur:
-        print("WARNING: The following variables are in the reference case but not in the test case "
-            "and therefore not tested:", ", ".join(missing_in_cur), end='\n')
+        print(
+            "WARNING: The following variables are in the reference case but not in the"
+            " test case and therefore not tested:",
+            ", ".join(missing_in_cur),
+            end="\n",
+        )
 
     # Remove rows without intersection
     df_ref = df_ref[~df_ref.index.isin(non_common_vars)]
@@ -44,18 +55,20 @@ def check_intersection(df_ref,df_cur):
         logger.info(
             "WARNING: The reference includes more timesteps than the test case. "
             "Only the first {} time step(s) are tested.\n".format(
-            len(df_cur.columns)//3
+                len(df_cur.columns) // 3
             )
         )
-        df_ref = df_ref.iloc[:,:len(df_cur.columns)]
+        df_ref = df_ref.iloc[:, : len(df_cur.columns)]
     elif len(df_ref.columns) < len(df_cur.columns):
-        logger.info("WARNING: The reference includes less timesteps than the test case. "
+        logger.info(
+            "WARNING: The reference includes less timesteps than the test case. "
             "Only the first {} time step(s) are tested.\n".format(
-            len(df_ref.columns)//3
+                len(df_ref.columns) // 3
             )
         )
-        df_cur = df_cur.iloc[:,:len(df_ref.columns)]
+        df_cur = df_cur.iloc[:, : len(df_ref.columns)]
     return df_ref, df_cur
+
 
 def check_variable(diff_df, df_tol):
     out = diff_df - df_tol
@@ -99,7 +112,7 @@ def check(input_file_ref, input_file_cur, tolerance_file_name, factor):
     )
 
     # check if variables are available in reference file
-    df_ref, df_cur = check_intersection(df_ref,df_cur)
+    df_ref, df_cur = check_intersection(df_ref, df_cur)
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
     # take maximum over height

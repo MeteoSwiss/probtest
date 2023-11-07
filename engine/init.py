@@ -5,7 +5,7 @@ from pathlib import Path
 import click
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
-from util.click_util import cli_help, CommaSeperatedInts
+from util.click_util import CommaSeperatedInts, cli_help
 from util.log_handler import logger
 
 
