@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from engine.check import check_variable
+from engine.check import check_intersection, check_variable
 from util.constants import CHECK_THRESHOLD
 from util.dataframe_ops import compute_rel_diff_dataframe
 
@@ -86,6 +86,20 @@ class TestCheck(unittest.TestCase):
         df2 = self.df2.copy()
         df2.loc["var_1", (2, "min")] = CHECK_THRESHOLD / -2
         self.check(df1, df2)
+
+    def test_no_intersection(self):
+        """Probtest should fail if the variables in the
+        reference and test case have no intersection"""
+        df1 = self.df1.copy()
+        df1 = df1.rename(index={"var_1": "var_3", "var_2": "var_4"})
+        skip_test, _, _ = check_intersection(df1, self.df2)
+
+        self.assertNotEqual(
+            skip_test,
+            0,
+            "No intersection of variables in reference "
+            + "and test case but test didn't fail",
+        )
 
 
 class TestCheckSwapped(TestCheck):
