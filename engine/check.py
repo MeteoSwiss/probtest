@@ -1,3 +1,5 @@
+import warnings
+
 import click
 
 from util.click_util import cli_help
@@ -33,19 +35,19 @@ def check_intersection(df_ref, df_cur):
     missing_in_ref = list(set(missing_in_ref))
     missing_in_cur = list(set(missing_in_cur))
     if missing_in_ref:
-        print(
+        warning_msg = (
             "WARNING: The following variables are in the test case but not in the"
-            " reference case and therefore not tested:",
-            ", ".join(missing_in_ref),
-            end="\n",
+            " reference case and therefore not tested: {}".format(
+                ", ".join(missing_in_ref)
+            )
         )
+        warnings.warn(warning_msg, UserWarning)
     if missing_in_cur:
-        print(
+        warning_msg = (
             "WARNING: The following variables are in the reference case but not in the"
-            " test case and therefore not tested:",
-            ", ".join(missing_in_cur),
-            end="\n",
+            " test case and therefore not tested: {}".format(", ".join(missing_in_cur))
         )
+        warnings.warn(warning_msg, UserWarning)
 
     # Remove rows without intersection
     df_ref = df_ref[~df_ref.index.isin(non_common_vars)]

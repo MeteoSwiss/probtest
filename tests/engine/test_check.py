@@ -105,6 +105,26 @@ class TestCheck(unittest.TestCase):
             + "and test case but test didn't fail",
         )
 
+    def test_missing_variables(self):
+        """Probtest should through a warning if some variables
+        are not in the reference and test case"""
+        df1 = self.df1.copy()
+        df1 = df1.drop("var_1", level="variable")
+
+        expected_warning_msg = (
+            "WARNING: The following variables are in the "
+            "test case but not in the reference case and therefore not tested: var_1"
+        )
+        with self.assertWarnsRegex(UserWarning, expected_warning_msg):
+            check_intersection(df1, self.df2)
+
+        expected_warning_msg = (
+            "WARNING: The following variables are in the "
+            "reference case but not in the test case and therefore not tested: var_1"
+        )
+        with self.assertWarnsRegex(UserWarning, expected_warning_msg):
+            check_intersection(self.df2, df1)
+
 
 class TestCheckSwapped(TestCheck):
     """Test that all Checks are symmetrical"""
