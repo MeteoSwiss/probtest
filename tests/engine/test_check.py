@@ -11,11 +11,15 @@ from util.dataframe_ops import compute_rel_diff_dataframe
 class TestCheck(unittest.TestCase):
     def setUp(self):
         index = pd.MultiIndex.from_arrays(
-            [["var_1"] * 3 + ["var_2"], list(range(3)) + [0]],
-            names=["variable", "height"],
+            [
+                ["NetCDF:*atm_3d*.nc"] * 4,
+                ["var_1"] * 3 + ["var_2"],
+                list(range(3)) + [0],
+            ],
+            names=["file_ID", "variable", "height"],
         )
         columns = pd.MultiIndex.from_product(
-            [range(4), ["max", "min", "mean"]], names=["time", "statistic"]
+            [range(4), ["max", "mean", "min"]], names=["time", "statistic"]
         )
 
         array1 = np.linspace(0.9, 1.9, 4 * 12).reshape(4, 12)
@@ -59,7 +63,7 @@ class TestCheck(unittest.TestCase):
         """Probtest should not pass if any of the values is 0
         and the other is much larger"""
         df1 = self.df1.copy()
-        df1.loc["var_1", (2, "max")] = 0
+        df1.loc[("NetCDF:*atm_3d*.nc", "var_1", 2), (0, "max")] = 0
         df2 = self.df2.copy()
         diff_df = compute_rel_diff_dataframe(df1, df2)
         diff_df = diff_df.groupby(["variable"]).max()
@@ -72,7 +76,7 @@ class TestCheck(unittest.TestCase):
             + "Here is the DataFrame:\n{}".format(err),
         )
 
-        df2.loc["var_1", (2, "max")] = CHECK_THRESHOLD / 2
+        df2.loc[("NetCDF:*atm_3d*.nc", "var_1", 2), (0, "max")] = CHECK_THRESHOLD / 2
         # now, both data are comparable again
         self.check(df1, df2)
 
