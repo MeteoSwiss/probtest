@@ -82,7 +82,7 @@ cli_help = {
     + r"(per time step and variable)",
     "stats_file_name": r"the name of the stats file. No absolute path here, it will "
     + r"always be created in the (perturbed) model_output_dir.",
-    "member_num": r"number of ensemble members",
+    "member_num": r"number of ensemble members or a comma separated list of members (e.g. \"1,3,14\")",
     "member_type": r"precision of experiment (e.g. double or mixed). "
     + r"The type is part of the created member_id, which is equal to "
     + r"(member_type+'_'+str(member_num))",
