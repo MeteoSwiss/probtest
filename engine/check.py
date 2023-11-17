@@ -14,7 +14,7 @@ from util.log_handler import logger
 
 def check_intersection(df_ref, df_cur):
     # Check if variable names in reference and test case have any intersection
-    # Check if number of time steps agree
+    # Check if numbers of time steps agree
     skip_test = 0
     if not set(df_ref.index.intersection(df_cur.index)):
         logger.info(
