@@ -3,7 +3,7 @@ import warnings
 import click
 
 from util.click_util import cli_help
-from util.constants import CHECK_THRESHOLD
+from util.constants import CHECK_THRESHOLD, compute_statistics
 from util.dataframe_ops import (
     compute_div_dataframe,
     compute_rel_diff_dataframe,
@@ -13,7 +13,8 @@ from util.log_handler import logger
 
 
 def check_intersection(df_ref, df_cur):
-    # Check if reference and test case have any intersection
+    # Check if variable names in reference and test case have any intersection
+    # Check if number of time steps agree
     skip_test = 0
     if not set(df_ref.index.intersection(df_cur.index)):
         logger.info(
@@ -58,7 +59,7 @@ def check_intersection(df_ref, df_cur):
         logger.info(
             "WARNING: The reference includes more timesteps than the test case. "
             "Only the first {} time step(s) are tested.\n".format(
-                len(df_cur.columns) // 3
+                len(df_cur.columns) // len(compute_statistics)
             )
         )
         df_ref = df_ref.iloc[:, : len(df_cur.columns)]
@@ -66,7 +67,7 @@ def check_intersection(df_ref, df_cur):
         logger.info(
             "WARNING: The reference includes less timesteps than the test case. "
             "Only the first {} time step(s) are tested.\n".format(
-                len(df_ref.columns) // 3
+                len(df_ref.columns) // len(compute_statistics)
             )
         )
         df_cur = df_cur.iloc[:, : len(df_ref.columns)]
@@ -119,25 +120,25 @@ def check(input_file_ref, input_file_cur, tolerance_file_name, factor):
     if skip_test:  # No intersection
         logger.info("RESULT: check FAILED")
         exit(1)
+
+    # compute relative difference
+    diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
+    # take maximum over height
+    diff_df = diff_df.groupby(["file_ID", "variable"]).max()
+
+    out, err, tol = check_variable(diff_df, df_tol)
+
+    div = compute_div_dataframe(err, tol)
+
+    if out:
+        logger.info("RESULT: check PASSED!")
     else:
-        # compute relative difference
-        diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
-        # take maximum over height
-        diff_df = diff_df.groupby(["file_ID", "variable"]).max()
+        logger.info("RESULT: check FAILED")
+        logger.info("Differences")
+        print(err)
+        logger.info("\nTolerance")
+        print(tol)
+        logger.info("\nError relative to tolerance")
+        print(div)
 
-        out, err, tol = check_variable(diff_df, df_tol)
-
-        div = compute_div_dataframe(err, tol)
-
-        if out:
-            logger.info("RESULT: check PASSED!")
-        else:
-            logger.info("RESULT: check FAILED")
-            logger.info("Differences")
-            print(err)
-            logger.info("\nTolerance")
-            print(tol)
-            logger.info("\nError relative to tolerance")
-            print(div)
-
-        exit(0 if out else 1)
+    exit(0 if out else 1)
