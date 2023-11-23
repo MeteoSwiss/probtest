@@ -182,7 +182,7 @@ To execute all tests, you first need to download the probtest input data, then r
     PROBTEST_CUR_DATA=./probtest_data # Directory to write probtest output
     test_reference=$(cat test_reference)
     scp -r daint:/project/g110/probtest_testdata/$test_reference $REFERENCE_DATA
-    python probtest.py init --codebase-install $REFERENCE_DATA/icon_data --reference $PROBTEST_CUR_DATA --template-name templates/testdata.jinja --experiment-name atm_amip_test --config testdata.json --file-id NetCDF "*atm_3d_ml*" --file-id NetCDF "*atm_3d_hl*" --member-num 2
+    python probtest.py init --codebase-install $REFERENCE_DATA/icon_data --reference $PROBTEST_CUR_DATA --template-name templates/testdata.jinja --experiment-name atm_amip_test --config testdata.json --file-id NetCDF "*atm_3d_ml*" --file-id NetCDF "*atm_3d_hl*" --member-num 2,5
 
 Now you can run and debug any probtest command from the _Run_ tab in VS code. (Note that the template `testdata.jinja` treats `codebase-install` differently than the default `ICON.jinja`.)
 
