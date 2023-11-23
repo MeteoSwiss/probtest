@@ -1,0 +1,160 @@
+{
+  "default": {
+    "model_output_dir": "/scratch/b/b381001/EXCLAIM/graupel/standalone/gcc",
+    "perturbed_model_output_dir": "/scratch/b/b381001/EXCLAIM/graupel/standalone/gcc_{member_id}",
+    "experiment_name": "graupel",
+    "perturbed_experiment_name": "_member_id_{member_id}",
+    "stats_file_name": "stats_{member_id}.csv",
+    "tolerance_file_name": "/scratch/b/b381001/EXCLAIM/graupel/standalone/externals/probtest/_tolerance.csv",
+    "member_ids": [
+      "1",
+      "2"
+    ],
+    "file_specification": [
+      {
+        "latlon": {
+          "format": "netcdf",
+          "time_dim": "time",
+          "horizontal_dims": [
+            "lat:lon"
+          ]
+        },
+        "meteogram": {
+          "format": "netcdf",
+          "time_dim": "time",
+          "horizontal_dims": [
+            "max_nlevs:nstations",
+            "nstations"
+          ]
+        },
+        "dace": {
+          "format": "netcdf",
+          "time_dim": null,
+          "horizontal_dims": [
+            "d_body"
+          ]
+        },
+        "emvorado_fof": {
+          "format": "netcdf",
+          "time_dim": null,
+          "horizontal_dims": [
+            "d_body",
+            "d_radar"
+          ],
+          "fill_value_key": "_FillValue"
+        },
+        "emvorado_vrsim_volscan": {
+          "format": "netcdf",
+          "time_dim": null,
+          "horizontal_dims": [
+            "n_azimuth:n_range",
+            "n_azimuth",
+            "n_range",
+            "records"
+          ],
+          "fill_value_key": "_FillValue"
+        },
+        "NetCDF": {
+          "format": "netcdf",
+          "time_dim": null,
+          "horizontal_dims": [
+            "ncells"
+          ]
+        },
+        "total_integrals": {
+          "format": "csv",
+          "parser_args": {
+            "delimiter": "\\s+",
+            "skiprows": 1,
+            "index_col": 0,
+            "names": [
+              "timestep",
+              "m",
+              "mdry",
+              "e",
+              "kine",
+              "inne",
+              "pote",
+              "msp"
+            ]
+          }
+        },
+        "tracer_total_integrals": {
+          "format": "csv",
+          "parser_args": {
+            "delimiter": "\\s+",
+            "skiprows": 1,
+            "index_col": [
+              0,
+              2
+            ],
+            "names": [
+              "timestep",
+              "time_hr",
+              "tracer_nr",
+              "total",
+              "relative_error_to_previous",
+              "relative_error_to_1"
+            ]
+          }
+        }
+      }
+    ],
+    "savedir": "/scratch/b/b381001/EXCLAIM/graupel/standalone/externals/probtest/experiments/",
+    "file_id": [["NetCDF","case_1.nc"]]
+  },
+  "perturb": {
+    "perturb_amplitude": "1e-14",
+    "variable_names": [
+      "ta",
+      "clw"
+    ],
+    "copy_all_files": false,
+    "files": ["aes-new-gr_moderate-dt30s_atm_3d_ml_20080801T000000Z.nc"],
+    "model_input_dir": "../../gcc",
+    "perturbed_model_input_dir": "../../gcc_{member_id}"
+    },
+  "stats": {
+    "ensemble": false
+  },
+  "check": {
+    "input_file_ref": "/scratch/b/b381001/EXCLAIM/graupel/standalone/externals/probtest/stats_ref.csv",
+    "input_file_cur": "/scratch/b/b381001/EXCLAIM/graupel/standalone/externals/probtest/stats_1.csv",
+    "factor": 5
+  },
+  "performance": {
+    "timing_regex": "/scratch/b/b381001/EXCLAIM/graupel/standalone/externals/probtest/run/LOG.exp..*",
+    "timing_names": [
+      "integrate_nh",
+      "nh_solve",
+      "physics"
+    ],
+    "timing_database": "/scratch/b/b381001/EXCLAIM/graupel/standalone/externals/probtest/database",
+    "append_time": "False"
+  },
+  "performance-check": {
+    "timing-current": "",
+    "timing-reference": ""
+  },
+  "cdo": {
+    "cdo_table_file": "/scratch/b/b381001/EXCLAIM/graupel/standalone/externals/probtest/cdo_table/.csv",
+    "histogram": true,
+    "times": [],
+    "variables": []
+  },
+  "run": {
+    "run_script_name": "script.sh",
+    "perturbed_run_script_name": "script_{member_id}.sh",
+    "run_dir": "/scratch/b/b381001/EXCLAIM/graupel/standalone/gcc",
+    "perturbed_run_dir": "/scratch/b/b381001/EXCLAIM/graupel/standalone/gcc_{member_id}",
+    "lhs": [
+    ],
+    "rhs_new": [
+    ],
+    "rhs_old": [
+    ],
+    "submit_command": "bash",
+    "parallel": false,
+    "dry": false
+  }
+}
