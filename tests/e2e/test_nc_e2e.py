@@ -40,6 +40,10 @@ class TestNcE2E(unittest.TestCase):
         exp = os.environ["PROBTEST_TEST_EXPERIMENT"]
         # Get the member numbers
         folder_names = os.listdir(Path(os.environ["PROBTEST_CUR_DATA"], "perturb"))
+        print("DEBUG")
+        print(os.environ["PROBTEST_CUR_DATA"])
+        print(os.environ["PROBTEST_REF_DATA"])
+        print(folder_names)
         member_num = []
         for folder_name in folder_names:
             if folder_name.startswith(exp):
