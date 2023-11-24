@@ -38,7 +38,14 @@ class TestNcE2E(unittest.TestCase):
 
     def test_perturb_e2e(self):
         exp = os.environ["PROBTEST_TEST_EXPERIMENT"]
-        for s in [1, 2]:
+        # Get the member numbers
+        folder_names = os.listdir(Path(os.environ["PROBTEST_CUR_DATA"],"perturb"))
+        member_num = []
+        for folder_name in folder_names:
+            if folder_name.startswith(exp):
+                member_num.append(int(folder_name[len(exp+"_member_id_"):]))
+
+        for s in member_num:
             data_ref, data_cur = load_netcdf(
                 "perturb/{}_member_id_{}/initial_condition.nc".format(exp, s)
             )
