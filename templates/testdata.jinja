@@ -26,8 +26,8 @@
         "ensemble": true
     },
     "check": {
-        "input_file_ref": "{{reference}}/reference/{{experiment_name}}_{{ member_num[0] if member_num|length > 1 else 1}}.csv",
-        "input_file_cur": "{{reference}}/reference/{{experiment_name}}_{{ member_num[1] if member_num|length > 1 else 2}}.csv",
+        "input_file_ref": "{{reference}}/reference/{{experiment_name}}_{{member_num[0] if member_num|length>1 else 1}}.csv",
+        "input_file_cur": "{{reference}}/reference/{{experiment_name}}_{{member_num[1] if member_num|length>1 else 2}}.csv",
         "factor": 5
     },
     "performance": {
