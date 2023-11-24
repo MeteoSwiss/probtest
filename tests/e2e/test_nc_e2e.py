@@ -38,20 +38,19 @@ class TestNcE2E(unittest.TestCase):
 
     def test_perturb_e2e(self):
         exp = os.environ["PROBTEST_TEST_EXPERIMENT"]
-        # Get the member numbers
-        folder_names = os.listdir(Path(os.environ["PROBTEST_CUR_DATA"], "perturb"))
-        print("DEBUG")
-        print(os.environ["PROBTEST_CUR_DATA"])
-        print(os.environ["PROBTEST_REF_DATA"])
-        print(folder_names)
-        member_num = []
-        for folder_name in folder_names:
-            if folder_name.startswith(exp):
-                member_num.append(int(folder_name[len(exp + "_member_id_") :]))
 
-        for s in member_num:
+        # Get a list of directories that include the experiment name
+        perturb_path = Path(os.getcwd(), os.environ["PROBTEST_CUR_DATA"], "perturb")
+        exp_dirs = [d for d in os.listdir(perturb_path) if exp in d]
+        self.assertNotEqual(
+            len(exp_dirs),
+            0,
+            msg="No experiment folders found in {}".format(perturb_path),
+        )
+
+        for exp_dir in exp_dirs:
             data_ref, data_cur = load_netcdf(
-                "perturb/{}_member_id_{}/initial_condition.nc".format(exp, s)
+                "perturb/{}/initial_condition.nc".format(exp_dir)
             )
 
             diff_keys, err = check_netcdf(data_ref, data_cur)
