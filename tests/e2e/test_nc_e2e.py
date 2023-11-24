@@ -40,7 +40,7 @@ class TestNcE2E(unittest.TestCase):
         exp = os.environ["PROBTEST_TEST_EXPERIMENT"]
 
         # Get a list of directories that include the experiment name
-        perturb_path = Path(os.getcwd(), os.environ["PROBTEST_CUR_DATA"], "perturb")
+        perturb_path = Path(os.getcwd(), os.environ["PROBTEST_REF_DATA"], "perturb")
         exp_dirs = [d for d in os.listdir(perturb_path) if exp in d]
         self.assertNotEqual(
             len(exp_dirs),
