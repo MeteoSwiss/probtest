@@ -7,7 +7,7 @@ import pandas as pd
 import xarray as xr
 
 from util import model_output_parser
-from util.click_util import CommaSeperatedStrings, cli_help
+from util.click_util import CommaSeperatedInts, cli_help
 from util.constants import cdo_bins
 from util.dataframe_ops import df_from_file_ids
 from util.file_system import file_names_from_pattern
@@ -80,9 +80,16 @@ def rel_diff_stats(
     help=cli_help["file_id"],
 )
 @click.option(
-    "--member_ids",
-    type=CommaSeperatedStrings(),
-    help=cli_help["member_ids"],
+    "--member-num",
+    type=CommaSeperatedInts(),
+    default="10",
+    help=cli_help["member_num"],
+)
+@click.option(
+    "--member-type",
+    type=str,
+    default="",
+    help=cli_help["member_type"],
 )
 @click.option(
     "--perturbed-model-output-dir",
@@ -100,18 +107,20 @@ def rel_diff_stats(
 def cdo_table(
     model_output_dir,
     file_id,
-    member_ids,
+    member_num,
+    member_type,
     perturbed_model_output_dir,
     cdo_table_file,
     file_specification,
 ):
     # TODO: A single perturbed run provides enough data to make proper statistics.
     #       refactor cdo_table interface to reflect that
-    if len(member_ids) > 1:
-        logger.warning(
-            "Only a single member_id can be specified, using {}".format(member_ids[0])
-        )
-    member_id = member_ids[0]
+    if len(member_num) == 1:
+        member_num = [i for i in range(1, member_num[0] + 1)]
+    if member_type:
+        member_id = member_type + "_" + str(member_num[0])
+    else:
+        member_id = str(member_num[0])
 
     file_specification = file_specification[0]  # can't store dicts as defaults in click
     assert isinstance(file_specification, dict), "must be dict"
@@ -180,7 +189,7 @@ def cdo_table(
                 df.loc[:, (t, cdo_bins)].sum(axis=1), axis=0
             )
 
-        logger.info("writing cdo table to {}...".format(cdo_table_file))
+        logger.info("writing cdo table to {}.".format(cdo_table_file))
 
         Path(cdo_table_file).parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(cdo_table_file)

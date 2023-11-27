@@ -6,7 +6,8 @@
         "perturbed_experiment_name": "{{experiment_name}}_member_id_{member_id}",
         "stats_file_name": "{{reference}}/reference/{{experiment_name}}_{member_id}.csv",
         "tolerance_file_name": "{{reference}}/tolerance/{{experiment_name}}.csv",
-        "member_ids": ["{{member_ids}}"],
+        "member_num": "[{member_num}]",
+        "member_type": "{{member_type}}",
         "file_id": [ ["NetCDF", "*.nc"]],
         "file_specification": [{
             "NetCDF": { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["ncells", "ncells_2"] }
@@ -25,8 +26,8 @@
         "ensemble": true
     },
     "check": {
-        "input_file_ref": "{{reference}}/reference/{{experiment_name}}_1.csv",
-        "input_file_cur": "{{reference}}/reference/{{experiment_name}}_2.csv",
+        "input_file_ref": "{{reference}}/reference/{{experiment_name}}_{{member_num[0] if member_num|length>1 else 1}}.csv",
+        "input_file_cur": "{{reference}}/reference/{{experiment_name}}_{{member_num[1] if member_num|length>1 else 2}}.csv",
         "factor": 5
     },
     "performance": {
@@ -42,8 +43,7 @@
     },
     "cdo": {
         "cdo_table_file": "{{reference}}/cdo_table/{{experiment_name}}.csv",
-        "histogram": true,
-        "member_ids": ["1"]
+        "histogram": true
     },
     "run": {
         "run_script_name": "exp.{{experiment_name}}.run",

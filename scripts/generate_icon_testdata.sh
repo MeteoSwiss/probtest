@@ -23,8 +23,6 @@ do
     if [[ "$exp" == "mch_opr_r04b07" ]]; then
         file_id=(
             --file-id NetCDF "*atm_3d_ml*.nc"
-            --file-id NetCDF "*atm_3d_hl*.nc"
-            --file-id NetCDF "*atm_3d_pl*.nc"
         )
     fi
     python $PROBTEST_DIR/probtest.py init \
@@ -33,7 +31,7 @@ do
         "${file_id[@]}" \
         --reference "$PROBTEST_DATA" \
         --template-name "$PROBTEST_DIR/templates/testdata.jinja" \
-        --member_ids 1,2 \
+        --member-num 2,5 \
         --timing-current "$ICON_DATA/probtest_testdata" \
         --timing-reference "$ICON_DATA/performance_reference/probtest_testdata" \
         || exit 1

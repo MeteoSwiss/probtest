@@ -6,9 +6,9 @@ from pathlib import Path
 
 import click
 
-from util.click_util import CommaSeperatedStrings, cli_help
+from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
 from util.log_handler import logger
-from util.utils import generate_seed_from_member_id
+from util.utils import get_seed_from_member_num
 
 
 def is_float(string):
@@ -153,9 +153,16 @@ def test_job_returncode(job):
     help=cli_help["submit_command"],
 )
 @click.option(
-    "--member_ids",
-    type=CommaSeperatedStrings(),
-    help=cli_help["member_ids"],
+    "--member-num",
+    default="10",
+    type=CommaSeperatedInts(),
+    help=cli_help["member_num"],
+)
+@click.option(
+    "--member-type",
+    type=str,
+    default="",
+    help=cli_help["member_type"],
 )
 @click.option(
     "--parallel/--no-parallel",
@@ -190,7 +197,8 @@ def run_ensemble(
     experiment_name,
     perturbed_experiment_name,
     submit_command,
-    member_ids,
+    member_num,
+    member_type,
     parallel,
     dry,
     lhs,
@@ -210,7 +218,12 @@ def run_ensemble(
     # run the ensemble
     Path(perturbed_run_dir).mkdir(exist_ok=True, parents=True)
     os.chdir(perturbed_run_dir)
-    for m_id in member_ids:
+    if len(member_num) == 1:
+        member_num = [i for i in range(1, member_num[0] + 1)]
+    for m_num in member_num:
+        m_id = str(m_num)
+        if member_type:
+            m_id = member_type + "_" + m_id
         runscript = "{}/{}".format(run_dir, run_script_name)
         perturbed_runscript = "{}/{}".format(
             perturbed_run_dir, perturbed_run_script_name.format(member_id=m_id)
@@ -224,7 +237,7 @@ def run_ensemble(
             lhs,
             rhs_new,
             rhs_old,
-            generate_seed_from_member_id(m_id),
+            get_seed_from_member_num(m_num),
         )
 
         if not dry:

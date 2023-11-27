@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from engine.check import check_variable
+from engine.check import check_intersection, check_variable
 from util.constants import CHECK_THRESHOLD
 from util.dataframe_ops import compute_rel_diff_dataframe
 
@@ -11,21 +11,23 @@ from util.dataframe_ops import compute_rel_diff_dataframe
 class TestCheck(unittest.TestCase):
     def setUp(self):
         index = pd.MultiIndex.from_arrays(
-            [["var_1"] * 3 + ["var_2"], list(range(3)) + [0]],
-            names=["variable", "height"],
+            [
+                ["NetCDF:*atm_3d*.nc"] * 4,
+                ["var_1"] * 3 + ["var_2"],
+                list(range(3)) + [0],
+            ],
+            names=["file_ID", "variable", "height"],
         )
         columns = pd.MultiIndex.from_product(
-            [range(4), ["max", "min", "mean"]], names=["time", "statistic"]
+            [range(4), ["max", "mean", "min"]], names=["time", "statistic"]
         )
 
-        self.df1 = pd.DataFrame(
-            np.linspace(0.9, 1.9, 4 * 12).reshape(4, 12), index=index, columns=columns
-        )
-        self.df2 = pd.DataFrame(
-            np.linspace(1.1, 2.1, 4 * 12).T.reshape(4, 12), index=index, columns=columns
-        )
-        self.df1[:2] *= -1  # some negative test data
-        self.df2[:2] *= -1
+        array1 = np.linspace(0.9, 1.9, 4 * 12).reshape(4, 12)
+        array1[:2] *= -1  # make some test data negative
+        self.df1 = pd.DataFrame(array1, index=index, columns=columns)
+        array2 = np.linspace(1.1, 2.1, 4 * 12).transpose().reshape(4, 12)
+        array2[:2] *= -1  # make some test data negative
+        self.df2 = pd.DataFrame(array2, index=index, columns=columns)
         # Relative differences (df1-df2)/((df1+df2)/2) are between 0.2 and 0.1.
 
         self.tol1 = pd.DataFrame(
@@ -61,7 +63,7 @@ class TestCheck(unittest.TestCase):
         """Probtest should not pass if any of the values is 0
         and the other is much larger"""
         df1 = self.df1.copy()
-        df1.loc["var_1", (2, "max")] = 0
+        df1.loc[("NetCDF:*atm_3d*.nc", "var_1", 2), (0, "max")] = 0
         df2 = self.df2.copy()
         diff_df = compute_rel_diff_dataframe(df1, df2)
         diff_df = diff_df.groupby(["variable"]).max()
@@ -74,7 +76,7 @@ class TestCheck(unittest.TestCase):
             + "Here is the DataFrame:\n{}".format(err),
         )
 
-        df2.loc["var_1", (2, "max")] = CHECK_THRESHOLD / 2
+        df2.loc[("NetCDF:*atm_3d*.nc", "var_1", 2), (0, "max")] = CHECK_THRESHOLD / 2
         # now, both data are comparable again
         self.check(df1, df2)
 
@@ -88,6 +90,40 @@ class TestCheck(unittest.TestCase):
         df2 = self.df2.copy()
         df2.loc["var_1", (2, "min")] = CHECK_THRESHOLD / -2
         self.check(df1, df2)
+
+    def test_no_intersection(self):
+        """Probtest should fail if the variables in the
+        reference and test case have no intersection"""
+        df1 = self.df1.copy()
+        df1 = df1.rename(index={"var_1": "var_3", "var_2": "var_4"})
+        skip_test, _, _ = check_intersection(df1, self.df2)
+
+        self.assertNotEqual(
+            skip_test,
+            0,
+            "No intersection of variables in reference "
+            + "and test case but test didn't fail",
+        )
+
+    def test_missing_variables(self):
+        """Probtest should through a warning if some variables
+        are not in the reference and test case"""
+        df1 = self.df1.copy()
+        df1 = df1.drop("var_1", level="variable")
+
+        expected_warning_msg = (
+            "WARNING: The following variables are in the "
+            "test case but not in the reference case and therefore not tested: var_1"
+        )
+        with self.assertWarnsRegex(UserWarning, expected_warning_msg):
+            check_intersection(df1, self.df2)
+
+        expected_warning_msg = (
+            "WARNING: The following variables are in the "
+            "reference case but not in the test case and therefore not tested: var_1"
+        )
+        with self.assertWarnsRegex(UserWarning, expected_warning_msg):
+            check_intersection(self.df2, df1)
 
 
 class TestCheckSwapped(TestCheck):
