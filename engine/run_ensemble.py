@@ -74,16 +74,18 @@ def prepare_perturbed_run_script(
 
     for line in in_file:
         out_line = line
-        # replace input directory with the ones given in config file
-        #for lh, rh_old, rh_new in zip(lhs, rhs_old, rhs_new):
-        #    out_line = replace_assignment(line, lh, rh_new, rh_old, seed)
-        #    # replace first match
-        #    if out_line != line:
-        #        break
+        # only modify namelist if lhs,rhs_old or rhs_new are not equal None
+        if not all(all(item is None for item in entry) for entry in [lhs,rhs_old,rhs_new]):
+            #replace input directory with the ones given in config file
+            for lh, rh_old, rh_new in zip(lhs, rhs_old, rhs_new):
+                out_line = replace_assignment(line, lh, rh_new, rh_old, seed)
+                # replace first match
+                if out_line != line:
+                    break
 
-        ## rename the experiment name
-        #if line == out_line:
-        #    out_line = replace_string(line, experiment_name, modified_experiment_name)
+            # rename the experiment name
+            if line == out_line:
+                out_line = replace_string(line, experiment_name, modified_experiment_name)
 
         out_file.write(out_line)
 
