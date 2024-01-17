@@ -72,12 +72,10 @@ def prepare_perturbed_run_script(
         rhs_old = [None] * len(rhs_new)
     rhs_old = [None if r == "None" else r for r in rhs_old]
 
-    for line in in_file:
-        out_line = line
-        # only modify namelist if lhs,rhs_old or rhs_new are not equal None
-        if not all(
-            all(item is None for item in entry) for entry in [lhs, rhs_old, rhs_new]
-        ):
+    # only modify namelist if lhs,rhs_old or rhs_new are not equal None
+    if any(any(item is not None for item in entry) for entry in [lhs, rhs_old, rhs_new]):
+        for line in in_file:
+            out_line = line
             # replace input directory with the ones given in config file
             for lh, rh_old, rh_new in zip(lhs, rhs_old, rhs_new):
                 out_line = replace_assignment(line, lh, rh_new, rh_old, seed)
@@ -91,7 +89,9 @@ def prepare_perturbed_run_script(
                     line, experiment_name, modified_experiment_name
                 )
 
-        out_file.write(out_line)
+            out_file.write(out_line)
+    else:
+        out_file.write(in_file.read())
 
     logger.info("writing model run script to: {}".format(perturbed_runscript))
     out_file.close()
