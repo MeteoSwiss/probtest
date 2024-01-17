@@ -73,7 +73,9 @@ def prepare_perturbed_run_script(
     rhs_old = [None if r == "None" else r for r in rhs_old]
 
     # only modify namelist if lhs,rhs_old or rhs_new are not equal None
-    if any(any(item is not None for item in entry) for entry in [lhs, rhs_old, rhs_new]):
+    if any(
+        any(item is not None for item in entry) for entry in [lhs, rhs_old, rhs_new]
+    ):
         for line in in_file:
             out_line = line
             # replace input directory with the ones given in config file
