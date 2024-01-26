@@ -84,6 +84,8 @@ cli_help = {
     + r"always be created in the (perturbed) model_output_dir.",
     "member_num": r"number of ensemble members or a comma separated list of members "
     + r"(e.g. \"1,3,14\")",
+    "total_member_num": r"number of ensemble members used to select the x "
+    + r"optimal members from (x=member_num)",
     "member_type": r"precision of experiment (e.g. double or mixed). "
     + r"The type is part of the created member_id, which is equal to "
     + r"(member_type+'_'+str(member_num))",
