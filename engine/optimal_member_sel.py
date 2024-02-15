@@ -102,22 +102,26 @@ def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_
         )
         sys.exit(1)
 
-    df_ref = parse_probtest_csv(stats_file_name.format(member_id="ref"), index_col=[0, 1, 2])
-    vars=set(index[1] for index in df_ref.index)
+#    df_ref = parse_probtest_csv(stats_file_name.format(member_id="ref"), index_col=[0, 1, 2])
+    vars=set(index[1] for index in dfs[0].index)
 
     # Initialize a dictionary to store maximum values for each variable
     max_values = {var: [] for var in vars}
 
-    # Iterate through each df_diff
-    for i in range(total_member_num):
-        df_diff = abs(df_ref - dfs[i])
+    # get all possible combinations of the input data
+    combs = list(itertools.product(range(ndata), range(ndata)))
+    # do not use the i==j combinations
+    combs = [(i, j) for i, j in combs if j < i]
+    # compute relative differences for all combinations
+    rdiff = [compute_rel_diff_dataframe(dfs[i], dfs[j]) for i, j in combs]
 
-        # Iterate through the variable names
+    file_ID = dfs[0].index.get_level_values('file_ID')[0]
+    for member in range(total_member_num):
+        rdiff_member = [rdiff[i] for i in range(len(rdiff)) if member in combs[i]]
+        rdiff_max = [r.groupby(["file_ID", "variable"]).max() for r in rdiff_member]
+        df_max = pd.concat(rdiff_max).groupby(["file_ID", "variable"]).max()
         for var in vars:
-            # Extract maximum value for the current variable in the current df_diff
-            max_value = df_diff.loc[(slice(None), var), :].max().max()
-            # Append the maximum value to the array corresponding to the variable
-            max_values[var].append(max_value)
+            max_values[var].append(df_max.loc[(file_ID, var)].max().max())
 
     # Initialize a dictionary to store rankings for each variable
     ranking = {}
