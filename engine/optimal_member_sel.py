@@ -85,8 +85,11 @@ def plot_rankings(rankings, variables, total_member_num):
 
 
 def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_type, total_member_num, plot_rank_dist):
-    if len(member_num) == 1:
-        member_num = [i for i in range(1, member_num[0] + 1)]
+    if len(member_num) != 1:
+        member_num = len(member_num)
+    else:
+        member_num = member_num[0]
+
     # read in stats files
     dfs = [
         parse_probtest_csv(stats_file_name.format(member_id=m_id), index_col=[0, 1, 2])
@@ -128,11 +131,18 @@ def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_
 
     # Iterate through each variable
     # Some indices may have same rank
-    for var, max_values in max_values.items():
+    for var, values in max_values.items():
         # Use rankdata to rank max values in descending order
-        rankings = rankdata([-value for value in max_values], method='min')
+        rankings = rankdata([-value for value in values], method='min')
         # Convert ranks to integers and store them for the current variable
         ranking[var] = [int(rank) for rank in rankings]
+
+    # Find best members (most ranking=1)
+    sum_ranks = np.zeros(total_member_num)
+    for i in range(total_member_num):
+        sum_ranks[i] = sum(ranking[var][i] for var in vars if ranking[var][i]==1)
+    best_members = np.argsort(-sum_ranks)[:member_num]+1 # members start at 1
+    print(best_members)
 
     if plot_rank_dist:
         plot_rankings(ranking, vars, total_member_num)
