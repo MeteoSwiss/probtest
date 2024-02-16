@@ -1,7 +1,6 @@
 import itertools
 import os
 import sys
-
 import click
 import pandas as pd
 
@@ -16,6 +15,27 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import rankdata
 
+
+def angle_between(A, B):
+    # Convert DataFrame to NumPy array
+    A_array = A.to_numpy()
+    B_array = B.to_numpy()
+
+    # Compute the dot product of the flattened arrays of A and B
+    dot_product = np.dot(A_array.flatten(), B_array.flatten())
+
+    # Compute the norms of A and B
+    norm_A = np.linalg.norm(A_array)
+    norm_B = np.linalg.norm(B_array)
+
+    # Compute the angle in radians
+    cosine_angle = dot_product / (norm_A * norm_B)
+    angle_radians = np.arccos(np.clip(cosine_angle, -1.0, 1.0))
+
+    # Convert radians to degrees
+    angle_degrees = np.degrees(angle_radians)
+
+    return angle_degrees
 
 def plot_rankings(rankings, variables, total_member_num):
 
@@ -105,46 +125,72 @@ def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_
         )
         sys.exit(1)
 
-#    df_ref = parse_probtest_csv(stats_file_name.format(member_id="ref"), index_col=[0, 1, 2])
+    df_ref = parse_probtest_csv(stats_file_name.format(member_id="ref"), index_col=[0, 1, 2])
     vars=set(index[1] for index in dfs[0].index)
 
-    # Initialize a dictionary to store maximum values for each variable
-    max_values = {var: [] for var in vars}
+    dfs_rel = [compute_rel_diff_dataframe(dfs[i], df_ref) for i in range(total_member_num)]
+    # Only one value per variables and height for each statistic
+    dfs_rel = [r.groupby(["file_ID", "variable"]).max() for r in dfs_rel]
 
-    # get all possible combinations of the input data
-    combs = list(itertools.product(range(ndata), range(ndata)))
-    # do not use the i==j combinations
-    combs = [(i, j) for i, j in combs if j < i]
-    # compute relative differences for all combinations
-    rdiff = [compute_rel_diff_dataframe(dfs[i], dfs[j]) for i, j in combs]
-
-    file_ID = dfs[0].index.get_level_values('file_ID')[0]
-    for member in range(total_member_num):
-        rdiff_member = [rdiff[i] for i in range(len(rdiff)) if member in combs[i]]
-        rdiff_max = [r.groupby(["file_ID", "variable"]).max() for r in rdiff_member]
-        df_max = pd.concat(rdiff_max).groupby(["file_ID", "variable"]).max()
-        for var in vars:
-            max_values[var].append(df_max.loc[(file_ID, var)].max().max())
-
-    # Initialize a dictionary to store rankings for each variable
-    ranking = {}
-
-    # Iterate through each variable
-    # Some indices may have same rank
-    for var, values in max_values.items():
-        # Use rankdata to rank max values in descending order
-        rankings = rankdata([-value for value in values], method='min')
-        # Convert ranks to integers and store them for the current variable
-        ranking[var] = [int(rank) for rank in rankings]
-
-    # Find best members (most ranking=1)
-    sum_ranks = np.zeros(total_member_num)
+    indices = np.arange(total_member_num)
+    index = 0
+    value = 0
     for i in range(total_member_num):
-        sum_ranks[i] = sum(ranking[var][i] for var in vars if ranking[var][i]==1)
-    best_members = np.argsort(-sum_ranks)[:member_num]+1 # members start at 1
-    print(best_members)
+        if np.linalg.norm(dfs_rel[i]) > value:
+            index = i
+            value = np.linalg.norm(dfs_rel[i])
+    indices = np.concatenate((indices[:index], indices[index+1:]))
+    selection = [index]
 
-    if plot_rank_dist:
-        plot_rankings(ranking, vars, total_member_num)
+    for m in range(member_num):
+        angles = np.zeros(total_member_num) # removed indices will stay 0
+        for i in indices:
+            for s in selection:
+                angles[i] = angles[i] + angle_between(dfs_rel[s],dfs_rel[i])
+        mask = indices != np.argmax(angles)
+        indices = indices[mask]
+        selection.append(np.argmax(angles))
+
+    selection = [x+1 for x in selection] # Members start counting at 1
+    print(selection)
+
+#    # Initialize a dictionary to store maximum values for each variable
+#    max_values = {var: [] for var in vars}
+#
+#    # get all possible combinations of the input data
+#    combs = list(itertools.product(range(ndata), range(ndata)))
+#    # do not use the i==j combinations
+#    combs = [(i, j) for i, j in combs if j < i]
+#    # compute relative differences for all combinations
+#    rdiff = [compute_rel_diff_dataframe(dfs[i], dfs[j]) for i, j in combs]
+#
+#    file_ID = dfs[0].index.get_level_values('file_ID')[0]
+#    for member in range(total_member_num):
+#        rdiff_member = [rdiff[i] for i in range(len(rdiff)) if member in combs[i]]
+#        rdiff_max = [r.groupby(["file_ID", "variable"]).max() for r in rdiff_member]
+#        df_max = pd.concat(rdiff_max).groupby(["file_ID", "variable"]).max()
+#        for var in vars:
+#            max_values[var].append(df_max.loc[(file_ID, var)].max().max())
+#
+#    # Initialize a dictionary to store rankings for each variable
+#    ranking = {}
+#
+#    # Iterate through each variable
+#    # Some indices may have same rank
+#    for var, values in max_values.items():
+#        # Use rankdata to rank max values in descending order
+#        rankings = rankdata([-value for value in values], method='min')
+#        # Convert ranks to integers and store them for the current variable
+#        ranking[var] = [int(rank) for rank in rankings]
+#
+#    # Find best members (most ranking=1)
+#    sum_ranks = np.zeros(total_member_num)
+#    for i in range(total_member_num):
+#        sum_ranks[i] = sum(ranking[var][i] for var in vars if ranking[var][i]==1)
+#    best_members = np.argsort(-sum_ranks)[:member_num]+1 # members start at 1
+#    print(best_members)
+#
+#    if plot_rank_dist:
+#        plot_rankings(ranking, vars, total_member_num)
 
     return
