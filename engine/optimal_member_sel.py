@@ -29,7 +29,11 @@ def angle_between(A, B):
     norm_B = np.linalg.norm(B_array)
 
     # Compute the angle in radians
-    cosine_angle = dot_product / (norm_A * norm_B)
+    if norm_A * norm_B == 0:
+        cosine_angle = 1.0  # Return 1.0 when norm_A * norm_B is 0
+    else:
+        cosine_angle = dot_product / (norm_A * norm_B)
+
     angle_radians = np.arccos(np.clip(cosine_angle, -1.0, 1.0))
 
     # Convert radians to degrees
@@ -132,24 +136,29 @@ def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_
     # Only one value per variables and height for each statistic
     dfs_rel = [r.groupby(["file_ID", "variable"]).max() for r in dfs_rel]
 
-    indices = np.arange(total_member_num)
+    # Find first member: maximum norm
     index = 0
     value = 0
     for i in range(total_member_num):
         if np.linalg.norm(dfs_rel[i]) > value:
             index = i
             value = np.linalg.norm(dfs_rel[i])
+    indices = np.arange(total_member_num)
     indices = np.concatenate((indices[:index], indices[index+1:]))
     selection = [index]
 
-    for m in range(member_num):
-        angles = np.zeros(total_member_num) # removed indices will stay 0
+    # TODO: file_ID needs to be flexible in case more than one file_ID is used
+    file_ID = dfs[0].index.get_level_values('file_ID')[0]
+    angles = np.zeros(total_member_num) # selected members will be set to 0
+    for m in range(member_num-1):
         for i in indices:
-            for s in selection:
-                angles[i] = angles[i] + angle_between(dfs_rel[s],dfs_rel[i])
-        mask = indices != np.argmax(angles)
+            for var in vars:
+                angles[i] = angles[i] + angle_between(dfs_rel[selection[-1]].loc[(file_ID,var)],dfs_rel[i].loc[(file_ID,var)])
+        max_angle = np.argmax(angles)
+        mask = indices != max_angle
+        angles[max_angle] = 0
         indices = indices[mask]
-        selection.append(np.argmax(angles))
+        selection.append(max_angle)
 
     selection = [x+1 for x in selection] # Members start counting at 1
     print(selection)
