@@ -136,19 +136,36 @@ def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_
     # Only one value per variables and height for each statistic
     dfs_rel = [r.groupby(["file_ID", "variable"]).max() for r in dfs_rel]
 
+    # get all possible combinations of the input data
+    combs = list(itertools.product(range(ndata), range(ndata)))
+    # do not use the i==j combinations
+    combs = [(i, j) for i, j in combs if j < i]
+    angles = np.zeros(len(vars)) # selected members will be set to 0
+    # TODO: file_ID needs to be flexible in case more than one file_ID is used
+    file_ID = dfs[0].index.get_level_values('file_ID')[0]
+    for k,var in enumerate(vars):
+        for i,j in combs:
+            angles[k] = angles[k] + angle_between(dfs_rel[j].loc[(file_ID,var)],dfs_rel[i].loc[(file_ID,var)])
+    indices_max_to_min = np.argsort(angles)[::-1]
+    vars_list = list(vars)
+    sorted_vars = [vars_list[i] for i in indices_max_to_min]
+    if len(vars) > 20:
+        vars = sorted_vars[:20] # Found out empirically that 20 is a good number
+
     # Find first member: maximum norm
     index = 0
     value = 0
     for i in range(total_member_num):
-        if np.linalg.norm(dfs_rel[i]) > value:
+        norm = 0
+        for var in vars:
+            norm  = norm + np.linalg.norm(dfs_rel[i].loc[(file_ID,var)])
+        if norm > value:
             index = i
-            value = np.linalg.norm(dfs_rel[i])
+            value = norm
     indices = np.arange(total_member_num)
     indices = np.concatenate((indices[:index], indices[index+1:]))
     selection = [index]
 
-    # TODO: file_ID needs to be flexible in case more than one file_ID is used
-    file_ID = dfs[0].index.get_level_values('file_ID')[0]
     angles = np.zeros(total_member_num) # selected members will be set to 0
     for m in range(member_num-1):
         for i in indices:
