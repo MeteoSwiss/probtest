@@ -14,12 +14,18 @@ from util.log_handler import logger
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import rankdata
+import pdb
 
 
 def angle_between(A, B):
     # Convert DataFrame to NumPy array
     A_array = A.to_numpy()
     B_array = B.to_numpy()
+
+    # Find indices where both arrays are not NaN
+    not_nan_indices = ~np.isnan(A_array) & ~np.isnan(B_array)
+    A_array = A_array[not_nan_indices]
+    B_array = B_array[not_nan_indices]
 
     # Compute the dot product of the flattened arrays of A and B
     dot_product = np.dot(A_array.flatten(), B_array.flatten())
@@ -130,35 +136,33 @@ def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_
         sys.exit(1)
 
     df_ref = parse_probtest_csv(stats_file_name.format(member_id="ref"), index_col=[0, 1, 2])
-    vars=set(index[1] for index in dfs[0].index)
-
     dfs_rel = [compute_rel_diff_dataframe(dfs[i], df_ref) for i in range(total_member_num)]
     # Only one value per variables and height for each statistic
     dfs_rel = [r.groupby(["file_ID", "variable"]).max() for r in dfs_rel]
+    vars = set(dfs_rel[0].index)
 
     # get all possible combinations of the input data
     combs = list(itertools.product(range(ndata), range(ndata)))
     # do not use the i==j combinations
     combs = [(i, j) for i, j in combs if j < i]
     angles = np.zeros(len(vars)) # selected members will be set to 0
-    # TODO: file_ID needs to be flexible in case more than one file_ID is used
-    file_ID = dfs[0].index.get_level_values('file_ID')[0]
     for k,var in enumerate(vars):
         for i,j in combs:
-            angles[k] = angles[k] + angle_between(dfs_rel[j].loc[(file_ID,var)],dfs_rel[i].loc[(file_ID,var)])
+            angles[k] = angles[k] + angle_between(dfs_rel[j].loc[var],dfs_rel[i].loc[var])
     indices_max_to_min = np.argsort(angles)[::-1]
     vars_list = list(vars)
     sorted_vars = [vars_list[i] for i in indices_max_to_min]
     if len(vars) > 20:
         vars = sorted_vars[:20] # Found out empirically that 20 is a good number
 
+    print(vars)
     # Find first member: maximum norm
     index = 0
     value = 0
     for i in range(total_member_num):
         norm = 0
         for var in vars:
-            norm  = norm + np.linalg.norm(dfs_rel[i].loc[(file_ID,var)])
+            norm  = norm + np.linalg.norm(dfs_rel[i].loc[var])
         if norm > value:
             index = i
             value = norm
@@ -170,7 +174,7 @@ def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_
     for m in range(member_num-1):
         for i in indices:
             for var in vars:
-                angles[i] = angles[i] + angle_between(dfs_rel[selection[-1]].loc[(file_ID,var)],dfs_rel[i].loc[(file_ID,var)])
+                angles[i] = angles[i] + angle_between(dfs_rel[selection[-1]].loc[var],dfs_rel[i].loc[var])
         max_angle = np.argmax(angles)
         mask = indices != max_angle
         angles[max_angle] = 0
