@@ -152,17 +152,17 @@ def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_
     indices_max_to_min = np.argsort(angles)[::-1]
     vars_list = list(vars)
     sorted_vars = [vars_list[i] for i in indices_max_to_min]
-    if len(vars) > 20:
-        vars = sorted_vars[:20] # Found out empirically that 20 is a good number
+    mask = angles > len(combs)*35
+    vars = [vars_list[i] for i, m in enumerate(mask) if m]
 
-    print(vars)
     # Find first member: maximum norm
     index = 0
     value = 0
     for i in range(total_member_num):
         norm = 0
         for var in vars:
-            norm  = norm + np.linalg.norm(dfs_rel[i].loc[var])
+            not_nan_indices = ~np.isnan(dfs_rel[i].loc[var])
+            norm  = norm + np.linalg.norm(dfs_rel[i].loc[var][not_nan_indices])
         if norm > value:
             index = i
             value = norm
