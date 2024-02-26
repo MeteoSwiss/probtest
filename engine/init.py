@@ -40,6 +40,12 @@ from util.log_handler import logger
     help=cli_help["member_num"],
 )
 @click.option(
+    "--total-member-num",
+    type=int,
+    default=100,
+    help=cli_help["total_member_num"],
+)
+@click.option(
     "--member-type",
     type=str,
     default="",
@@ -75,6 +81,7 @@ def init(
     config,
     template_name,
     member_num,
+    total_member_num,
     member_type,
     perturb_amplitude,
     timing_current,
@@ -118,6 +125,7 @@ def init(
     render_dict["codebase_install"] = Path(codebase_install).resolve()
     render_dict["reference"] = Path(reference).resolve()
     render_dict["member_num"] = member_num
+    render_dict["total_member_num"] = total_member_num
     render_dict["member_type"] = member_type
     render_dict["perturb_amplitude"] = perturb_amplitude
     render_dict["timing_current"] = timing_current
