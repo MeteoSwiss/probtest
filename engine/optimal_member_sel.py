@@ -112,9 +112,14 @@ def plot_rankings(rankings, variables, total_member_num):
     is_flag=True,
     help=cli_help["plot_rank_dist"],
 )
+@click.option(
+    "--variables",
+    type=int,
+    default=1,
+)
 
 
-def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_type, total_member_num, plot_rank_dist):
+def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_type, total_member_num, plot_rank_dist, variables):
     if len(member_num) != 1:
         member_num = len(member_num)
     else:
@@ -139,50 +144,84 @@ def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_
     dfs_rel = [compute_rel_diff_dataframe(dfs[i], df_ref) for i in range(total_member_num)]
     # Only one value per variables and height for each statistic
     dfs_rel = [r.groupby(["file_ID", "variable"]).max() for r in dfs_rel]
-    vars = set(dfs_rel[0].index)
 
-    # get all possible combinations of the input data
-    combs = list(itertools.product(range(ndata), range(ndata)))
-    # do not use the i==j combinations
-    combs = [(i, j) for i, j in combs if j < i]
-    angles = np.zeros(len(vars)) # selected members will be set to 0
-    for k,var in enumerate(vars):
-        for i,j in combs:
-            angles[k] = angles[k] + angle_between(dfs_rel[j].loc[var],dfs_rel[i].loc[var])
-    indices_max_to_min = np.argsort(angles)[::-1]
-    vars_list = list(vars)
-    sorted_vars = [vars_list[i] for i in indices_max_to_min]
-    mask = angles > len(combs)*35
-    vars = [vars_list[i] for i, m in enumerate(mask) if m]
+    # Get optimal member selection on variable basis
+    if variables:
+        vars = set(dfs_rel[0].index)
 
-    # Find first member: maximum norm
-    index = 0
-    value = 0
-    for i in range(total_member_num):
-        norm = 0
-        for var in vars:
-            not_nan_indices = ~np.isnan(dfs_rel[i].loc[var])
-            norm  = norm + np.linalg.norm(dfs_rel[i].loc[var][not_nan_indices])
-        if norm > value:
-            index = i
-            value = norm
-    indices = np.arange(total_member_num)
-    indices = np.concatenate((indices[:index], indices[index+1:]))
-    selection = [index]
+        if (variables>1):
+            # get all possible combinations of the input data
+            combs = list(itertools.product(range(ndata), range(ndata)))
+            # do not use the i==j combinations
+            combs = [(i, j) for i, j in combs if j < i]
+            angles = np.zeros(len(vars)) # selected members will be set to 0
+            for k,var in enumerate(vars):
+                for i,j in combs:
+                    angles[k] = angles[k] + (angle_between(dfs_rel[j].loc[var],dfs_rel[i].loc[var]))
+            indices_max_to_min = np.argsort(angles)[::-1]
+            vars_list = list(vars)
+            sorted_vars = [vars_list[i] for i in indices_max_to_min]
 
-    angles = np.zeros(total_member_num) # selected members will be set to 0
-    for m in range(member_num-1):
-        for i in indices:
+            # Take only variables with biggest spread into account
+            mask = angles > len(combs)*35
+            vars = [vars_list[i] for i, m in enumerate(mask) if m]
+
+        # Find first member: maximum norm
+        index = 0
+        value = 0
+        for i in range(total_member_num):
+            norm = 0
             for var in vars:
-                angles[i] = angles[i] + angle_between(dfs_rel[selection[-1]].loc[var],dfs_rel[i].loc[var])
-        max_angle = np.argmax(angles)
-        mask = indices != max_angle
-        angles[max_angle] = 0
-        indices = indices[mask]
-        selection.append(max_angle)
+                not_nan_indices = ~np.isnan(dfs_rel[i].loc[var])
+                norm  = norm + np.linalg.norm(dfs_rel[i].loc[var][not_nan_indices])
+            if norm > value:
+                index = i
+                value = norm
+        indices = np.arange(total_member_num)
+        indices = np.concatenate((indices[:index], indices[index+1:]))
+        selection = [index]
 
-    selection = [x+1 for x in selection] # Members start counting at 1
-    print(selection)
+        angles = np.zeros(total_member_num) # selected members will be set to 0
+        for m in range(member_num-1):
+            for i in indices:
+                for var in vars:
+                    angles[i] = angles[i] + angle_between(dfs_rel[selection[-1]].loc[var],dfs_rel[i].loc[var])
+            max_angle = np.argmax(angles)
+            mask = indices != max_angle
+            angles[max_angle] = 0
+            indices = indices[mask]
+            selection.append(max_angle)
+
+        selection = [x+1 for x in selection] # Members start counting at 1
+        print(selection)
+    else:
+        # Find first member: maximum norm
+        index = 0
+        value = 0
+        for i in range(total_member_num):
+            norm = 0
+            not_nan_indices = ~np.isnan(dfs_rel[i])
+            norm  = norm + np.linalg.norm(dfs_rel[i][not_nan_indices])
+            if norm > value:
+                index = i
+                value = norm
+        indices = np.arange(total_member_num)
+        indices = np.concatenate((indices[:index], indices[index+1:]))
+        selection = [index]
+
+        angles = np.zeros(total_member_num) # selected members will be set to 0
+        for m in range(member_num-1):
+            for i in indices:
+                angles[i] = angles[i] + angle_between(dfs_rel[selection[-1]],dfs_rel[i])
+            max_angle = np.argmax(angles)
+            mask = indices != max_angle
+            angles[max_angle] = 0
+            indices = indices[mask]
+            selection.append(max_angle)
+
+        selection = [x+1 for x in selection] # Members start counting at 1
+        print(selection)
+
 
 #    # Initialize a dictionary to store maximum values for each variable
 #    max_values = {var: [] for var in vars}
