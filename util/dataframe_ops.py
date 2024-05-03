@@ -22,12 +22,8 @@ def force_monotonic(dataframe):
 
 
 def compute_rel_diff_dataframe(df1, df2):
-    average = (df1 + df2) / 2
-    out = (df1 - df2) / average
+    average = (df1 - df2) / (1.0 + df1.abs())
     out = out.abs()
-    # put 0 if both numbers are very small
-    zeros = np.logical_and(df1.abs() < CHECK_THRESHOLD, df2.abs() < CHECK_THRESHOLD)
-    out[zeros] = 0.0
     return out
 
 
