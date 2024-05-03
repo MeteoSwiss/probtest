@@ -60,7 +60,7 @@ def tolerance(stats_file_name, tolerance_file_name, member_num, member_type):
     combs = list(itertools.product(range(ndata), range(ndata)))
 
     # do not use the i==j combinations
-    combs = [(i, j) for i, j in combs if j < i]
+    combs = [(i, j) for i, j in combs if j != i]
     logger.info("computing tolerance from {} input combinations!".format(len(combs)))
     # compute relative differences for all combinations
     rdiff = [compute_rel_diff_dataframe(dfs[i], dfs[j]) for i, j in combs]
