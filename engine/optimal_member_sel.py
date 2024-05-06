@@ -14,7 +14,10 @@ from util.log_handler import logger
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import rankdata
-import pdb
+from scipy.stats import genextreme
+from scipy.stats import frechet_r
+from scipy.optimize import curve_fit
+from scipy.optimize import minimize
 
 
 def angle_between(A, B):
@@ -46,6 +49,14 @@ def angle_between(A, B):
     angle_degrees = np.degrees(angle_radians)
 
     return angle_degrees
+
+# Define the Fréchet distribution function
+def frechet_distribution(x, alpha, loc, scale):
+    return genextreme.pdf(x, alpha, loc=loc, scale=scale)
+
+def neg_log_likelihood(params, data):
+    shape, loc, scale = params
+    return -np.sum(frechet_r.logpdf(data, shape, loc=loc, scale=scale))
 
 def plot_rankings(rankings, variables, total_member_num):
 
@@ -115,11 +126,16 @@ def plot_rankings(rankings, variables, total_member_num):
 @click.option(
     "--variables",
     type=int,
-    default=1,
+    default=0,
+)
+@click.option(
+    "--extreme",
+    type=int,
+    default=0,
 )
 
 
-def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_type, total_member_num, plot_rank_dist, variables):
+def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_type, total_member_num, plot_rank_dist, variables, extreme):
     if len(member_num) != 1:
         member_num = len(member_num)
     else:
@@ -140,13 +156,39 @@ def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_
         )
         sys.exit(1)
 
-    df_ref = parse_probtest_csv(stats_file_name.format(member_id="ref"), index_col=[0, 1, 2])
-    dfs_rel = [compute_rel_diff_dataframe(dfs[i], df_ref) for i in range(total_member_num)]
-    # Only one value per variables and height for each statistic
-    dfs_rel = [r.groupby(["file_ID", "variable"]).max() for r in dfs_rel]
+    if extreme:
+        # Apply extreme value analysis (test version)
+        dfs.append(parse_probtest_csv(stats_file_name.format(member_id="ref"), index_col=[0, 1, 2]))
+        # get all possible combinations of the input data
+        combs = list(itertools.product(range(ndata), range(ndata)))
+        # do not use the i==j combinations
+        combs = [(i, j) for i, j in combs if j < i]
+        # compute relative differences for all combinations
+        rdiff = [compute_rel_diff_dataframe(dfs[i], dfs[j]) for i, j in combs]
+        rdiff_max = [r.groupby(["file_ID", "variable"]).max() for r in rdiff]
+        vars = set(rdiff_max[0].index)
+        my_data = {} # Create dict: all values for each variable
+        angles = np.zeros(total_member_num) # selected members will be set to 0
+        for m in range(len(combs)):
+            for var in vars:
+                if m == 0:
+                    my_data[var] = rdiff_max[0].loc[var]
+                else:
+                    my_data[var] = my_data[var].append(rdiff_max[m].loc[var])
+        data = my_data[('NetCDF:*atm_3d*.nc', 'ddt_pres_sfc')][4]['min']
+        initial_guess = (1, 0, 1)
+        params = genextreme.fit(data)
+        alpha, loc, scale = params
+        # Get the 95th percentile value
+        percentile_99 = genextreme.ppf(0.99, alpha, loc=loc, scale=scale)
+        print("99th percentile value:", percentile_99)
+    elif variables:
+        # Get optimal member selection on variable basis
+        df_ref = parse_probtest_csv(stats_file_name.format(member_id="ref"), index_col=[0, 1, 2])
+        dfs_rel = [compute_rel_diff_dataframe(dfs[i], df_ref) for i in range(total_member_num)]
+        # Only one value per variables and height for each statistic
+        dfs_rel = [r.groupby(["file_ID", "variable"]).max() for r in dfs_rel]
 
-    # Get optimal member selection on variable basis
-    if variables:
         vars = set(dfs_rel[0].index)
 
         if (variables>1):
@@ -195,6 +237,10 @@ def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_
         selection = [x+1 for x in selection] # Members start counting at 1
         print(selection)
     else:
+        df_ref = parse_probtest_csv(stats_file_name.format(member_id="ref"), index_col=[0, 1, 2])
+        dfs_rel = [compute_rel_diff_dataframe(dfs[i], df_ref) for i in range(total_member_num)]
+        # Only one value per variables and height for each statistic
+        dfs_rel = [r.groupby(["file_ID", "variable"]).max() for r in dfs_rel]
         # Find first member: maximum norm
         index = 0
         value = 0
@@ -221,7 +267,6 @@ def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_
 
         selection = [x+1 for x in selection] # Members start counting at 1
         print(selection)
-
 
 #    # Initialize a dictionary to store maximum values for each variable
 #    max_values = {var: [] for var in vars}
