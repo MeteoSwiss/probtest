@@ -3,7 +3,6 @@ import sys
 import numpy as np
 import pandas as pd
 
-from util.constants import CHECK_THRESHOLD
 from util.file_system import file_names_from_pattern
 from util.log_handler import logger
 from util.model_output_parser import model_output_parser
@@ -22,7 +21,9 @@ def force_monotonic(dataframe):
 
 
 def compute_rel_diff_dataframe(df1, df2):
-    """this implementation is similar to the numpy.isclose function (absolute(a - b) <= (atol + rtol * absolute(b)) ), assuming atol==rtol and moving the right hand side to the left."""
+    """This implementation is similar to the numpy.isclose function:
+    (absolute(a - b) <= (atol + rtol * absolute(b)) ),
+    assuming atol==rtol and moving the right hand side to the left."""
     out = (df1 - df2) / (1.0 + df1.abs())
     out = out.abs()
     return out
