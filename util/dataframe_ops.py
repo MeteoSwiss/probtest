@@ -22,6 +22,7 @@ def force_monotonic(dataframe):
 
 
 def compute_rel_diff_dataframe(df1, df2):
+    """this implementation is similar to the numpy.isclose function (absolute(a - b) <= (atol + rtol * absolute(b)) ), assuming atol==rtol and moving the right hand side to the left."""
     out = (df1 - df2) / (1.0 + df1.abs())
     out = out.abs()
     return out

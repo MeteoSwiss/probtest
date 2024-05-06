@@ -46,7 +46,9 @@ def tolerance(stats_file_name, tolerance_file_name, member_num, member_type):
             for m_num in member_num
         )
     ]
-    df_ref = parse_probtest_csv(stats_file_name.format(member_id="ref"), index_col=[0, 1, 2])
+    df_ref = parse_probtest_csv(
+        stats_file_name.format(member_id="ref"), index_col=[0, 1, 2]
+    )
 
     ndata = len(dfs)
     if ndata < 1:
