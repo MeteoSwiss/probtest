@@ -7,10 +7,14 @@ import pandas as pd
 from util.click_util import CommaSeperatedInts, cli_help
 from util.dataframe_ops import (
     compute_rel_diff_dataframe,
+    compute_div_dataframe,
     force_monotonic,
     parse_probtest_csv,
 )
+from engine.check import check_intersection, check_variable
+from engine.tolerance import tolerance
 from util.log_handler import logger
+from util.dataframe_ops import parse_probtest_csv, compute_rel_diff_dataframe, compute_div_dataframe
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import rankdata
@@ -90,52 +94,7 @@ def plot_rankings(rankings, variables, total_member_num):
     print("Saving figure to ranking_frequency_stacked_bar_entries.png")
     plt.savefig('ranking_frequency_stacked_bar_entries.png', dpi=300)
 
-
-@click.command()
-@click.option(
-    "--stats-file-name",
-    help=cli_help["stats_file_name"],
-)
-@click.option(
-    "--tolerance-file-name",
-    help=cli_help["tolerance_file_name"],
-)
-@click.option(
-    "--member-num",
-    type=CommaSeperatedInts(),
-    default="10",
-    help=cli_help["member_num"],
-)
-@click.option(
-    "--member-type",
-    type=str,
-    default="",
-    help=cli_help["member_type"],
-)
-@click.option(
-    "--total-member-num",
-    type=int,
-    default=100,
-    help=cli_help["total_member_num"],
-)
-@click.option(
-    "--plot-rank-dist/--no-plot-rank-dist",
-    is_flag=True,
-    help=cli_help["plot_rank_dist"],
-)
-@click.option(
-    "--variables",
-    type=int,
-    default=0,
-)
-@click.option(
-    "--extreme",
-    type=int,
-    default=0,
-)
-
-
-def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_type, total_member_num, plot_rank_dist, variables, extreme):
+def select_members(stats_file_name, member_num, member_type, total_member_num, plot_rank_dist, variables, extreme):
     if len(member_num) != 1:
         member_num = len(member_num)
     else:
@@ -235,7 +194,6 @@ def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_
             selection.append(max_angle)
 
         selection = [x+1 for x in selection] # Members start counting at 1
-        print(selection)
     else:
         df_ref = parse_probtest_csv(stats_file_name.format(member_id="ref"), index_col=[0, 1, 2])
         dfs_rel = [compute_rel_diff_dataframe(dfs[i], df_ref) for i in range(total_member_num)]
@@ -266,45 +224,107 @@ def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_
             selection.append(max_angle)
 
         selection = [x+1 for x in selection] # Members start counting at 1
-        print(selection)
 
-#    # Initialize a dictionary to store maximum values for each variable
-#    max_values = {var: [] for var in vars}
-#
-#    # get all possible combinations of the input data
-#    combs = list(itertools.product(range(ndata), range(ndata)))
-#    # do not use the i==j combinations
-#    combs = [(i, j) for i, j in combs if j < i]
-#    # compute relative differences for all combinations
-#    rdiff = [compute_rel_diff_dataframe(dfs[i], dfs[j]) for i, j in combs]
-#
-#    file_ID = dfs[0].index.get_level_values('file_ID')[0]
-#    for member in range(total_member_num):
-#        rdiff_member = [rdiff[i] for i in range(len(rdiff)) if member in combs[i]]
-#        rdiff_max = [r.groupby(["file_ID", "variable"]).max() for r in rdiff_member]
-#        df_max = pd.concat(rdiff_max).groupby(["file_ID", "variable"]).max()
-#        for var in vars:
-#            max_values[var].append(df_max.loc[(file_ID, var)].max().max())
-#
-#    # Initialize a dictionary to store rankings for each variable
-#    ranking = {}
-#
-#    # Iterate through each variable
-#    # Some indices may have same rank
-#    for var, values in max_values.items():
-#        # Use rankdata to rank max values in descending order
-#        rankings = rankdata([-value for value in values], method='min')
-#        # Convert ranks to integers and store them for the current variable
-#        ranking[var] = [int(rank) for rank in rankings]
-#
-#    # Find best members (most ranking=1)
-#    sum_ranks = np.zeros(total_member_num)
-#    for i in range(total_member_num):
-#        sum_ranks[i] = sum(ranking[var][i] for var in vars if ranking[var][i]==1)
-#    best_members = np.argsort(-sum_ranks)[:member_num]+1 # members start at 1
-#    print(best_members)
-#
-#    if plot_rank_dist:
-#        plot_rankings(ranking, vars, total_member_num)
+    return selection
+
+def test_selection(stats_file_name, tolerance_file_name, member_num, member_type, factor):
+
+    if len(member_num) == 1:
+        member_num = [i for i in range(1, member_num[0] + 1)]
+
+    input_file_ref = stats_file_name.format(member_id="ref")
+    passed = 0
+    df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
+    df_tol *= factor
+    df_ref = parse_probtest_csv(input_file_ref, index_col=[0, 1, 2])
+
+    for m_num in member_num:
+        m_id = (str(m_num) if not member_type else member_type + "_" + str(m_num))
+
+        df_cur = parse_probtest_csv(stats_file_name.format(member_id=m_id), index_col=[0, 1, 2])
+
+        # check if variables are available in reference file
+        skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
+        if skip_test:  # No intersection
+            logger.info(
+                "ERROR: No intersection between variables in input and reference file."
+            )
+            exit(1)
+
+        # compute relative difference
+        diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
+        # take maximum over height
+        diff_df = diff_df.groupby(["file_ID", "variable"]).max()
+
+        out, err, tol = check_variable(diff_df, df_tol)
+
+        div = compute_div_dataframe(err, tol)
+
+        if out:
+            passed = passed + 1
+
+    logger.info("The tolerance test passed for {} out of {} references.".format(passed, len(member_num)))
+    return
+
+@click.command()
+@click.option(
+    "--stats-file-name",
+    help=cli_help["stats_file_name"],
+)
+@click.option(
+    "--tolerance-file-name",
+    help=cli_help["tolerance_file_name"],
+)
+@click.option(
+    "--member-num",
+    type=CommaSeperatedInts(),
+    default="10",
+    help=cli_help["member_num"],
+)
+@click.option(
+    "--member-type",
+    type=str,
+    default="",
+    help=cli_help["member_type"],
+)
+@click.option(
+    "--total-member-num",
+    type=int,
+    default=100,
+    help=cli_help["total_member_num"],
+)
+@click.option(
+    "--plot-rank-dist/--no-plot-rank-dist",
+    is_flag=True,
+    help=cli_help["plot_rank_dist"],
+)
+@click.option(
+    "--variables",
+    type=int,
+    default=0,
+)
+@click.option(
+    "--extreme",
+    type=int,
+    default=0,
+)
+@click.option(
+    "--factor",
+    type=float,
+    help=cli_help["factor"],
+)
+
+
+def optimal_member_sel(stats_file_name, tolerance_file_name, member_num, member_type, total_member_num, plot_rank_dist, variables, extreme, factor):
+
+    selection = select_members(stats_file_name, member_num, member_type, total_member_num, plot_rank_dist, variables, extreme)
+    print(selection)
+
+    # Create tolerances from selection
+    context = click.Context(tolerance)
+    context.invoke(tolerance, stats_file_name=stats_file_name, tolerance_file_name=tolerance_file_name, member_num=selection, member_type=member_type)
+
+    # Test selection
+    test_selection(stats_file_name, tolerance_file_name, [total_member_num], member_type, factor)
 
     return
