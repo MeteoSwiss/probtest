@@ -12,6 +12,7 @@ from engine.run_ensemble import run_ensemble
 from engine.stats import stats
 from engine.tolerance import tolerance
 from engine.optimal_member_sel import optimal_member_sel
+from engine.test_selection import test_selection
 from util.click_util import load_defaults
 from util.log_handler import initialize_logger
 from visualize.cdo_table_reader import cdo_table_reader
@@ -45,6 +46,7 @@ cli.add_command(stats)
 cli.add_command(check)
 cli.add_command(tolerance)
 cli.add_command(optimal_member_sel)
+cli.add_command(test_selection)
 cli.add_command(run_ensemble)
 cli.add_command(performance)
 cli.add_command(check_plot)
