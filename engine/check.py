@@ -77,7 +77,7 @@ def check_intersection(df_ref, df_cur):
 def check_variable(diff_df, df_tol):
     out = diff_df - df_tol
 
-    selector = (out.abs() > CHECK_THRESHOLD).any(axis=1)
+    selector = (out > CHECK_THRESHOLD).any(axis=1)
 
     return len(out[selector].index) == 0, diff_df[selector], df_tol[selector]
 
