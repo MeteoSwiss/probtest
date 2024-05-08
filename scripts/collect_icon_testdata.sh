@@ -14,7 +14,7 @@ fi
 
 # generate config file for probtest
 # for a global case with multiple output types and a single timestep per output file
-EXPNAME=atm_amip_test
+EXPNAME=atm_amip_les_test
 python $PROBTEST_DIR/probtest.py init \
     --codebase-install "$ICON_DIR" \
     --experiment-name ${EXPNAME} \

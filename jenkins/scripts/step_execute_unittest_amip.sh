@@ -11,5 +11,5 @@ export PROBTEST_REF_DATA=/project/g110/probtest_testdata/$hash/probtest_data
 export PROBTEST_CUR_DATA=./probtest_data
 
 # execute AMIP unittests
-export PROBTEST_TEST_EXPERIMENT=atm_amip_test
+export PROBTEST_TEST_EXPERIMENT=atm_amip_les_test
 python3 -m unittest

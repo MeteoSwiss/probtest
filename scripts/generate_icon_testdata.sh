@@ -12,9 +12,9 @@ if [[ -z "$PROBTEST_DATA" ]]; then
     exit 1
 fi
 
-for exp in atm_amip_test mch_opr_r04b07
+for exp in atm_amip_les_test mch_opr_r04b07
 do
-    if [[ "$exp" == "atm_amip_test" ]]; then
+    if [[ "$exp" == "atm_amip_les_test" ]]; then
         file_id=(
             --file-id NetCDF "*atm_3d*.nc"
             --file-id NetCDF "*lnd*.nc"
