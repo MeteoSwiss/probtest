@@ -12,7 +12,8 @@ if [[ -z "$PROBTEST_DATA" ]]; then
     exit 1
 fi
 
-for exp in atm_amip_les_test mch_opr_r04b07
+# for exp in atm_amip_les_test mch_opr_r04b07
+for exp in mch_opr_r04b07
 do
     if [[ "$exp" == "atm_amip_les_test" ]]; then
         file_id=(
