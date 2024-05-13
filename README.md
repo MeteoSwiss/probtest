@@ -198,7 +198,7 @@ Adjust the `.env` file to reflect the directory structure:
 
 `PROBTEST_REF_DATA`: path to the `probtest_data` subdirectory of the reference data.
 `PROBTEST_CUR_DATA`: path to the output directory you chose in the last step.
-`PROBTEST_TEST_EXPERIMENT`: full sets of reference data are generated for both the `mch_opr_r04b07` experiment. Chose one of the two or run both sequentially.
+`PROBTEST_TEST_EXPERIMENT`: full sets of reference data are generated for the `mch_opr_r04b07` experiment. 
 
 Finally, you can execute the end to end tests in one of two ways:
 
