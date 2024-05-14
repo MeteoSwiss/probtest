@@ -16,6 +16,7 @@ for exp in mch_opr_r04b07
 do
     file_id=(
         --file-id NetCDF "*atm_3d_ml*.nc"
+    )
     python $PROBTEST_DIR/probtest.py init \
         --codebase-install "$ICON_DATA" \
         --experiment-name "$exp" \
