@@ -42,11 +42,6 @@ def angle_between(A, B):
 
 
 def select_members(stats_file_name, member_num, member_type, total_member_num):
-    if len(member_num) != 1:
-        member_num = len(member_num)
-    else:
-        member_num = member_num[0]
-
     # read in stats files
     dfs = [
         parse_probtest_csv(stats_file_name.format(member_id=m_id), index_col=[0, 1, 2])
@@ -78,8 +73,10 @@ def select_members(stats_file_name, member_num, member_type, total_member_num):
     value = 0
     for i in range(total_member_num):
         norm = 0
-        not_nan_indices = ~np.isnan(dfs_rel[i])
-        norm = norm + np.linalg.norm(dfs_rel[i][not_nan_indices])
+        dfs_rel_array = dfs_rel[i].to_numpy()
+        nan_indices=np.isnan(dfs_rel_array)
+        dfs_rel_array[nan_indices] = 0
+        norm = np.linalg.norm(dfs_rel_array)
         if norm > value:
             index = i
             value = norm
@@ -90,24 +87,22 @@ def select_members(stats_file_name, member_num, member_type, total_member_num):
     angles = np.zeros(total_member_num)  # selected members will be set to 0
     for m in range(member_num - 1):
         for i in indices:
-            angles[i] = angles[i] + angle_between(dfs_rel[selection[-1]], dfs_rel[i])
+            angles[i] = angles[i] + angle_between(dfs_rel[selection[-1]], dfs_rel[i])**2
         max_angle = np.argmax(angles)
         mask = indices != max_angle
         angles[max_angle] = 0
         indices = indices[mask]
         selection.append(max_angle)
 
-        selection = [x + 1 for x in selection]  # Members start counting at 1
+    selection = [x + 1 for x in selection]  # Members start counting at 1
 
     return selection
 
 
 def test_selection(
-    stats_file_name, tolerance_file_name, member_num, member_type, factor
+    stats_file_name, tolerance_file_name, total_member_num, member_type, factor
 ):
 
-    if len(member_num) == 1:
-        member_num = [i for i in range(1, member_num[0] + 1)]
 
     input_file_ref = stats_file_name.format(member_id="ref")
     passed = 0
@@ -115,7 +110,7 @@ def test_selection(
     df_tol *= factor
     df_ref = parse_probtest_csv(input_file_ref, index_col=[0, 1, 2])
 
-    for m_num in member_num:
+    for m_num in range(1,total_member_num+1):
         m_id = str(m_num) if not member_type else member_type + "_" + str(m_num)
 
         df_cur = parse_probtest_csv(
@@ -142,7 +137,7 @@ def test_selection(
 
     logger.info(
         "The tolerance test passed for {} out of {} references.".format(
-            passed, len(member_num)
+            passed, total_member_num
         )
     )
     return
@@ -160,7 +155,7 @@ def test_selection(
 @click.option(
     "--member-num",
     type=CommaSeperatedInts(),
-    default="10",
+    default="15",
     help=cli_help["member_num"],
 )
 @click.option(
@@ -189,6 +184,14 @@ def optimal_member_sel(
     factor,
 ):
 
+    if len(member_num) != 1:
+        logger.info(
+            "ERROR: The optimal member selection needs a single value for member_num."
+        )
+        exit(1)
+    else:
+        member_num = member_num[0]
+
     selection = select_members(
         stats_file_name, member_num, member_type, total_member_num
     )
@@ -206,7 +209,7 @@ def optimal_member_sel(
 
     # Test selection
     test_selection(
-        stats_file_name, tolerance_file_name, [total_member_num], member_type, factor
+        stats_file_name, tolerance_file_name, total_member_num, member_type, factor
     )
 
     return
