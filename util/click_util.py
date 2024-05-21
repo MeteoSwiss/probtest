@@ -86,7 +86,6 @@ cli_help = {
     + r'(e.g. "1,3,14")',
     "total_member_num": r"number of ensemble members used to select the x "
     + r"optimal members from (x=member_num)",
-    "plot_rank_dist": r"Plot the rank distributions for the different ensemble members",
     "member_type": r"precision of experiment (e.g. double or mixed). "
     + r"The type is part of the created member_id, which is equal to "
     + r"(member_type+'_'+str(member_num))",
