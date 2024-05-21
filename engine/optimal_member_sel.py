@@ -145,6 +145,11 @@ def test_selection(
 
 @click.command()
 @click.option(
+    "--test-tolerance/--no-test-tolerance",
+    is_flag=True,
+    help=cli_help["test_tolerance"],
+)
+@click.option(
     "--stats-file-name",
     help=cli_help["stats_file_name"],
 )
@@ -176,6 +181,7 @@ def test_selection(
     help=cli_help["factor"],
 )
 def optimal_member_sel(
+    test_tolerance,
     stats_file_name,
     tolerance_file_name,
     member_num,
@@ -192,24 +198,25 @@ def optimal_member_sel(
     else:
         member_num = member_num[0]
 
-    selection = select_members(
-        stats_file_name, member_num, member_type, total_member_num
-    )
-    print(selection)
+    if test_tolerance:
+        # Test selection
+        test_selection(
+            stats_file_name, tolerance_file_name, total_member_num, member_type, factor
+        )
+    else:
+        selection = select_members(
+            stats_file_name, member_num, member_type, total_member_num
+        )
+        print(selection)
 
-    # Create tolerances from selection
-    context = click.Context(tolerance)
-    context.invoke(
-        tolerance,
-        stats_file_name=stats_file_name,
-        tolerance_file_name=tolerance_file_name,
-        member_num=selection,
-        member_type=member_type,
-    )
-
-    # Test selection
-    test_selection(
-        stats_file_name, tolerance_file_name, total_member_num, member_type, factor
-    )
+        # Create tolerances from selection
+        context = click.Context(tolerance)
+        context.invoke(
+            tolerance,
+            stats_file_name=stats_file_name,
+            tolerance_file_name=tolerance_file_name,
+            member_num=selection,
+            member_type=member_type,
+        )
 
     return
