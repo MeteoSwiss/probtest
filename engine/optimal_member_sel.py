@@ -36,7 +36,6 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
 
             # The following is to save computing time
             # Try with more members if the success rate of the first 5 random selection is too small
-            pdb.set_trace()
             if (i <= 5):
                 if (passed >= 60):
                     skip = 0
