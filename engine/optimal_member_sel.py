@@ -15,35 +15,48 @@ from util.log_handler import logger
 def select_members(stats_file_name, member_num, member_type, total_member_num, factor):
 
     max_members = 15 # Selection should not have more than 15 members
-    for mem_num in range(member_num,max_members+1):
-        skip = 1 # If first 10 random selection have a success rate <60%, try with more
-        for i in range(1,101):
-            random_numbers = random.sample(range(1,total_member_num+1),mem_num)
-            print('Randomly selected the following members: ', random_numbers)
-            # Create tolerances from random members
-            context = click.Context(tolerance)
-            context.invoke(
-                tolerance,
-                stats_file_name=stats_file_name,
-                tolerance_file_name='random_tolerance.csv',
-                member_num=random_numbers,
-                member_type=member_type,
+    for f in range(int(factor),51): # Try with bigger factor if 15 members are not enough
+        for mem_num in range(member_num,max_members+1):
+            max_passed = 1 # If first 10 random selection have a success rate <60%, try with more
+            for i in range(1,101):
+                random_numbers = random.sample(range(1,total_member_num+1),mem_num)
+                logger.info(
+                        "Test {} with {} randomly selected members.".format(
+                        i, mem_num
+                    )
                 )
-            # Test selection
-            passed = test_selection(
-                stats_file_name, 'random_tolerance.csv', total_member_num, member_type, factor
+                # Create tolerances from random members
+                context = click.Context(tolerance)
+                context.invoke(
+                    tolerance,
+                    stats_file_name=stats_file_name,
+                    tolerance_file_name='random_tolerance.csv',
+                    member_num=random_numbers,
+                    member_type=member_type,
+                    )
+                # Test selection
+                passed = test_selection(
+                    stats_file_name, 'random_tolerance.csv', total_member_num, member_type, f
+                )
+
+                # The following is to save computing time
+                if (i<=45):
+                    if (max_passed < passed):
+                        max_passed = passed
+                    # The more combs are tested the higher should the success rate be to continue
+                    if (max_passed < i*2):
+                        logger.info(
+                            "Try with more members."
+                            )
+                        break
+
+                if (passed == total_member_num):
+                    return random_numbers
+        logger.info(
+            "Increase factor to {}".format(
+                f+1
             )
-
-            # The following is to save computing time
-            # Try with more members if the success rate of the first 5 random selection is too small
-            if (i <= 5):
-                if (passed >= 60):
-                    skip = 0
-            if (i == 5) and (skip ==1):
-                break
-
-            if (passed == total_member_num):
-                return random_numbers
+        )
 
     logger.info(
         "ERROR: Could not find {} random members, which pass for all stat files.".format(
