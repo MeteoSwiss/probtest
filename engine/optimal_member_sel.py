@@ -13,27 +13,33 @@ from util.log_handler import logger
 
 
 def select_members(stats_file_name, member_num, member_type, total_member_num, factor):
-
-    for i in range(1,101):
-        random_numbers = random.sample(range(1,total_member_num+1),member_num)
-        print('Randomly selected the following members: ', random_numbers)
-        # Create tolerances from random members
-        context = click.Context(tolerance)
-        context.invoke(
-            tolerance,
-            stats_file_name=stats_file_name,
-            tolerance_file_name='random_tolerance.csv',
-            member_num=random_numbers,
-            member_type=member_type,
+    max_members = 15 # Selection should not have more than 15 members
+    for mem_num in range(member_num,max_members+1):
+        for i in range(1,101):
+            random_numbers = random.sample(range(1,total_member_num+1),mem_num)
+            print('Randomly selected the following members: ', random_numbers)
+            # Create tolerances from random members
+            context = click.Context(tolerance)
+            context.invoke(
+                tolerance,
+                stats_file_name=stats_file_name,
+                tolerance_file_name='random_tolerance.csv',
+                member_num=random_numbers,
+                member_type=member_type,
+                )
+            # Test selection
+            passed = test_selection(
+                stats_file_name, 'random_tolerance.csv', total_member_num, member_type, factor
             )
-        # Test selection
-        passed = test_selection(
-            stats_file_name, 'random_tolerance.csv', total_member_num, member_type, factor
-        )
-        if (passed == total_member_num):
-            break
+            if (passed == total_member_num):
+                return random_numbers
 
-    return random_numbers
+    logger.info(
+        "ERROR: Could not find {} random members, which pass for all stat files.".format(
+            max_members
+        )
+    )
+    exit(1)
 
 
 def test_selection(
