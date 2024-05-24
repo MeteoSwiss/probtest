@@ -13,13 +13,15 @@ from util.log_handler import logger
 
 def select_members(stats_file_name, member_num, member_type, total_member_num, factor):
 
+    members = [i for i in range(1, total_member_num + 1)]
+
     max_members = 15  # Selection should not have more than 15 members
     for f in range(
-        int(factor), 51
+        int(factor), 51,5
     ):  # Try with bigger factor if 15 members are not enough
         for mem_num in range(member_num, max_members + 1):
             max_passed = 1
-            for i in range(1, 101):
+            for i in range(1, 101)
                 random_numbers = random.sample(range(1, total_member_num + 1), mem_num)
                 logger.info(
                     "Test {} with {} randomly selected members and factor {}.".format(
@@ -35,17 +37,18 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
                     member_num=random_numbers,
                     member_type=member_type,
                 )
-                # Test selection
+                # Test selection (not randomly selected members)
+                valid_members = [item for item in members if item not in random_numbers]
                 passed = test_selection(
                     stats_file_name,
                     "random_tolerance.csv",
-                    total_member_num,
+                    valid_members,
                     member_type,
                     f,
                 )
 
                 # The following is to save computing time
-                if i < int(total_member_num / 3):
+                if i < int((total_member_num-mem_num) / 3):
                     if max_passed < passed:
                         max_passed = passed
                     # The more combs were tested
@@ -54,9 +57,9 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
                         logger.info("Try with more members.")
                         break
 
-                if passed == total_member_num:
+                if passed == total_member_num-mem_num:
                     return random_numbers
-        logger.info("Increase factor to {}".format(f + 1))
+        logger.info("Increase factor to {}".format(f + 5))
 
     logger.info(
         (
@@ -71,13 +74,16 @@ def test_selection(
     stats_file_name, tolerance_file_name, total_member_num, member_type, factor
 ):
 
+    if type(total_member_num) is int:
+        total_member_num = [i for i in range(1, total_member_num + 1)]
+
     input_file_ref = stats_file_name.format(member_id="ref")
     passed = 0
     df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
     df_tol *= factor
     df_ref = parse_probtest_csv(input_file_ref, index_col=[0, 1, 2])
 
-    for m_num in range(1, total_member_num + 1):
+    for m_num in total_member_num:
         m_id = str(m_num) if not member_type else member_type + "_" + str(m_num)
 
         df_cur = parse_probtest_csv(
@@ -104,7 +110,7 @@ def test_selection(
 
     logger.info(
         "The tolerance test passed for {} out of {} references.".format(
-            passed, total_member_num
+            passed, len(total_member_num)
         )
     )
     return passed
@@ -180,6 +186,11 @@ def optimal_member_sel(
         logger.info(
             "The optimal member selection took {}s.".format(
                 elapsed_time.total_seconds()
+            )
+        )
+        logger.info(
+                "Selected members: {}".format(
+                selection
             )
         )
         # The last created file was successful
