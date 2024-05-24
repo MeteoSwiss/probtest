@@ -10,6 +10,7 @@ from engine.tolerance import tolerance
 from util.click_util import CommaSeperatedInts, cli_help
 from util.dataframe_ops import compute_rel_diff_dataframe, parse_probtest_csv
 from util.log_handler import logger
+from datetime import datetime
 
 
 def select_members(stats_file_name, member_num, member_type, total_member_num, factor):
@@ -21,8 +22,8 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
             for i in range(1,101):
                 random_numbers = random.sample(range(1,total_member_num+1),mem_num)
                 logger.info(
-                        "Test {} with {} randomly selected members.".format(
-                        i, mem_num
+                        "Test {} with {} randomly selected members and factor {}.".format(
+                        i, mem_num, f
                     )
                 )
                 # Create tolerances from random members
@@ -40,11 +41,11 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
                 )
 
                 # The following is to save computing time
-                if (i<=45):
+                if (i<int(total_member_num/3)):
                     if (max_passed < passed):
                         max_passed = passed
                     # The more combs are tested the higher should the success rate be to continue
-                    if (max_passed < i*2):
+                    if (max_passed < i*3):
                         logger.info(
                             "Try with more members."
                             )
@@ -171,8 +172,14 @@ def optimal_member_sel(
             stats_file_name, tolerance_file_name, total_member_num, member_type, factor
         )
     else:
+        start_time = datetime.now()
         selection = select_members(
             stats_file_name, member_num, member_type, total_member_num, factor
+        )
+        end_time = datetime.now()
+        elapsed_time = end_time - start_time
+        logger.info(
+                "The optimal member selection took {}s.".format(elapsed_time.total_seconds())
         )
         # The last created file was successful
         os.rename('random_tolerance.csv',tolerance_file_name)
