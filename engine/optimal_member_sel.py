@@ -21,7 +21,7 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
     ):  # Try with bigger factor if 15 members are not enough
         for mem_num in range(member_num, max_members + 1):
             max_passed = 1
-            for i in range(1, 101):
+            for i in range(1, 51):
                 random_numbers = random.sample(range(1, total_member_num + 1), mem_num)
                 logger.info(
                     "Test {} with {} randomly selected members and factor {}.".format(
