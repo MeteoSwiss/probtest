@@ -1,7 +1,7 @@
 import os
 import random
-from datetime import datetime
 from collections import Counter
+from datetime import datetime
 
 import click
 
@@ -18,7 +18,7 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
 
     max_members = 15  # Selection should not have more than 15 members
     for f in range(
-        int(factor), 51,5
+        int(factor), 51, 5
     ):  # Try with bigger factor if 15 members are not enough
         logger.info("Set factor to {}".format(f))
         for mem_num in range(member_num, max_members + 1):
@@ -53,22 +53,26 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
                 vars.extend(new_vars)
 
                 duplicates = {item: count for item, count in Counter(vars).items()}
-                sorted_duplicates = dict(sorted(duplicates.items(), key=lambda x: x[1], reverse=True))
+                sorted_duplicates = dict(
+                    sorted(duplicates.items(), key=lambda x: x[1], reverse=True)
+                )
                 # The following is to save computing time
                 if i < 33:
                     if max_passed < passed:
                         max_passed = passed
                     # The more combs were tested
                     # the higher should the success rate be to continue
-                    tested_stats = total_member_num-mem_num
+                    tested_stats = total_member_num - mem_num
                     if max_passed < i * 0.03 * tested_stats:
                         break
 
-                if passed == total_member_num-mem_num:
+                if passed == total_member_num - mem_num:
                     return random_numbers
 
     max_count = max(sorted_duplicates.values())
-    most_common_vars = [item for item, count in sorted_duplicates.items() if count == max_count]
+    most_common_vars = [
+        item for item, count in sorted_duplicates.items() if count == max_count
+    ]
     logger.info(
         (
             "ERROR: Could not find {} random members, which pass for all stat files. "
@@ -205,11 +209,7 @@ def optimal_member_sel(
                 elapsed_time.total_seconds()
             )
         )
-        logger.info(
-                "Selected members: {}".format(
-                selection
-            )
-        )
+        logger.info("Selected members: {}".format(selection))
         # The last created file was successful
         os.rename("random_tolerance.csv", tolerance_file_name)
 
