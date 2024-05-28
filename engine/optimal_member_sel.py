@@ -55,12 +55,13 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
                 duplicates = {item: count for item, count in Counter(vars).items()}
                 sorted_duplicates = dict(sorted(duplicates.items(), key=lambda x: x[1], reverse=True))
                 # The following is to save computing time
-                if i < int((total_member_num-mem_num) / 3): # Change to relative number
+                if i < 33:
                     if max_passed < passed:
                         max_passed = passed
                     # The more combs were tested
                     # the higher should the success rate be to continue
-                    if max_passed < i * 3: # Change to relative number
+                    tested_stats = total_member_num-mem_num
+                    if max_passed < i * 0.03 * tested_stats:
                         break
 
                 if passed == total_member_num-mem_num:
