@@ -139,6 +139,10 @@ def test_selection(
 
 @click.command()
 @click.option(
+    "--experiment-name",
+    help=cli_help["experiment_name"],
+)
+@click.option(
     "--test-tolerance/--no-test-tolerance",
     is_flag=True,
     help=cli_help["test_tolerance"],
@@ -175,6 +179,7 @@ def test_selection(
     help=cli_help["factor"],
 )
 def optimal_member_sel(
+    experiment_name,
     test_tolerance,
     stats_file_name,
     tolerance_file_name,
@@ -209,9 +214,16 @@ def optimal_member_sel(
                 elapsed_time.total_seconds()
             )
         )
-        logger.info("Selected members: {}".format(selection))
+
+        # Write selection into a file
+        selection = ",".join(map(str, selection))
+        selected_members_file = experiment_name + "_selected-members.txt"
+        logger.info("Writing selected members to file {}".format(selected_members_file))
+        with open(selected_members_file, "w") as file:
+            file.write(selection)
+
         # The last created file was successful
-        logger.info("writing tolerance file to {}".format(tolerance_file_name))
+        logger.info("Writing tolerance file to {}".format(tolerance_file_name))
         os.rename("random_tolerance.csv", tolerance_file_name)
 
     return
