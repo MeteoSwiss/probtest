@@ -211,6 +211,7 @@ def optimal_member_sel(
         )
         logger.info("Selected members: {}".format(selection))
         # The last created file was successful
+        logger.info("writing tolerance file to {}".format(tolerance_file_name))
         os.rename("random_tolerance.csv", tolerance_file_name)
 
     return
