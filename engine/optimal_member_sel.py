@@ -81,6 +81,8 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
 
                 if sum(passed) == len(valid_members):
                     return random_numbers
+        # If factore needs to be increased, test only with max_members
+        member_num = max_members
 
     max_count = max(sorted_duplicates.values())
     most_common_vars = [
