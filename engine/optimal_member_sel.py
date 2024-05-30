@@ -4,6 +4,7 @@ from collections import Counter
 from datetime import datetime
 
 import click
+import numpy as np
 
 from engine.check import check_intersection, check_variable
 from engine.tolerance import tolerance
@@ -16,6 +17,9 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
 
     members = [i for i in range(1, total_member_num + 1)]
 
+    # Iteratively change likelihood of members being selected to come to a solution faster
+    weights = np.array([1/total_member_num] * total_member_num)
+
     max_members = 15  # Selection should not have more than 15 members
     for f in range(
         int(factor), 51, 5
@@ -26,7 +30,7 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
             max_passed = 1
             vars = []
             for i in range(1, 51):
-                random_numbers = random.sample(range(1, total_member_num + 1), mem_num)
+                random_numbers = np.random.choice(members, size=mem_num, replace=False, p=weights)
                 logger.info(
                     "Test {} with {} randomly selected members and factor {}.".format(
                         i, mem_num, f
@@ -50,6 +54,16 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
                     member_type,
                     f,
                 )
+
+                valid_members_np = np.array(valid_members)
+                indices = [i for i, value in enumerate(passed) if value == 0]
+                failed = valid_members_np[indices]
+                # Increase weights for members which failed
+                weights[failed-1] += 1/total_member_num
+                # weights needs to sum up to 1 for np.random.choice
+                weights = np.array((weights - min(weights)) / (max(weights) - min(weights)))
+                weights = weights/sum(weights)
+
                 vars.extend(new_vars)
 
                 duplicates = {item: count for item, count in Counter(vars).items()}
@@ -58,15 +72,15 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
                 )
                 # The following is to save computing time
                 if i < 33:
-                    if max_passed < passed:
-                        max_passed = passed
+                    if max_passed < sum(passed):
+                        max_passed = sum(passed)
                     # The more combs were tested
                     # the higher should the success rate be to continue
-                    tested_stats = total_member_num - mem_num
+                    tested_stats = len(valid_members)
                     if max_passed < i * 0.03 * tested_stats:
                         break
 
-                if passed == total_member_num - mem_num:
+                if sum(passed) == len(valid_members):
                     return random_numbers
 
     max_count = max(sorted_duplicates.values())
@@ -87,18 +101,22 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
 def test_selection(
     stats_file_name, tolerance_file_name, total_member_num, member_type, factor
 ):
-
     if type(total_member_num) is int:
-        total_member_num = [i for i in range(1, total_member_num + 1)]
+        members = [i for i in range(1, total_member_num + 1)]
+    else:
+        members = total_member_num
+        total_member_num = len(members)
+
+    passed = [0] * total_member_num
 
     input_file_ref = stats_file_name.format(member_id="ref")
-    passed = 0
     df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
     df_tol *= factor
     df_ref = parse_probtest_csv(input_file_ref, index_col=[0, 1, 2])
 
     vars = []
-    for m_num in total_member_num:
+    i = 0
+    for m_num in members:
         m_id = str(m_num) if not member_type else member_type + "_" + str(m_num)
 
         df_cur = parse_probtest_csv(
@@ -125,13 +143,14 @@ def test_selection(
             var = list(var)
             vars.extend(var)
         else:
-            passed = passed + 1
+            passed[i] = 1
+        i = i+1
 
     vars = list(set(vars))
 
     logger.info(
         "The tolerance test passed for {} out of {} references.".format(
-            passed, len(total_member_num)
+            sum(passed), total_member_num
         )
     )
     return passed, vars
