@@ -61,7 +61,6 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
                 # Increase weights for members which failed
                 weights[failed-1] += 1/total_member_num
                 # weights needs to sum up to 1 for np.random.choice
-                weights = np.array((weights - min(weights)) / (max(weights) - min(weights)))
                 weights = weights/sum(weights)
 
                 vars.extend(new_vars)
