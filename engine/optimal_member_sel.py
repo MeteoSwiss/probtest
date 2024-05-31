@@ -194,7 +194,7 @@ def test_selection(
 @click.option(
     "--total-member-num",
     type=int,
-    default=100,
+    default=50,
     help=cli_help["total_member_num"],
 )
 @click.option(
@@ -245,7 +245,8 @@ def optimal_member_sel(
         selection = ",".join(map(str, selection))
         logger.info("Writing selected members to file {}".format(optimal_members_file_name))
         with open(optimal_members_file_name, "w") as file:
-            file.write(selection)
+            file.write(selection + "\n")
+            file.write("export FACTOR=" + str(int(factor)))
 
         # The last created file was successful
         logger.info("Writing tolerance file to {}".format(tolerance_file_name))

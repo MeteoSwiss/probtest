@@ -7,7 +7,6 @@
         "stats_file_name": "{{reference}}/reference/{{experiment_name}}_{member_id}.csv",
         "tolerance_file_name": "{{reference}}/tolerance/{{experiment_name}}.csv",
         "member_num": "[{member_num}]",
-        "total_member_num": "{{total_member_num}}",
         "member_type": "{{member_type}}",
         "factor": 5,
         "file_id": [ ["NetCDF", "*.nc"]],
@@ -30,7 +29,8 @@
     "optimal-member-sel":
         {
             "test_tolerance": false,
-            "optimal_members_file_name": "{{reference}}/{{experiment_name}}_optimal-members.csv"
+            "optimal_members_file_name": "{{reference}}/{{experiment_name}}_optimal-members.csv",
+            "total_member_num": 50
         },
     "check": {
         "input_file_ref": "{{reference}}/reference/{{experiment_name}}_{{member_num[0] if member_num|length>1 else 1}}.csv",
