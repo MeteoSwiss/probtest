@@ -100,7 +100,9 @@ cli_help = {
     + r"avoid early glob expansion by the calling shell.",
     "ensemble": r"For ensemble stats: the sub-directory where the ensemble outputs are",
     "test_tolerance": r"For optimal-member-sel: Test with how many stats files out of"
-    r"x (x=total_member_num) the probtest passes given a specific tolerance file.",
+    + r"x (x=total_member_num) the probtest passes given a specific tolerance file.",
+    "optimal_members_file_name": r"the name of the file in which the optimal"
+    + r"members will be written.",
     "file_specification": "Specify how different file types shall be read. This "
     + r"option must be defined in the json config file. See doc string of  "
     + r"df_from_file_ids for the specification.",

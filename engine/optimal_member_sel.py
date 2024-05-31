@@ -172,13 +172,17 @@ def test_selection(
     help=cli_help["stats_file_name"],
 )
 @click.option(
+    "--optimal-members-file-name",
+    help=cli_help["optimal_members_file_name"],
+)
+@click.option(
     "--tolerance-file-name",
     help=cli_help["tolerance_file_name"],
 )
 @click.option(
     "--member-num",
     type=CommaSeperatedInts(),
-    default="15",
+    default="5",
     help=cli_help["member_num"],
 )
 @click.option(
@@ -196,12 +200,14 @@ def test_selection(
 @click.option(
     "--factor",
     type=float,
+    default=5.0,
     help=cli_help["factor"],
 )
 def optimal_member_sel(
     experiment_name,
     test_tolerance,
     stats_file_name,
+    optimal_members_file_name,
     tolerance_file_name,
     member_num,
     member_type,
@@ -237,9 +243,8 @@ def optimal_member_sel(
 
         # Write selection into a file
         selection = ",".join(map(str, selection))
-        selected_members_file = experiment_name + "_selected-members.txt"
-        logger.info("Writing selected members to file {}".format(selected_members_file))
-        with open(selected_members_file, "w") as file:
+        logger.info("Writing selected members to file {}".format(optimal_members_file_name))
+        with open(optimal_members_file_name, "w") as file:
             file.write(selection)
 
         # The last created file was successful
