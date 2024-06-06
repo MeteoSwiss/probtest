@@ -243,7 +243,11 @@ def optimal_member_sel(
 
         # Write selection into a file
         selection = ",".join(map(str, selection))
-        logger.info("Writing selected members to file {}".format(optimal_members_file_name))
+        logger.info(
+            "Writing selected members {} with tolerance factor {} to file {}".format(
+                selection, int(factor), optimal_members_file_name
+            )
+        )
         with open(optimal_members_file_name, "w") as file:
             file.write(selection + "\n")
             file.write("export FACTOR=" + str(int(factor)))
