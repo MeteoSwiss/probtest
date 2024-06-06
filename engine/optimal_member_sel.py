@@ -80,7 +80,7 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
                         break
 
                 if sum(passed) == len(valid_members):
-                    return random_numbers
+                    return random_numbers, f
         # If factore needs to be increased, test only with max_members
         member_num = max_members
 
@@ -230,7 +230,7 @@ def optimal_member_sel(
         )
     else:
         start_time = datetime.now()
-        selection = select_members(
+        selection, factor = select_members(
             stats_file_name, member_num, member_type, total_member_num, factor
         )
         end_time = datetime.now()
