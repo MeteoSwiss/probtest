@@ -1,5 +1,4 @@
 import os
-import random
 from collections import Counter
 from datetime import datetime
 
@@ -17,8 +16,9 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
 
     members = [i for i in range(1, total_member_num + 1)]
 
-    # Iteratively change likelihood of members being selected to come to a solution faster
-    weights = np.array([1/total_member_num] * total_member_num)
+    # Iteratively change likelihood of members being selected
+    # to come to a solution faster
+    weights = np.array([1 / total_member_num] * total_member_num)
 
     max_members = 15  # Selection should not have more than 15 members
     for f in range(
@@ -30,7 +30,9 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
             max_passed = 1
             vars = []
             for i in range(1, 51):
-                random_numbers = np.random.choice(members, size=mem_num, replace=False, p=weights)
+                random_numbers = np.random.choice(
+                    members, size=mem_num, replace=False, p=weights
+                )
                 logger.info(
                     "Test {} with {} randomly selected members and factor {}.".format(
                         i, mem_num, f
@@ -59,9 +61,9 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
                 indices = [i for i, value in enumerate(passed) if value == 0]
                 failed = valid_members_np[indices]
                 # Increase weights for members which failed
-                weights[failed-1] += 1/total_member_num
+                weights[failed - 1] += 1 / total_member_num
                 # weights needs to sum up to 1 for np.random.choice
-                weights = weights/sum(weights)
+                weights = weights / sum(weights)
 
                 vars.extend(new_vars)
 
@@ -145,7 +147,7 @@ def test_selection(
             vars.extend(var)
         else:
             passed[i] = 1
-        i = i+1
+        i = i + 1
 
     vars = list(set(vars))
 
