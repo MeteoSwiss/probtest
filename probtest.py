@@ -5,11 +5,11 @@ import matplotlib
 from engine.cdo_table import cdo_table
 from engine.check import check
 from engine.init import init
-from engine.select_optimal_members import select_optimal_members
 from engine.performance import performance
 from engine.performance_check import performance_check
 from engine.perturb import perturb
 from engine.run_ensemble import run_ensemble
+from engine.select_optimal_members import select_optimal_members
 from engine.stats import stats
 from engine.tolerance import tolerance
 from util.click_util import load_defaults
