@@ -205,7 +205,7 @@ def test_selection(
     default=5.0,
     help=cli_help["factor"],
 )
-def optimal_member_sel(
+def select_optimal_members(
     experiment_name,
     test_tolerance,
     stats_file_name,

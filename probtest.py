@@ -5,7 +5,7 @@ import matplotlib
 from engine.cdo_table import cdo_table
 from engine.check import check
 from engine.init import init
-from engine.optimal_member_sel import optimal_member_sel
+from engine.select_optimal_members import select_optimal_members
 from engine.performance import performance
 from engine.performance_check import performance_check
 from engine.perturb import perturb
@@ -44,7 +44,7 @@ cli.add_command(perturb)
 cli.add_command(stats)
 cli.add_command(check)
 cli.add_command(tolerance)
-cli.add_command(optimal_member_sel)
+cli.add_command(select_optimal_members)
 cli.add_command(run_ensemble)
 cli.add_command(performance)
 cli.add_command(check_plot)
