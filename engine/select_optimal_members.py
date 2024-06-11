@@ -26,7 +26,11 @@ def select_members(
     # Iteratively change likelihood of members being selected
     # to come to a solution faster
     weights = np.array([1 / total_member_num] * total_member_num)
+
     max_factor = 50
+
+    # Use fixed seed to make result reproducible
+    np.random.seed(total_member_num)
 
     for f in range(
         int(factor), max_factor + 1, 5
