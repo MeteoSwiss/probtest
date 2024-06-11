@@ -84,8 +84,6 @@ cli_help = {
     + r"always be created in the (perturbed) model_output_dir.",
     "member_num": r"number of ensemble members or a comma separated list of members "
     + r'(e.g. "1,3,14")',
-    "total_member_num": r"number of ensemble members used to select the x "
-    + r"optimal members from (x=member_num)",
     "member_type": r"precision of experiment (e.g. double or mixed). "
     + r"The type is part of the created member_id, which is equal to "
     + r"(member_type+'_'+str(member_num))",
@@ -99,9 +97,13 @@ cli_help = {
     + r'"*" and will be expanded internally by glob. Put FILE_PATTERN in quotes to '
     + r"avoid early glob expansion by the calling shell.",
     "ensemble": r"For ensemble stats: the sub-directory where the ensemble outputs are",
-    "test_tolerance": r"For select-optimal-members: Test with how many stats files out "
+    "test_tolerance": r"Test with how many stats files out "
     + r"of x (x=total_member_num) the probtest passes given a specific tolerance file.",
-    "optimal_members_file_name": r"the name of the file in which the optimal"
+    "total_member_num": r"Number of ensemble members used "
+    + r"to select the x optimal members from (min_member_num<=x<=max_member_num).",
+    "min_member_num": r"Minimum number of members to make " + r"an optimal selection.",
+    "max_member_num": r"Maximum number of members to make " + r"an optimal selection.",
+    "optimal_members_file_name": r"The name of the file in which the optimal"
     + r"members will be written.",
     "file_specification": "Specify how different file types shall be read. This "
     + r"option must be defined in the json config file. See doc string of  "

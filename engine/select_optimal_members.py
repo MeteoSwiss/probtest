@@ -7,25 +7,32 @@ import numpy as np
 
 from engine.check import check_intersection, check_variable
 from engine.tolerance import tolerance
-from util.click_util import CommaSeperatedInts, cli_help
+from util.click_util import cli_help
 from util.dataframe_ops import compute_rel_diff_dataframe, parse_probtest_csv
 from util.log_handler import logger
 
 
-def select_members(stats_file_name, member_num, member_type, total_member_num, factor):
+def select_members(
+    stats_file_name,
+    member_type,
+    min_member_num,
+    max_member_num,
+    total_member_num,
+    factor,
+):
 
     members = [i for i in range(1, total_member_num + 1)]
 
     # Iteratively change likelihood of members being selected
     # to come to a solution faster
     weights = np.array([1 / total_member_num] * total_member_num)
+    max_factor = 50
 
-    max_members = 15  # Selection should not have more than 15 members
     for f in range(
-        int(factor), 51, 5
-    ):  # Try with bigger factor if 15 members are not enough
+        int(factor), max_factor + 1, 5
+    ):  # Try with bigger factor if max_member_num is not enough
         logger.info("Set factor to {}".format(f))
-        for mem_num in range(member_num, max_members + 1):
+        for mem_num in range(min_member_num, max_member_num + 1):
             logger.info("Try with {} members.".format(mem_num))
             max_passed = 1
             vars = []
@@ -67,12 +74,13 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
 
                 vars.extend(new_vars)
 
-                duplicates = {item: count for item, count in Counter(vars).items()}
-                sorted_duplicates = dict(
-                    sorted(duplicates.items(), key=lambda x: x[1], reverse=True)
-                )
+                if (mem_num == max_member_num) and (f == max_factor):
+                    duplicates = {item: count for item, count in Counter(vars).items()}
+                    sorted_duplicates = dict(
+                        sorted(duplicates.items(), key=lambda x: x[1], reverse=True)
+                    )
                 # The following is to save computing time
-                if i < 33:
+                elif i < 33:
                     if max_passed < sum(passed):
                         max_passed = sum(passed)
                     # The more combs were tested
@@ -84,7 +92,7 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
                 if sum(passed) == len(valid_members):
                     return random_numbers, f
         # If factore needs to be increased, test only with max_members
-        member_num = max_members
+        min_member_num = max_member_num
 
     max_count = max(sorted_duplicates.values())
     most_common_vars = [
@@ -96,7 +104,7 @@ def select_members(stats_file_name, member_num, member_type, total_member_num, f
             + "The most sensitive variable(s) is/are {}, which failed for {} out of {} "
             + "random selections. Consider removing this/those variable(s) from the "
             + "experiment and run again."
-        ).format(max_members, most_common_vars, max_count, i)
+        ).format(max_member_num, most_common_vars, max_count, i)
     )
     exit(1)
 
@@ -182,16 +190,22 @@ def test_selection(
     help=cli_help["tolerance_file_name"],
 )
 @click.option(
-    "--member-num",
-    type=CommaSeperatedInts(),
-    default="5",
-    help=cli_help["member_num"],
-)
-@click.option(
     "--member-type",
     type=str,
     default="",
     help=cli_help["member_type"],
+)
+@click.option(
+    "--min-member-num",
+    type=int,
+    default=5,
+    help=cli_help["min_member_num"],
+)
+@click.option(
+    "--max-member-num",
+    type=int,
+    default=15,
+    help=cli_help["max_member_num"],
 )
 @click.option(
     "--total-member-num",
@@ -211,19 +225,22 @@ def select_optimal_members(
     stats_file_name,
     optimal_members_file_name,
     tolerance_file_name,
-    member_num,
     member_type,
+    min_member_num,
+    max_member_num,
     total_member_num,
     factor,
 ):
 
-    if len(member_num) != 1:
+    if min_member_num > max_member_num:
         logger.info(
-            "ERROR: The optimal member selection needs a single value for member_num."
+            "ERROR: min_member_num must be equal or smaller than max_member_num"
         )
         exit(1)
-    else:
-        member_num = member_num[0]
+
+    if max_member_num >= total_member_num:
+        logger.info("ERROR: max_member_num must be smaller than total_member_num")
+        exit(1)
 
     if test_tolerance:
         # Test selection
@@ -233,7 +250,12 @@ def select_optimal_members(
     else:
         start_time = datetime.now()
         selection, factor = select_members(
-            stats_file_name, member_num, member_type, total_member_num, factor
+            stats_file_name,
+            member_type,
+            min_member_num,
+            max_member_num,
+            total_member_num,
+            factor,
         )
         end_time = datetime.now()
         elapsed_time = end_time - start_time
