@@ -101,8 +101,10 @@ cli_help = {
     + r"of x (x=total_member_num) the probtest passes given a specific tolerance file.",
     "total_member_num": r"Number of ensemble members used "
     + r"to select the x optimal members from (min_member_num<=x<=max_member_num).",
-    "min_member_num": r"Minimum number of members to make " + r"an optimal selection.",
-    "max_member_num": r"Maximum number of members to make " + r"an optimal selection.",
+    "min_member_num": r"Minimum number of members to make an optimal selection.",
+    "max_member_num": r"Maximum number of members to make an optimal selection.",
+    "min_factor": r"Minimum factor to make an optimal selection.",
+    "max_factor": r"Maximum factor to make an optimal selection.",
     "optimal_members_file_name": r"The name of the file in which the optimal"
     + r"members will be written.",
     "file_specification": "Specify how different file types shall be read. This "

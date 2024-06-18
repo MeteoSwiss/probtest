@@ -18,7 +18,8 @@ def select_members(
     min_member_num,
     max_member_num,
     total_member_num,
-    factor,
+    min_factor,
+    max_factor,
 ):
 
     members = [i for i in range(1, total_member_num + 1)]
@@ -27,13 +28,11 @@ def select_members(
     # to come to a solution faster
     weights = np.array([1 / total_member_num] * total_member_num)
 
-    max_factor = 50
-
     # Use fixed seed to make result reproducible
     np.random.seed(total_member_num)
 
     for f in range(
-        int(factor), max_factor + 1, 5
+        int(min_factor), int(max_factor) + 1, 5
     ):  # Try with bigger factor if max_member_num is not enough
         logger.info("Set factor to {}".format(f))
         for mem_num in range(min_member_num, max_member_num + 1):
@@ -223,6 +222,18 @@ def test_selection(
     default=5.0,
     help=cli_help["factor"],
 )
+@click.option(
+    "--min-factor",
+    type=float,
+    default=5.0,
+    help=cli_help["min_factor"],
+)
+@click.option(
+    "--max-factor",
+    type=float,
+    default=50.0,
+    help=cli_help["max_factor"],
+)
 def select_optimal_members(
     experiment_name,
     test_tolerance,
@@ -234,12 +245,18 @@ def select_optimal_members(
     max_member_num,
     total_member_num,
     factor,
+    min_factor,
+    max_factor,
 ):
 
     if min_member_num > max_member_num:
         logger.info(
             "ERROR: min_member_num must be equal or smaller than max_member_num"
         )
+        exit(1)
+
+    if min_factor > max_factor:
+        logger.info("ERROR: min_factor must be equal or smaller than max_factor")
         exit(1)
 
     if max_member_num >= total_member_num:
@@ -259,7 +276,8 @@ def select_optimal_members(
             min_member_num,
             max_member_num,
             total_member_num,
-            factor,
+            min_factor,
+            max_factor,
         )
         end_time = datetime.now()
         elapsed_time = end_time - start_time
