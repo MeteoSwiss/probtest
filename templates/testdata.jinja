@@ -29,8 +29,7 @@
     "select-optimal-members":
         {
             "test_tolerance": false,
-            "optimal_members_file_name": "{{reference}}/{{experiment_name}}_optimal-members.csv",
-            "total_member_num": 50
+            "optimal_members_file_name": "{{reference}}/{{experiment_name}}_optimal-members.csv"
         },
     "check": {
         "input_file_ref": "{{reference}}/reference/{{experiment_name}}_{{member_num[0] if member_num|length>1 else 1}}.csv",
