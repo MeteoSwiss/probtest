@@ -105,7 +105,9 @@ cli_help = {
     "max_member_num": r"Maximum number of members to make an optimal selection.",
     "min_factor": r"Minimum factor to make an optimal selection.",
     "max_factor": r"Maximum factor to make an optimal selection.",
-    "optimal_members_file_name": r"The name of the file in which the optimal"
+    "iterations": r"Maximum number of iterations to select a random sample per "
+    + r"number of members.",
+    "optimal_members_file_name": r"The name of the file in which the optimal "
     + r"members will be written.",
     "file_specification": "Specify how different file types shall be read. This "
     + r"option must be defined in the json config file. See doc string of  "

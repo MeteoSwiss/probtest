@@ -20,6 +20,7 @@ def select_members(
     total_member_num,
     min_factor,
     max_factor,
+    iterations
 ):
 
     members = [i for i in range(1, total_member_num + 1)]
@@ -39,13 +40,13 @@ def select_members(
             logger.info("Try with {} members.".format(mem_num))
             max_passed = 1
             vars = []
-            for i in range(1, 51):
+            for iter in range(1, iterations+1):
                 random_numbers = np.random.choice(
                     members, size=mem_num, replace=False, p=weights
                 )
                 logger.info(
                     "Test {} with {} randomly selected members and factor {}.".format(
-                        i, mem_num, f
+                        iter, mem_num, f
                     )
                 )
                 # Create tolerances from random members
@@ -83,13 +84,13 @@ def select_members(
                         sorted(duplicates.items(), key=lambda x: x[1], reverse=True)
                     )
                 # The following is to save computing time
-                elif i < 33:
+                elif iter < 33:
                     if max_passed < sum(passed):
                         max_passed = sum(passed)
                     # The more combs were tested
                     # the higher should the success rate be to continue
                     tested_stats = len(valid_members)
-                    if max_passed < i * 0.03 * tested_stats:
+                    if max_passed < iter * 0.03 * tested_stats:
                         break
 
                 if sum(passed) == len(valid_members):
@@ -107,7 +108,7 @@ def select_members(
             + "The most sensitive variable(s) is/are {}, which failed for {} out of {} "
             + "random selections. Consider removing this/those variable(s) from the "
             + "experiment and run again."
-        ).format(max_member_num, most_common_vars, max_count, i)
+        ).format(max_member_num, most_common_vars, max_count, iter)
     )
     exit(1)
 
@@ -234,6 +235,12 @@ def test_selection(
     default=50.0,
     help=cli_help["max_factor"],
 )
+@click.option(
+    "--iterations",
+    type=int,
+    default=50,
+    help=cli_help["iterations"],
+)
 def select_optimal_members(
     experiment_name,
     test_tolerance,
@@ -247,6 +254,7 @@ def select_optimal_members(
     factor,
     min_factor,
     max_factor,
+    iterations
 ):
 
     if min_member_num > max_member_num:
@@ -278,6 +286,7 @@ def select_optimal_members(
             total_member_num,
             min_factor,
             max_factor,
+            iterations
         )
         end_time = datetime.now()
         elapsed_time = end_time - start_time
