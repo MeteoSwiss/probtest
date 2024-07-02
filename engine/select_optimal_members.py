@@ -41,7 +41,7 @@ def select_members(
             max_passed = 1
             vars = []
             for iter in range(1, iterations+1):
-                random_numbers = np.random.choice(
+                random_members = np.random.choice(
                     members, size=mem_num, replace=False, p=weights
                 )
                 logger.info(
@@ -55,11 +55,11 @@ def select_members(
                     tolerance,
                     stats_file_name=stats_file_name,
                     tolerance_file_name="random_tolerance.csv",
-                    member_num=random_numbers,
+                    member_num=random_members,
                     member_type=member_type,
                 )
                 # Test selection (not randomly selected members)
-                valid_members = [item for item in members if item not in random_numbers]
+                valid_members = [item for item in members if item not in random_members]
                 passed, new_vars = test_selection(
                     stats_file_name,
                     "random_tolerance.csv",
@@ -94,7 +94,7 @@ def select_members(
                         break
 
                 if sum(passed) == len(valid_members):
-                    return random_numbers, f
+                    return random_members, f
         # If factore needs to be increased, test only with max_members
         min_member_num = max_member_num
 
