@@ -135,10 +135,10 @@ def check(input_file_ref, input_file_cur, tolerance_file_name, factor):
     else:
         logger.info("RESULT: check FAILED")
         logger.info("Differences")
-        print(err)
+        logger.info(err)
         logger.info("\nTolerance")
-        print(tol)
+        logger.info(tol)
         logger.info("\nError relative to tolerance")
-        print(div)
+        logger.info(div)
 
     exit(0 if out else 1)
