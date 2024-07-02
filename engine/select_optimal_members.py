@@ -58,19 +58,19 @@ def select_members(
                     member_num=random_members,
                     member_type=member_type,
                 )
-                # Test selection (not randomly selected members)
-                valid_members = [item for item in members if item not in random_members]
+                # Test selection (exclude random selection)
+                validation_members = [item for item in members if item not in random_members]
                 passed, new_vars = test_selection(
                     stats_file_name,
                     "random_tolerance.csv",
-                    valid_members,
+                    validation_members,
                     member_type,
                     f,
                 )
 
-                valid_members_np = np.array(valid_members)
+                validation_members_np = np.array(validation_members)
                 indices = [i for i, value in enumerate(passed) if value == 0]
-                failed = valid_members_np[indices]
+                failed = validation_members_np[indices]
                 # Increase weights for members which failed
                 weights[failed - 1] += 1 / total_member_num
                 # weights needs to sum up to 1 for np.random.choice
@@ -89,11 +89,11 @@ def select_members(
                         max_passed = sum(passed)
                     # The more combs were tested
                     # the higher should the success rate be to continue
-                    tested_stats = len(valid_members)
+                    tested_stats = len(validation_members)
                     if max_passed < iter * 0.03 * tested_stats:
                         break
 
-                if sum(passed) == len(valid_members):
+                if sum(passed) == len(validation_members):
                     return random_members, f
         # If factore needs to be increased, test only with max_members
         min_member_num = max_member_num
