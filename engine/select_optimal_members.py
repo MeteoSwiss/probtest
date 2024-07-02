@@ -26,7 +26,7 @@ def select_members(
 
     # Iteratively change likelihood of members being selected
     # to come to a solution faster
-    weights = np.array([1 / total_member_num] * total_member_num)
+    weights = np.ones(total_member_num) / total_member_num
 
     # Use fixed seed to make result reproducible
     np.random.seed(total_member_num)
