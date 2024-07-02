@@ -20,7 +20,7 @@ def select_members(
     total_member_num,
     min_factor,
     max_factor,
-    iterations
+    iterations,
 ):
 
     members = [i for i in range(1, total_member_num + 1)]
@@ -40,7 +40,7 @@ def select_members(
             logger.info("Try with {} members.".format(mem_num))
             max_passed = 1
             vars = []
-            for iter in range(1, iterations+1):
+            for iter in range(1, iterations + 1):
                 random_members = np.random.choice(
                     members, size=mem_num, replace=False, p=weights
                 )
@@ -59,7 +59,9 @@ def select_members(
                     member_type=member_type,
                 )
                 # Test selection (exclude random selection)
-                validation_members = [item for item in members if item not in random_members]
+                validation_members = [
+                    item for item in members if item not in random_members
+                ]
                 passed, new_vars = test_selection(
                     stats_file_name,
                     "random_tolerance.csv",
@@ -254,7 +256,7 @@ def select_optimal_members(
     factor,
     min_factor,
     max_factor,
-    iterations
+    iterations,
 ):
 
     if min_member_num > max_member_num:
@@ -286,7 +288,7 @@ def select_optimal_members(
             total_member_num,
             min_factor,
             max_factor,
-            iterations
+            iterations,
         )
         end_time = datetime.now()
         elapsed_time = end_time - start_time
