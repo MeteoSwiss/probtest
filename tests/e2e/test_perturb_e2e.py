@@ -1,6 +1,5 @@
 import os
 import pytest
-from pathlib import Path
 
 import numpy as np
 import xarray as xr
@@ -9,16 +8,8 @@ from click.testing import CliRunner
 
 from engine.perturb import perturb
 
-
-def load_netcdf(rel_path):
-    nc_ref_path = Path(os.environ["PROBTEST_REF_DATA"]) / rel_path
-    nc_cur_path = Path(os.environ["PROBTEST_CUR_DATA"]) / rel_path
-
-    data_ref = xr.load_dataset(nc_ref_path)
-    data_cur = xr.load_dataset(nc_cur_path)
-
-    return data_ref, data_cur
-
+def load_netcdf(path):
+    return xr.load_dataset(path)
 
 def check_netcdf(data_ref, data_cur):
     diff_keys = set(data_ref.keys()) - set(data_cur.keys())
@@ -33,11 +24,7 @@ def check_netcdf(data_ref, data_cur):
     return list(diff_keys), err
 
 @pytest.fixture(scope="function")
-def tmp_folder(tmpdir):
-    return tmpdir.mkdir("data")
-
-@pytest.fixture(scope="function")
-def nc_with_T_U_V(tmp_folder):
+def nc_with_T_U_V(tmp_path):
     # Define dimensions
     time = np.arange(0, 10)
     lat = np.linspace(-90, 90, 19)
@@ -65,62 +52,41 @@ def nc_with_T_U_V(tmp_folder):
         }
     )
     # Save to netcdf
-    filename = os.path.join(tmp_folder,"initial_condition.nc")
+    filename = os.path.join(tmp_path,"initial_condition.nc")
     ds.to_netcdf(filename)
     return filename
 
-def test_perturb(nc_with_T_U_V,tmp_folder):
-    data_cur = nc_with_T_U_V
-
-    print(data_cur)
-    print(tmp_folder)
-    print(type(data_cur))
-    print(type(tmp_folder))
+def cli_run_perturb(base_dir,filename,member,id):
     runner = CliRunner()
-    result = runner.invoke(perturb, ["--experiment-name", "test1", "--model-input-dir", 
-                                     tmp_folder, "--perturbed-model-input-dir", "./", 
-                                     "--files", "initial_condition.nc", "--member-num", "3", 
-                                     "--member-type", "sp"])
+    result = runner.invoke(perturb, [
+        "--model-input-dir", base_dir,
+        "--perturbed-model-input-dir", f"{base_dir}/experiments/{id}_" + "{member_id}",
+        "--files", filename,
+        "--member-num", f"1,{str(member)}",
+        "--member-type", "dp",
+        "--variable-names", "U,V",
+        "--perturb-amplitude", "0.05",
+        "--no-copy-all-files"
+    ])
+    if result.exit_code != 0:
+        error_message = "Error executing command:\n" + result.output
+        if result.exception:
+            error_message += "\nException: " + str(result.exception)
+        raise Exception(error_message)
 
-    print(result.output)
-    #data_ref, data_cur = load_netcdf("perturb/initial_condition.nc")
-    #diff_keys, err = check_netcdf(data_ref, data_cur)
-    #assert len(err) == 0
-    #assert len(diff_keys) == 0
 
+@pytest.mark.parametrize("member", [3,5,13,33,50,73,87,99])
+def test_perturb_cli_for_member(nc_with_T_U_V,tmp_path,member):
+    initial_condition = os.path.basename(nc_with_T_U_V)
+    tmp_path = os.path.dirname(nc_with_T_U_V)
 
-#class TestNcE2E(unittest.TestCase):
-#    def setUp(self) -> None:
-#        return super().setUp()
-#
-#    def tearDown(self) -> None:
-#        return super().tearDown()
-#
-#    def test_perturb_e2e(self):
-#        exp = os.environ["PROBTEST_TEST_EXPERIMENT"]
-#
-#        # Get a list of directories that include the experiment name
-#        perturb_path = Path(os.getcwd(), os.environ["PROBTEST_REF_DATA"], "perturb")
-#        exp_dirs = [d for d in os.listdir(perturb_path) if exp in d]
-#        self.assertNotEqual(
-#            len(exp_dirs),
-#            0,
-#            msg="No experiment folders found in {}".format(perturb_path),
-#        )
-#
-#        for exp_dir in exp_dirs:
-#            data_ref, data_cur = load_netcdf(
-#                "perturb/{}/initial_condition.nc".format(exp_dir)
-#            )
-#
-#            diff_keys, err = check_netcdf(data_ref, data_cur)
-#            self.assertEqual(
-#                err, [], msg="The following variables contain errors:\n{}".format(err)
-#            )
-#            self.assertEqual(
-#                diff_keys,
-#                [],
-#                msg="The following variables are not contained in both files:\n"
-#                + "{}".format(err),
-#            )
+    cli_run_perturb(tmp_path,initial_condition,member, "ref")
+    cli_run_perturb(tmp_path, initial_condition,member, "test")
 
+    data_ref = load_netcdf(os.path.join(tmp_path,f"experiments/ref_dp_{member}/initial_condition.nc"))
+    data_test = load_netcdf(os.path.join(tmp_path,f"experiments/test_dp_{member}/initial_condition.nc"))
+
+    diff_keys, err = check_netcdf(data_ref, data_test)
+
+    assert err == [], f"The following variables contain errors:\n{err}"
+    assert diff_keys == [], f"The following variables are not contained in both files:\n{err}"
