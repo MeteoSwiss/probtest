@@ -102,7 +102,7 @@ def select_members(
     most_common_vars = [
         item for item, count in sorted_duplicates.items() if count == max_count
     ]
-    logger.info(
+    logger.error(
         (
             "ERROR: Could not find {} random members, which pass for all stat files. "
             + "The most sensitive variable(s) is/are {}, which failed for {} out of {} "
@@ -141,7 +141,7 @@ def test_selection(
         # check if variables are available in reference file
         skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
         if skip_test:  # No intersection
-            logger.info(
+            logger.error(
                 "ERROR: No intersection between variables in input and reference file."
             )
             exit(1)
@@ -258,17 +258,17 @@ def select_optimal_members(
 ):
 
     if min_member_num > max_member_num:
-        logger.info(
+        logger.error(
             "ERROR: min_member_num must be equal or smaller than max_member_num"
         )
         exit(1)
 
     if min_factor > max_factor:
-        logger.info("ERROR: min_factor must be equal or smaller than max_factor")
+        logger.error("ERROR: min_factor must be equal or smaller than max_factor")
         exit(1)
 
     if max_member_num >= total_member_num:
-        logger.info("ERROR: max_member_num must be smaller than total_member_num")
+        logger.error("ERROR: max_member_num must be smaller than total_member_num")
         exit(1)
 
     if test_tolerance:
