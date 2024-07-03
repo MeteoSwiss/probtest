@@ -8,8 +8,8 @@ def create_dummy_stats_file(filename, configurations, seed):
     time_header = ",".join([f"{t},{t},{t}" for t in range(max_time_dim)])
     header = [
         f"time,,,{time_header}",
-        "statistic,,," + "mean,max,min," * max_time_dim,
-        "file_ID,variable,height,,,,,,,,," * max_time_dim,
+        "statistic,," + ",max,mean,min" * max_time_dim,
+        "file_ID,variable,height,,,,,,,,,",
     ]
 
     # Generate data rows
@@ -26,7 +26,7 @@ def create_dummy_stats_file(filename, configurations, seed):
                 mean = round(random.uniform(0, 5), 2)
                 max_val = mean + round(random.uniform(0, 1), 2)
                 min_val = mean - round(random.uniform(0, 1), 2)
-                row += f",{mean},{max_val},{min_val}"
+                row += f",{max_val},{mean},{min_val}"
             # Fill in remaining time slots with empty values if needed
             for _ in range(time_dim, max_time_dim):
                 row += ",,,"
@@ -63,6 +63,7 @@ if __name__ == "__main__":
     ]
     # Create 50 files with different seeds
     seed = 42
+    create_dummy_stats_file("stats_ref.csv", configurations, seed - 1)
     for i in range(1, 51):
         filename = f"stats_{i}.csv"
         create_dummy_stats_file(filename, configurations, seed + i)
