@@ -1,7 +1,7 @@
 import random
 
 
-def create_dummy_stats_file(filename, configurations, seed):
+def create_dummy_stats_file(filename, configurations, seed, perturbation):
     random.seed(seed)
     # Create header
     max_time_dim = max([config["time_dim"] for config in configurations])
@@ -23,9 +23,10 @@ def create_dummy_stats_file(filename, configurations, seed):
         for h in range(height_dim):
             row = f"{file_format},{variable},{h}.0"
             for t in range(time_dim):
-                mean = round(random.uniform(0, 5), 2)
-                max_val = mean + round(random.uniform(0, 1), 2)
-                min_val = mean - round(random.uniform(0, 1), 2)
+                base_mean = round(random.uniform(0, 5), 5)
+                mean = base_mean + round(random.uniform(-perturbation, perturbation), 5)
+                max_val = mean + round(random.uniform(0, perturbation), 5)
+                min_val = mean - round(random.uniform(0, perturbation), 5)
                 row += f",{max_val},{mean},{min_val}"
             # Fill in remaining time slots with empty values if needed
             for _ in range(time_dim, max_time_dim):
@@ -63,7 +64,11 @@ if __name__ == "__main__":
     ]
     # Create 50 files with different seeds
     seed = 42
-    create_dummy_stats_file("stats_ref.csv", configurations, seed - 1)
-    for i in range(1, 51):
+    # Create reference file
+    create_dummy_stats_file("stats_ref.csv", configurations, seed - 1, 0.0)
+    # Create 49 stats files
+    for i in range(1, 50):
         filename = f"stats_{i}.csv"
-        create_dummy_stats_file(filename, configurations, seed + i)
+        create_dummy_stats_file(filename, configurations, seed + i, 1e-3)
+    # Create stats file with higher perturbation to fail the tolerance test
+    create_dummy_stats_file("stats_50.csv", configurations, seed + i, 1e2)
