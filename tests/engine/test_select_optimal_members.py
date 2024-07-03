@@ -1,4 +1,9 @@
 import random
+import unittest
+
+import click
+
+from engine.select_optimal_members import select_optimal_members
 
 
 def create_dummy_stats_file(filename, configurations, seed, perturbation):
@@ -41,34 +46,49 @@ def create_dummy_stats_file(filename, configurations, seed, perturbation):
             f.write(row + "\n")
 
 
+class TestOptimalMemberSelection(unittest.TestCase):
+
+    def setUp(self):
+        configurations = [
+            {
+                "time_dim": 3,
+                "height_dim": 5,
+                "variable": "v1",
+                "file_format": "Format1:*test_3d*.nc",
+            },
+            {
+                "time_dim": 3,
+                "height_dim": 2,
+                "variable": "v2",
+                "file_format": "Format2:*test_2d*.nc",
+            },
+            {
+                "time_dim": 2,
+                "height_dim": 4,
+                "variable": "v3",
+                "file_format": "Format3:*test_2d*.nc",
+            },
+        ]
+        seed = 42
+        # Create reference file
+        create_dummy_stats_file("stats_ref.csv", configurations, seed - 1, 0.0)
+        # Create 49 stats files
+        for i in range(1, 50):
+            filename = f"stats_{i}.csv"
+            create_dummy_stats_file(filename, configurations, seed + i, 1e-3)
+        # Create stats file with higher perturbation to fail the tolerance test
+        create_dummy_stats_file("stats_50.csv", configurations, seed + i, 1e2)
+
+    def test_select(self):
+        # Create tolerances from random members
+        context = click.Context(select_optimal_members)
+        context.invoke(
+            select_optimal_members,
+            stats_file_name="stats_{member_id}.csv",
+            optimal_members_file_name="optimal_members.csv",
+            tolerance_file_name="tolerance.csv",
+        )
+
+
 if __name__ == "__main__":
-    configurations = [
-        {
-            "time_dim": 3,
-            "height_dim": 5,
-            "variable": "v1",
-            "file_format": "Format1:*test_3d*.nc",
-        },
-        {
-            "time_dim": 3,
-            "height_dim": 2,
-            "variable": "v2",
-            "file_format": "Format2:*test_2d*.nc",
-        },
-        {
-            "time_dim": 2,
-            "height_dim": 4,
-            "variable": "v3",
-            "file_format": "Format3:*test_2d*.nc",
-        },
-    ]
-    # Create 50 files with different seeds
-    seed = 42
-    # Create reference file
-    create_dummy_stats_file("stats_ref.csv", configurations, seed - 1, 0.0)
-    # Create 49 stats files
-    for i in range(1, 50):
-        filename = f"stats_{i}.csv"
-        create_dummy_stats_file(filename, configurations, seed + i, 1e-3)
-    # Create stats file with higher perturbation to fail the tolerance test
-    create_dummy_stats_file("stats_50.csv", configurations, seed + i, 1e2)
+    unittest.main()
