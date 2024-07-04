@@ -132,6 +132,59 @@ class TestOptimalMemberSelection(unittest.TestCase):
             "Increasing the factor within the optimal member selection failed",
         )
 
+    def test_select_members_failure(self):
+        log_stream = StringIO()
+        handler = logging.StreamHandler(log_stream)
+        handler.setLevel(logging.ERROR)
+        formatter = logging.Formatter("%(message)s")
+        handler.setFormatter(formatter)
+        logger = logging.getLogger()
+        logger.setLevel(logging.ERROR)
+        logger.addHandler(handler)
+
+        # Set max_member_num equal to min_member_num (default) and iterations to 1
+        # and max_factor to 5. Like this there will only be one random selection
+        # and the optimal member selection should fail
+        try:
+            # Handle SystemExit which will be triggered on failure of the
+            # optimal member selection
+            with self.assertRaises(SystemExit):  # Expect SystemExit
+                context = click.Context(select_optimal_members)
+                context.invoke(
+                    select_optimal_members,
+                    stats_file_name="stats_{member_id}.csv",
+                    optimal_members_file_name="optimal_members.csv",
+                    tolerance_file_name="tolerance.csv",
+                    max_member_num=5,
+                    iterations=1,
+                    max_factor=5,
+                )
+
+            # Ensure logs are flushed and captured before closing
+            handler.flush()
+            log_output = log_stream.getvalue()
+
+            # Check log output for error messages
+            self.assertTrue(
+                "ERROR" in log_output,
+                "The optimal selection did not fail, although it should have.",
+            )
+
+        except AssertionError:
+            # Ensure logs are flushed and captured before re-raising the exception
+            handler.flush()
+            log_output = log_stream.getvalue()
+
+            # Check log output for error messages
+            self.assertTrue(
+                "ERROR" in log_output,
+                "The optimal selection did not fail, although it should have.",
+            )
+
+        # Clean up
+        logger.removeHandler(handler)
+        log_stream.close()
+
     def test_test_tolerance(self):
         # Create tolerances out of first five members
         context = click.Context(tolerance)
