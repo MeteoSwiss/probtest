@@ -82,25 +82,7 @@ def check_variable(diff_df, df_tol):
     return len(out[selector].index) == 0, diff_df[selector], df_tol[selector]
 
 
-@click.command()
-@click.option(
-    "--input-file-ref",
-    help=cli_help["input_file_ref"],
-)
-@click.option(
-    "--input-file-cur",
-    help=cli_help["input_file_cur"],
-)
-@click.option(
-    "--tolerance-file-name",
-    help=cli_help["tolerance_file_name"],
-)
-@click.option(
-    "--factor",
-    type=float,
-    help=cli_help["factor"],
-)
-def check(input_file_ref, input_file_cur, tolerance_file_name, factor):
+def tolerance_test(tolerance_file_name, input_file_ref, input_file_cur, factor):
     df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
 
     logger.info("applying a factor of {} to the spread".format(factor))
@@ -127,6 +109,33 @@ def check(input_file_ref, input_file_cur, tolerance_file_name, factor):
     diff_df = diff_df.groupby(["file_ID", "variable"]).max()
 
     out, err, tol = check_variable(diff_df, df_tol)
+
+    return out, err, tol
+
+
+@click.command()
+@click.option(
+    "--input-file-ref",
+    help=cli_help["input_file_ref"],
+)
+@click.option(
+    "--input-file-cur",
+    help=cli_help["input_file_cur"],
+)
+@click.option(
+    "--tolerance-file-name",
+    help=cli_help["tolerance_file_name"],
+)
+@click.option(
+    "--factor",
+    type=float,
+    help=cli_help["factor"],
+)
+def check(input_file_ref, input_file_cur, tolerance_file_name, factor):
+
+    out, err, tol = tolerance_test(
+        tolerance_file_name, input_file_ref, input_file_cur, factor
+    )
 
     div = compute_div_dataframe(err, tol)
 

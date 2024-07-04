@@ -1,3 +1,4 @@
+import logging
 import os
 from collections import Counter
 from datetime import datetime
@@ -5,10 +6,9 @@ from datetime import datetime
 import click
 import numpy as np
 
-from engine.check import check_intersection, check_variable
+from engine.check import tolerance_test
 from engine.tolerance import tolerance
 from util.click_util import cli_help
-from util.dataframe_ops import compute_rel_diff_dataframe, parse_probtest_csv
 from util.log_handler import logger
 
 
@@ -126,34 +126,21 @@ def test_selection(
 
     passed = [0] * total_member_num
 
-    input_file_ref = stats_file_name.format(member_id="ref")
-    df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
-    df_tol *= factor
-    df_ref = parse_probtest_csv(input_file_ref, index_col=[0, 1, 2])
+    # Change level to not get whole output from tolerance_test
+    original_level = logging.getLogger().level
+    logging.getLogger().setLevel(logging.ERROR)
 
     vars = []
     i = 0
     for m_num in members:
         m_id = str(m_num) if not member_type else member_type + "_" + str(m_num)
 
-        df_cur = parse_probtest_csv(
-            stats_file_name.format(member_id=m_id), index_col=[0, 1, 2]
+        out, err, tol = tolerance_test(
+            tolerance_file_name,
+            stats_file_name.format(member_id="ref"),
+            stats_file_name.format(member_id=m_id),
+            factor,
         )
-
-        # check if variables are available in reference file
-        skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
-        if skip_test:  # No intersection
-            logger.error(
-                "ERROR: No intersection between variables in input and reference file."
-            )
-            exit(1)
-
-        # compute relative difference
-        diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
-        # take maximum over height
-        diff_df = diff_df.groupby(["file_ID", "variable"]).max()
-
-        out, err, tol = check_variable(diff_df, df_tol)
 
         if not out:
             var = set(index[1] for index in err[0].index)
@@ -165,6 +152,8 @@ def test_selection(
 
     vars = list(set(vars))
 
+    # Reset logger level
+    logging.getLogger().setLevel(original_level)
     logger.info(
         "The tolerance test passed for {} out of {} references.".format(
             sum(passed), total_member_num
