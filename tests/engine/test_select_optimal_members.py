@@ -86,7 +86,6 @@ class TestOptimalMemberSelection(unittest.TestCase):
         create_dummy_stats_file("stats_50.csv", configurations, seed + i, 1e2)
 
     def test_select_members(self):
-        # Create tolerances from random members
         context = click.Context(select_optimal_members)
         context.invoke(
             select_optimal_members,
@@ -105,6 +104,32 @@ class TestOptimalMemberSelection(unittest.TestCase):
         expected_content = "50,21,40,39,16\nexport FACTOR=5"
         self.assertTrue(
             content == expected_content, "The optimal member selection failed"
+        )
+
+    def test_select_members_increase_factor(self):
+        # Set max_member_num equal to min_member_num (default) and iterations to 1
+        # to ensure the factor has to be increased after the first selection
+        context = click.Context(select_optimal_members)
+        context.invoke(
+            select_optimal_members,
+            stats_file_name="stats_{member_id}.csv",
+            optimal_members_file_name="optimal_members.csv",
+            tolerance_file_name="tolerance.csv",
+            max_member_num=5,
+            iterations=1,
+        )
+
+        self.assertTrue(
+            os.path.isfile("optimal_members.csv"),
+            "File 'optimal_members.csv' was not created",
+        )
+
+        with open("optimal_members.csv", "r") as file:
+            content = file.read().strip()
+        expected_content = "50,21,40,39,16\nexport FACTOR=10"
+        self.assertTrue(
+            content == expected_content,
+            "Increasing the factor within the optimal member selection failed",
         )
 
     def test_test_tolerance(self):
