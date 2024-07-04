@@ -82,10 +82,11 @@ class TestOptimalMemberSelection(unittest.TestCase):
         for i in range(1, 50):
             filename = f"stats_{i}.csv"
             create_dummy_stats_file(filename, configurations, seed + i, 1e-3)
-        # Create stats file with higher perturbation to fail the tolerance test
-        create_dummy_stats_file("stats_50.csv", configurations, seed + i, 1e2)
+        # Create a stat file with higher perturbation to fail the tolerance test
+        create_dummy_stats_file("stats_50.csv", configurations, seed + 50, 1e2)
 
     def test_select_members(self):
+        # Test successful optimal member selection
         context = click.Context(select_optimal_members)
         context.invoke(
             select_optimal_members,
@@ -133,6 +134,7 @@ class TestOptimalMemberSelection(unittest.TestCase):
         )
 
     def test_select_members_failure(self):
+        # Set up logging to capture error output
         log_stream = StringIO()
         handler = logging.StreamHandler(log_stream)
         handler.setLevel(logging.ERROR)
@@ -160,7 +162,7 @@ class TestOptimalMemberSelection(unittest.TestCase):
                     max_factor=5,
                 )
 
-            # Ensure logs are flushed and captured before closing
+            # Ensure logs are flushed and captured
             handler.flush()
             log_output = log_stream.getvalue()
 
@@ -186,7 +188,7 @@ class TestOptimalMemberSelection(unittest.TestCase):
         log_stream.close()
 
     def test_test_tolerance(self):
-        # Create tolerances out of first five members
+        # Create tolerances out of the first five members
         context = click.Context(tolerance)
         context.invoke(
             tolerance,
@@ -195,7 +197,7 @@ class TestOptimalMemberSelection(unittest.TestCase):
             member_num=[5],
         )
 
-        # Set up logging to capture output with the default format
+        # Set up logging to capture output
         log_stream = StringIO()
         logging.basicConfig(stream=log_stream, level=logging.INFO, format="%(message)s")
 
@@ -216,7 +218,7 @@ class TestOptimalMemberSelection(unittest.TestCase):
         # Capture and filter log output
         log_output = log_stream.getvalue()
 
-        # Extract the number of passed tests from the output message
+        # Extract and validate the number of passed tests from the log output
         match = re.search(r"passed for (\d+) out of 50", log_output)
         passed_count = match.group(1)
         error_message = (
