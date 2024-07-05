@@ -40,13 +40,13 @@ def select_members(
             logger.info("Try with {} members.".format(mem_num))
             max_passed = 1
             vars = []
-            for iter in range(1, iterations + 1):
+            for iter in range(iterations):
                 random_members = np.random.choice(
                     members, size=mem_num, replace=False, p=weights
                 )
                 logger.info(
                     "Test {} with {} randomly selected members and factor {}.".format(
-                        iter, mem_num, f
+                        iter + 1, mem_num, f
                     )
                 )
                 # Create tolerances from random members
@@ -86,13 +86,13 @@ def select_members(
                         sorted(duplicates.items(), key=lambda x: x[1], reverse=True)
                     )
                 # The following is to save computing time
-                elif iter < 33:
+                elif iter < 32:
                     if max_passed < sum(passed):
                         max_passed = sum(passed)
                     # The more combs were tested
                     # the higher should the success rate be to continue
                     tested_stats = len(validation_members)
-                    if max_passed < iter * 0.03 * tested_stats:
+                    if max_passed < (iter + 1) * 0.03 * tested_stats:
                         break
 
                 if sum(passed) == len(validation_members):
@@ -110,7 +110,7 @@ def select_members(
             + "The most sensitive variable(s) is/are {}, which failed for {} out of {} "
             + "random selections. Consider removing this/those variable(s) from the "
             + "experiment and run again."
-        ).format(max_member_num, most_common_vars, max_count, iter)
+        ).format(max_member_num, most_common_vars, max_count, iter + 1)
     )
     exit(1)
 
