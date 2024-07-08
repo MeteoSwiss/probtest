@@ -12,7 +12,7 @@ from util.dataframe_ops import test_stats_file_with_tolerances
 from util.log_handler import logger
 
 
-def select_members(
+def find_members_and_factor_validating_for_all_stats_files(
     stats_file_name,
     member_type,
     min_member_num,
@@ -269,7 +269,7 @@ def select_optimal_members(
         )
     else:
         start_time = datetime.now()
-        selection, factor = select_members(
+        selection, factor = find_members_and_factor_validating_for_all_stats_files(
             stats_file_name,
             member_type,
             min_member_num,
