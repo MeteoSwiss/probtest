@@ -6,9 +6,9 @@ from datetime import datetime
 import click
 import numpy as np
 
-from engine.check import tolerance_test
 from engine.tolerance import tolerance
 from util.click_util import cli_help
+from util.dataframe_ops import tolerance_test
 from util.log_handler import logger
 
 

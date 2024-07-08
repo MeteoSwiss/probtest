@@ -3,9 +3,12 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from engine.check import check_intersection, check_variable
 from util.constants import CHECK_THRESHOLD
-from util.dataframe_ops import compute_rel_diff_dataframe
+from util.dataframe_ops import (
+    check_intersection,
+    check_variable,
+    compute_rel_diff_dataframe,
+)
 
 
 class TestCheck(unittest.TestCase):
