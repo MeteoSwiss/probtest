@@ -8,7 +8,7 @@ import numpy as np
 
 from engine.tolerance import tolerance
 from util.click_util import cli_help
-from util.dataframe_ops import tolerance_test
+from util.dataframe_ops import test_stats_file_with_tolerances
 from util.log_handler import logger
 
 
@@ -126,7 +126,7 @@ def test_selection(
 
     passed = [0] * total_member_num
 
-    # Change level to not get whole output from tolerance_test
+    # Change level to not get whole output from test_stats_file_with_tolerances
     original_level = logging.getLogger().level
     logging.getLogger().setLevel(logging.ERROR)
 
@@ -135,7 +135,7 @@ def test_selection(
     for m_num in members:
         m_id = str(m_num) if not member_type else member_type + "_" + str(m_num)
 
-        out, err, tol = tolerance_test(
+        out, err, tol = test_stats_file_with_tolerances(
             tolerance_file_name,
             stats_file_name.format(member_id="ref"),
             stats_file_name.format(member_id=m_id),
