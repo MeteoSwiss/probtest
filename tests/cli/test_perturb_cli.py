@@ -9,21 +9,6 @@ from click.testing import CliRunner
 
 from engine.perturb import perturb
 
-def load_netcdf(path):
-    return xr.load_dataset(path)
-
-def check_netcdf(data_ref, data_cur):
-    diff_keys = set(data_ref.keys()) - set(data_cur.keys())
-    same_keys = set(data_ref.keys()).intersection(set(data_cur.keys()))
-
-    err = []
-    for key in same_keys:
-        diff = np.fabs(data_ref[key] - data_cur[key])
-        if np.sum(diff) > 0:
-            err.append(key)
-
-    return list(diff_keys), err
-
 @pytest.fixture()
 def ref_data():
     return 'tests/data'
@@ -71,16 +56,33 @@ def nc_with_T_U_V(tmp_path):
 
     return filename
 
-def cli_run_perturb(base_dir,filename,member,id):
+
+def load_netcdf(path):
+    return xr.load_dataset(path)
+
+def check_netcdf(data_ref, data_cur):
+    diff_keys = set(data_ref.keys()) - set(data_cur.keys())
+    same_keys = set(data_ref.keys()).intersection(set(data_cur.keys()))
+
+    err = []
+    for key in same_keys:
+        diff = np.fabs(data_ref[key] - data_cur[key])
+        if np.sum(diff) > 0:
+            err.append(key)
+
+    return list(diff_keys), err
+
+
+def run_perturb_cli(base_dir,filename, perturb_amplitude):
     runner = CliRunner()
     result = runner.invoke(perturb, [
         "--model-input-dir", base_dir,
-        "--perturbed-model-input-dir", f"{base_dir}/experiments/{id}_" + "{member_id}",
+        "--perturbed-model-input-dir", f"{base_dir}/experiments/" + "{member_id}",
         "--files", filename,
-        "--member-num", f"1,{str(member)}",
+        "--member-num", "1",
         "--member-type", "dp",
         "--variable-names", "U,V",
-        "--perturb-amplitude", "0.00",
+        "--perturb-amplitude", f'{perturb_amplitude}',
         "--no-copy-all-files"
     ])
     if result.exit_code != 0:
@@ -90,22 +92,43 @@ def cli_run_perturb(base_dir,filename,member,id):
         raise Exception(error_message)
 
 
+@pytest.mark.xfail
+def test_compare_ref_with_data_from_fixture_V_missing(ds_ref_with_T_U_V,ds_with_T_U_V):
+    ds_with_T_U_V = ds_with_T_U_V.drop_vars('V')
+    diff_keys, err = check_netcdf(ds_ref_with_T_U_V, ds_with_T_U_V)
+    assert diff_keys == [], f"The following variables are not contained in both files:\n{err}"
+
 def test_compare_ref_with_data_from_fixture(ds_ref_with_T_U_V,ds_with_T_U_V):
     diff_keys, err = check_netcdf(ds_ref_with_T_U_V, ds_with_T_U_V)
     assert err == [], f"The following variables contain errors:\n{err}"
     assert diff_keys == [], f"The following variables are not contained in both files:\n{err}"
 
-@pytest.mark.parametrize("member", [3])
-#@pytest.mark.parametrize("member", [3,5,13,33,50,73,87,99])
-def test_perturb_cli_for_member(nc_with_T_U_V,ds_ref_with_T_U_V,member):
+def test_perturb_cli_amplitude_0_0(nc_with_T_U_V,ds_ref_with_T_U_V):
     initial_condition = os.path.basename(nc_with_T_U_V)
     tmp_path = os.path.dirname(nc_with_T_U_V)
 
-    cli_run_perturb(tmp_path, initial_condition,member, "test")
+    run_perturb_cli(tmp_path, initial_condition, 0.0)
 
-    data_test = load_netcdf(os.path.join(tmp_path,f"experiments/test_dp_{member}/initial_condition.nc"))
+    data_test = load_netcdf(os.path.join(tmp_path,f"experiments/dp_1/initial_condition.nc"))
 
     diff_keys, err = check_netcdf(ds_ref_with_T_U_V, data_test)
+
+    assert err == [], f"The following variables contain errors:\n{err}"
+    assert diff_keys == [], f"The following variables are not contained in both files:\n{err}"
+
+def test_perturb_cli_amplitude_0_2(nc_with_T_U_V,ds_ref_with_T_U_V):
+    initial_condition = os.path.basename(nc_with_T_U_V)
+    tmp_path = os.path.dirname(nc_with_T_U_V)
+
+    run_perturb_cli(tmp_path, initial_condition, 0.2)
+
+    data_test = load_netcdf(os.path.join(tmp_path,f"experiments/dp_1/initial_condition.nc"))
+
+    diff_keys, err = check_netcdf(ds_ref_with_T_U_V, data_test)
+
+    # Remove U and V from the list of variables with errors because they are perturbed
+    err.remove('U')
+    err.remove('V')
 
     assert err == [], f"The following variables contain errors:\n{err}"
     assert diff_keys == [], f"The following variables are not contained in both files:\n{err}"
