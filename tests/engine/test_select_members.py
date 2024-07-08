@@ -8,7 +8,7 @@ from io import StringIO
 import click
 from click.testing import CliRunner
 
-from engine.select_optimal_members import select_optimal_members
+from engine.select_members import select_members
 from engine.tolerance import tolerance
 
 
@@ -52,7 +52,7 @@ def create_dummy_stats_file(filename, configurations, seed, perturbation):
             f.write(row + "\n")
 
 
-class TestOptimalMemberSelection(unittest.TestCase):
+class TestMemberSelection(unittest.TestCase):
 
     def setUp(self):
         configurations = [
@@ -86,51 +86,49 @@ class TestOptimalMemberSelection(unittest.TestCase):
         create_dummy_stats_file("stats_50.csv", configurations, seed + 50, 1e2)
 
     def test_select_members(self):
-        # Test successful optimal member selection
-        context = click.Context(select_optimal_members)
+        # Test successful member selection
+        context = click.Context(select_members)
         context.invoke(
-            select_optimal_members,
+            select_members,
             stats_file_name="stats_{member_id}.csv",
-            optimal_members_file_name="optimal_members.csv",
+            selected_members_file_name="selected_members.csv",
             tolerance_file_name="tolerance.csv",
         )
 
         self.assertTrue(
-            os.path.isfile("optimal_members.csv"),
-            "File 'optimal_members.csv' was not created",
+            os.path.isfile("selected_members.csv"),
+            "File 'selected_members.csv' was not created",
         )
 
-        with open("optimal_members.csv", "r") as file:
+        with open("selected_members.csv", "r") as file:
             content = file.read().strip()
         expected_content = "50,21,40,39,16\nexport FACTOR=5"
-        self.assertTrue(
-            content == expected_content, "The optimal member selection failed"
-        )
+        self.assertTrue(content == expected_content, "The member selection failed")
 
     def test_select_members_increase_factor(self):
         # Set max_member_num equal to min_member_num (default) and iterations to 1
         # to ensure the factor has to be increased after the first selection
-        context = click.Context(select_optimal_members)
+        context = click.Context(select_members)
         context.invoke(
-            select_optimal_members,
+            select_members,
             stats_file_name="stats_{member_id}.csv",
-            optimal_members_file_name="optimal_members.csv",
+            selected_members_file_name="selected_members.csv",
             tolerance_file_name="tolerance.csv",
             max_member_num=5,
             iterations=1,
         )
 
         self.assertTrue(
-            os.path.isfile("optimal_members.csv"),
-            "File 'optimal_members.csv' was not created",
+            os.path.isfile("selected_members.csv"),
+            "File 'selected_members.csv' was not created",
         )
 
-        with open("optimal_members.csv", "r") as file:
+        with open("selected_members.csv", "r") as file:
             content = file.read().strip()
         expected_content = "50,21,40,39,16\nexport FACTOR=10"
         self.assertTrue(
             content == expected_content,
-            "Increasing the factor within the optimal member selection failed",
+            "Increasing the factor within the member selection failed",
         )
 
     def test_select_members_failure(self):
@@ -146,16 +144,16 @@ class TestOptimalMemberSelection(unittest.TestCase):
 
         # Set max_member_num equal to min_member_num (default) and iterations to 1
         # and max_factor to 5. Like this there will only be one random selection
-        # and the optimal member selection should fail
+        # and the member selection should fail
         try:
             # Handle SystemExit which will be triggered on failure of the
-            # optimal member selection
+            # member selection
             with self.assertRaises(SystemExit):  # Expect SystemExit
-                context = click.Context(select_optimal_members)
+                context = click.Context(select_members)
                 context.invoke(
-                    select_optimal_members,
+                    select_members,
                     stats_file_name="stats_{member_id}.csv",
-                    optimal_members_file_name="optimal_members.csv",
+                    selected_members_file_name="selected_members.csv",
                     tolerance_file_name="tolerance.csv",
                     max_member_num=5,
                     iterations=1,
@@ -169,7 +167,7 @@ class TestOptimalMemberSelection(unittest.TestCase):
             # Check log output for error messages
             self.assertTrue(
                 "ERROR" in log_output,
-                "The optimal selection did not fail, although it should have.",
+                "The member selection did not fail, although it should have.",
             )
 
         except AssertionError:
@@ -180,7 +178,7 @@ class TestOptimalMemberSelection(unittest.TestCase):
             # Check log output for error messages
             self.assertTrue(
                 "ERROR" in log_output,
-                "The optimal selection did not fail, although it should have.",
+                "The member selection did not fail, although it should have.",
             )
 
         # Clean up
@@ -203,12 +201,12 @@ class TestOptimalMemberSelection(unittest.TestCase):
 
         runner = CliRunner()
         runner.invoke(
-            select_optimal_members,
+            select_members,
             [
                 "--stats-file-name",
                 "stats_{member_id}.csv",
-                "--optimal-members-file-name",
-                "optimal_members.csv",
+                "--selected-members-file-name",
+                "selected_members.csv",
                 "--tolerance-file-name",
                 "tolerance.csv",
                 "--test-tolerance",

@@ -100,15 +100,15 @@ cli_help = {
     "test_tolerance": r"Test with how many stats files out "
     + r"of x (x=total_member_num) the probtest passes given a specific tolerance file.",
     "total_member_num": r"Number of ensemble members used "
-    + r"to select the x optimal members from (min_member_num<=x<=max_member_num).",
-    "min_member_num": r"Minimum number of members to make an optimal selection.",
-    "max_member_num": r"Maximum number of members to make an optimal selection.",
-    "min_factor": r"Minimum factor to make an optimal selection.",
-    "max_factor": r"Maximum factor to make an optimal selection.",
+    + r"to select the x members from (min_member_num<=x<=max_member_num).",
+    "min_member_num": r"Minimum number of members to select.",
+    "max_member_num": r"Maximum number of members to select.",
+    "min_factor": r"Minimum tolerance factor used to select members with.",
+    "max_factor": r"Maximum tolerance factor used to select members with.",
     "iterations": r"Maximum number of iterations to select a random sample per "
     + r"number of members.",
-    "optimal_members_file_name": r"The name of the file in which the optimal "
-    + r"members will be written.",
+    "selected_members_file_name": r"The name of the file in which the selected "
+    + r"members and the used factor will be written.",
     "file_specification": "Specify how different file types shall be read. This "
     + r"option must be defined in the json config file. See doc string of  "
     + r"df_from_file_ids for the specification.",

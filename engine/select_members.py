@@ -177,8 +177,8 @@ def test_selection(
     help=cli_help["stats_file_name"],
 )
 @click.option(
-    "--optimal-members-file-name",
-    help=cli_help["optimal_members_file_name"],
+    "--selected-members-file-name",
+    help=cli_help["selected_members_file_name"],
 )
 @click.option(
     "--tolerance-file-name",
@@ -232,11 +232,11 @@ def test_selection(
     default=50,
     help=cli_help["iterations"],
 )
-def select_optimal_members(
+def select_members(
     experiment_name,
     test_tolerance,
     stats_file_name,
-    optimal_members_file_name,
+    selected_members_file_name,
     tolerance_file_name,
     member_type,
     min_member_num,
@@ -282,19 +282,17 @@ def select_optimal_members(
         end_time = datetime.now()
         elapsed_time = end_time - start_time
         logger.info(
-            "The optimal member selection took {}s.".format(
-                elapsed_time.total_seconds()
-            )
+            "The member selection took {}s.".format(elapsed_time.total_seconds())
         )
 
         # Write selection into a file
         selection = ",".join(map(str, selection))
         logger.info(
             "Writing selected members {} with tolerance factor {} to file {}".format(
-                selection, int(factor), optimal_members_file_name
+                selection, int(factor), selected_members_file_name
             )
         )
-        with open(optimal_members_file_name, "w") as file:
+        with open(selected_members_file_name, "w") as file:
             file.write(selection + "\n")
             file.write("export FACTOR=" + str(int(factor)))
 
