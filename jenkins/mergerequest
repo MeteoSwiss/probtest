@@ -26,8 +26,13 @@ pipeline {
 
         stage('test cli') {
             steps {
-                sh 'python3 -m pytest -v tests/cli/*'
+                sh'''
+                source /project/g110/icon/probtest/conda/miniconda/bin/activate
+                conda activate probtest
+                pytest -v tests/cli/*
+                '''
             }
+        }
         }
     }
 }
