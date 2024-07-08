@@ -23,6 +23,11 @@ pipeline {
                 sh './jenkins/scripts/step_execute_unittest_mch.sh'
             }
         }
-    }
 
+        stage('test cli') {
+            steps {
+                sh 'python3 -m pytest -v tests/cli/*'
+            }
+        }
+    }
 }
