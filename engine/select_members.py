@@ -12,6 +12,8 @@ from util.dataframe_ops import test_stats_file_with_tolerances
 from util.log_handler import logger
 
 
+
+# finds members and a corresponding tolerance factor validating for all stats files.
 def find_members_and_factor_validating_for_all_stats_files(
     stats_file_name,
     member_type,
@@ -114,7 +116,8 @@ def find_members_and_factor_validating_for_all_stats_files(
     )
     exit(1)
 
-
+# Tests how may stats files pass the tolerance test for the selected members
+# Returns the number of passed stats files and the variables which failed
 def test_selection(
     stats_file_name, tolerance_file_name, total_member_num, member_type, factor
 ):
@@ -232,6 +235,8 @@ def test_selection(
     default=50,
     help=cli_help["iterations"],
 )
+
+# Selects members and writes them to a file together with the tolerance factor
 def select_members(
     experiment_name,
     test_tolerance,
