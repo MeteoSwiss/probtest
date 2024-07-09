@@ -1,10 +1,7 @@
 import os
-from pathlib import Path
+import pytest
 
 import pandas as pd
-import numpy as np
-import xarray as xr
-import pytest
 
 from click.testing import CliRunner
 
