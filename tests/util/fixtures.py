@@ -1,5 +1,6 @@
 import pytest
 import os
+import tempfile
 import numpy as np
 import xarray as xr
 import pandas as pd
@@ -7,6 +8,10 @@ import pandas as pd
 @pytest.fixture()
 def ref_data():
     return "tests/data"
+
+@pytest.fixture(scope="module")
+def tmp_dir():
+    return tempfile.mkdtemp()
 
 @pytest.fixture()
 def ds_ref_with_T_U_V(ref_data):
@@ -25,13 +30,17 @@ def df_ref_stats(ref_data):
     return pd.read_csv(os.path.join(ref_data, 'ref_stats.csv'), index_col=[0, 1, 2], header=[0, 1])
 
 @pytest.fixture()
+def df_ref_cdo_table(ref_data):
+    return pd.read_csv(os.path.join(ref_data, 'ref_cdo_table.csv'), index_col=[0, 1], header=[0, 1])
+
+@pytest.fixture()
 def df_ref_ensemble_stats(ref_data):
     # dict comprehension for 1-10 members containing ref_data + stats_dp_number.csv
     return {i : pd.read_csv(os.path.join(ref_data, f'stats_dp_{i}.csv'), index_col=[0, 1, 2], header=[0, 1]) for i in range(1, 11)}
 
 
-@pytest.fixture()
-def nc_with_T_U_V(tmp_path):
+@pytest.fixture(scope="module")
+def nc_with_T_U_V(tmp_dir) -> str:
     # Define dimensions
     time = np.arange(0, 5)
     lat = np.linspace(-90, 90, 10)
@@ -66,7 +75,7 @@ def nc_with_T_U_V(tmp_path):
         coords={"time": time, "lat": ("lat", lat[:, 0]), "lon": ("lon", lon[0, :])},
     )
     # Save to netcdf
-    filename = os.path.join(tmp_path, "initial_condition.nc")
+    filename = os.path.join(tmp_dir, "initial_condition.nc")
     ds.to_netcdf(filename)
 
     return filename

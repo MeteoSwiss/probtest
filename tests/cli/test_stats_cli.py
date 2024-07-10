@@ -7,7 +7,7 @@ from click.testing import CliRunner
 
 from engine.stats import stats
 from engine.perturb import perturb
-from tests.util.fixtures import df_ref_stats, nc_with_T_U_V, ref_data, df_ref_ensemble_stats
+from tests.util.fixtures import df_ref_stats, nc_with_T_U_V, ref_data, df_ref_ensemble_stats, tmp_dir
 
 def load_pandas(file):
     return pd.read_csv(file, index_col=[0, 1, 2], header=[0, 1])
@@ -99,6 +99,7 @@ def test_stats_cli_ensemble_with_too_small_perturb_amplitude_for_member(nc_with_
     run_stats_cli(tmp_path, stats_file, '--ensemble', exp_folder)
     df_test = load_pandas(stats_file.format(member_id='dp_' + str(member)))
     err = pandas_error(df_ref_ensemble_stats[member], df_test)
+
 
     assert len(err.values) == 0 , "Stats datasets are not equal!\n{}".format(err)
 

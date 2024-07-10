@@ -47,19 +47,6 @@ class TestPandasE2E(unittest.TestCase):
 
         return
 
-    def test_cdo_e2e(self):
-        exp_name = os.environ["PROBTEST_TEST_EXPERIMENT"]
-        rel_path = "cdo_table/{}.csv".format(exp_name)
-        df_ref, df_cur = load_pandas(rel_path)
-
-        err = pandas_error(df_ref, df_cur)
-
-        self.assertEqual(
-            len(err.values), 0, "CDO table datasets are not equal!\n{}".format(err)
-        )
-
-        return
-
     def test_performance_data_e2e(self):
         exp_name = os.environ["PROBTEST_TEST_EXPERIMENT"]
 
