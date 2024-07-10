@@ -30,6 +30,10 @@ def df_ref_stats(ref_data):
     return pd.read_csv(os.path.join(ref_data, 'ref_stats.csv'), index_col=[0, 1, 2], header=[0, 1])
 
 @pytest.fixture()
+def df_ref_tolerance(ref_data):
+    return pd.read_csv(os.path.join(ref_data, 'ref_tolerance.csv'), index_col=[0, 1], header=[0, 1])
+
+@pytest.fixture()
 def df_ref_cdo_table(ref_data):
     return pd.read_csv(os.path.join(ref_data, 'ref_cdo_table.csv'), index_col=[0, 1], header=[0, 1])
 

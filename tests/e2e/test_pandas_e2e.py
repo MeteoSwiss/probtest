@@ -34,19 +34,6 @@ class TestPandasE2E(unittest.TestCase):
         return super().tearDown()
 
 
-    def test_tolerance_e2e(self):
-        exp_name = os.environ["PROBTEST_TEST_EXPERIMENT"]
-        rel_path = "tolerance/{}.csv".format(exp_name)
-        df_ref, df_cur = load_pandas(rel_path)
-
-        err = pandas_error(df_ref, df_cur)
-
-        self.assertEqual(
-            len(err.values), 0, "Tolerance datasets are not equal!\n{}".format(err)
-        )
-
-        return
-
     def test_performance_data_e2e(self):
         exp_name = os.environ["PROBTEST_TEST_EXPERIMENT"]
 
