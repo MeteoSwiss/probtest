@@ -1,17 +1,21 @@
-import pytest
 import os
 import tempfile
+
 import numpy as np
-import xarray as xr
 import pandas as pd
+import pytest
+import xarray as xr
+
 
 @pytest.fixture()
 def ref_data():
     return "tests/data"
 
+
 @pytest.fixture(scope="module")
 def tmp_dir():
     return tempfile.mkdtemp()
+
 
 @pytest.fixture()
 def ds_ref_with_T_U_V(ref_data):
@@ -25,22 +29,39 @@ def ds_ref_with_T_U_V(ref_data):
 def ds_with_T_U_V(nc_with_T_U_V):
     return xr.load_dataset(nc_with_T_U_V)
 
+
 @pytest.fixture()
 def df_ref_stats(ref_data):
-    return pd.read_csv(os.path.join(ref_data, 'ref_stats.csv'), index_col=[0, 1, 2], header=[0, 1])
+    return pd.read_csv(
+        os.path.join(ref_data, "ref_stats.csv"), index_col=[0, 1, 2], header=[0, 1]
+    )
+
 
 @pytest.fixture()
 def df_ref_tolerance(ref_data):
-    return pd.read_csv(os.path.join(ref_data, 'ref_tolerance.csv'), index_col=[0, 1], header=[0, 1])
+    return pd.read_csv(
+        os.path.join(ref_data, "ref_tolerance.csv"), index_col=[0, 1], header=[0, 1]
+    )
+
 
 @pytest.fixture()
 def df_ref_cdo_table(ref_data):
-    return pd.read_csv(os.path.join(ref_data, 'ref_cdo_table.csv'), index_col=[0, 1], header=[0, 1])
+    return pd.read_csv(
+        os.path.join(ref_data, "ref_cdo_table.csv"), index_col=[0, 1], header=[0, 1]
+    )
+
 
 @pytest.fixture()
 def df_ref_ensemble_stats(ref_data):
     # dict comprehension for 1-10 members containing ref_data + stats_dp_number.csv
-    return {i : pd.read_csv(os.path.join(ref_data, f'stats_dp_{i}.csv'), index_col=[0, 1, 2], header=[0, 1]) for i in range(1, 11)}
+    return {
+        i: pd.read_csv(
+            os.path.join(ref_data, f"stats_dp_{i}.csv"),
+            index_col=[0, 1, 2],
+            header=[0, 1],
+        )
+        for i in range(1, 11)
+    }
 
 
 @pytest.fixture(scope="module")

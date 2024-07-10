@@ -1,15 +1,18 @@
 import os
 
 import numpy as np
-import pandas as pd
 import pytest
 import xarray as xr
 from click.testing import CliRunner
 
 from engine.perturb import perturb
-from tests.util.fixtures import ds_ref_with_T_U_V, ds_with_T_U_V, nc_with_T_U_V, ref_data, tmp_dir
-
-
+from tests.util.fixtures import (  # noqa: F401
+    ds_ref_with_T_U_V,
+    ds_with_T_U_V,
+    nc_with_T_U_V,
+    ref_data,
+    tmp_dir,
+)
 
 
 def load_netcdf(path):
@@ -82,7 +85,7 @@ def test_perturb_cli_amplitude_0_0(nc_with_T_U_V, ds_ref_with_T_U_V):
     run_perturb_cli(tmp_path, initial_condition, 0.0)
 
     data_test = load_netcdf(
-        os.path.join(tmp_path, f"experiments/dp_1/initial_condition.nc")
+        os.path.join(tmp_path, "experiments/dp_1/initial_condition.nc")
     )
 
     diff_keys, err = check_netcdf(ds_ref_with_T_U_V, data_test)
@@ -100,7 +103,7 @@ def test_perturb_cli_amplitude_0_2(nc_with_T_U_V, ds_ref_with_T_U_V):
     run_perturb_cli(tmp_path, initial_condition, 0.2)
 
     data_test = load_netcdf(
-        os.path.join(tmp_path, f"experiments/dp_1/initial_condition.nc")
+        os.path.join(tmp_path, "experiments/dp_1/initial_condition.nc")
     )
 
     diff_keys, err = check_netcdf(ds_ref_with_T_U_V, data_test)

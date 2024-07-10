@@ -26,13 +26,13 @@ def pandas_error(df_ref, df_cur):
 
     return diff[err_mask]
 
+
 class TestPandasE2E(unittest.TestCase):
     def setUp(self) -> None:
         return super().setUp()
 
     def tearDown(self) -> None:
         return super().tearDown()
-
 
     def test_performance_data_e2e(self):
         exp_name = os.environ["PROBTEST_TEST_EXPERIMENT"]
@@ -52,4 +52,3 @@ class TestPandasE2E(unittest.TestCase):
                 0,
                 "Performance datasets are not equal for table {}!\n{}".format(err, i),
             )
-
