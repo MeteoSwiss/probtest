@@ -6,6 +6,8 @@ import pandas as pd
 import pytest
 import xarray as xr
 
+from tests.helpers.helpers import generate_ensemble
+
 
 @pytest.fixture()
 def ref_data():
@@ -15,6 +17,18 @@ def ref_data():
 @pytest.fixture(scope="module")
 def tmp_dir():
     return tempfile.mkdtemp()
+
+
+@pytest.fixture(scope="module")
+def ensemble(tmp_dir, nc_with_T_U_V):
+    initial_condition = os.path.basename(nc_with_T_U_V)
+    return generate_ensemble(tmp_dir, initial_condition, perturb_amplitude=10e-12)
+
+
+@pytest.fixture(scope="module")
+def wrong_ensemble(tmp_dir, nc_with_T_U_V):
+    initial_condition = os.path.basename(nc_with_T_U_V)
+    return generate_ensemble(tmp_dir, initial_condition, perturb_amplitude=10e-14)
 
 
 @pytest.fixture()
@@ -101,48 +115,6 @@ def nc_with_T_U_V(tmp_dir) -> str:
     )
     # Save to netcdf
     filename = os.path.join(tmp_dir, "initial_condition.nc")
-    ds.to_netcdf(filename)
-
-    return filename
-
-
-@pytest.fixture(scope="module")
-def test_with_T_U_V(tmp_dir) -> str:
-    # Define dimensions
-    time = np.arange(0, 5)
-    lat = np.linspace(-90, 90, 10)
-    lon = np.linspace(-180, 180, 10)
-
-    # Create a meshgrid for lat and lon
-    lon, lat = np.meshgrid(lon, lat)
-
-    # Generate non-random data for variables T,V and U
-    T = 20 + 5 * np.sin(
-        np.pi * lat / 180
-    )  # Temperature varies sinusoidally with latitude
-    V = 100 * np.cos(np.pi * lon / 180)  # Velocity varies cosinusoidally with longitude
-    U = 100 * np.sin(np.pi * lon / 180)  # Velocity varies sinusoidally with longitude
-
-    # Create xarray Dataset
-    ds = xr.Dataset(
-        {
-            "T": (
-                ("time", "lat", "lon"),
-                np.tile(T[np.newaxis, :, :], (len(time), 1, 1)),
-            ),
-            "V": (
-                ("time", "lat", "lon"),
-                np.tile(V[np.newaxis, :, :], (len(time), 1, 1)),
-            ),
-            "U": (
-                ("time", "lat", "lon"),
-                np.tile(U[np.newaxis, :, :], (len(time), 1, 1)),
-            ),
-        },
-        coords={"time": time, "lat": ("lat", lat[:, 0]), "lon": ("lon", lon[0, :])},
-    )
-    # Save to netcdf
-    filename = os.path.join(tmp_dir, "cdo_table_initial_condition.nc")
     ds.to_netcdf(filename)
 
     return filename

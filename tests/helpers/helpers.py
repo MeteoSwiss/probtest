@@ -59,7 +59,7 @@ def run_tolerance_cli(stats_file_name, tolerance_file_name):
     run_cli(tolerance, args)
 
 
-def generate_ensemble(tmp_path, filename, perturb_amplitude=10e-12):
+def generate_ensemble(tmp_path, filename, perturb_amplitude):
     return run_perturb_cli(tmp_path, filename, perturb_amplitude)
 
 
