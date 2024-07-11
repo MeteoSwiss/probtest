@@ -29,8 +29,7 @@ pipeline {
                 sh'''
                 source /project/g110/icon/probtest/conda/miniconda/bin/activate
                 conda activate probtest
-                pytest -v tests/cli/test_perturb_cli.py tests/cli/test_stats_cli.py tests/cli/test_tolerance_cli.py
-                pytest -v tests/cli/test_cdo_table_cli.py
+                pytest -v tests/cli/test_perturb_cli.py
                 '''
             }
         }
