@@ -6,30 +6,12 @@ pipeline {
     }
 
     stages {
-        stage('generate testdata') {
-            steps {
-                sh './jenkins/scripts/step_generate_testdata.sh'
-            }
-        }
-
-        stage('run unittests amip') {
-            steps {
-                sh './jenkins/scripts/step_execute_unittest_amip.sh'
-            }
-        }
-
-        stage('run unittests mch') {
-            steps {
-                sh './jenkins/scripts/step_execute_unittest_mch.sh'
-            }
-        }
-
-        stage('test cli') {
+        stage('Pytest') {
             steps {
                 sh'''
                 source /project/g110/icon/probtest/conda/miniconda/bin/activate
                 conda activate probtest
-                pytest -v tests/cli/*
+                pytest -v tests/*
                 '''
             }
         }
