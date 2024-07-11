@@ -11,22 +11,20 @@ from tests.helpers.fixtures import (  # noqa: F401
 )
 from tests.helpers.helpers import (
     assert_empty_df,
+    generate_ensemble,
     load_pandas,
     pandas_error,
-    run_perturb_cli,
     run_stats_cli,
 )
 
 
-def generate_ensemble(tmp_path, filename, perturb_amplitude=10e-12):
-    return run_perturb_cli(tmp_path, filename, perturb_amplitude)
-
-
 def test_stats_cli_no_ensemble(nc_with_T_U_V, df_ref_stats):
     tmp_path = os.path.dirname(nc_with_T_U_V)
-    stats_file = os.path.join(tmp_path, "test_stats.csv")
+    stats_file = os.path.join(tmp_path, "stats_{member_id}.csv")
     run_stats_cli(tmp_path, stats_file, ensemble=False)
-    df_test = load_pandas(stats_file, index_col=[0, 1, 2], header=[0, 1])
+    df_test = load_pandas(
+        stats_file.format(member_id="ref"), index_col=[0, 1, 2], header=[0, 1]
+    )
     err = pandas_error(df_ref_stats, df_test)
 
     assert_empty_df(err, "Stats datasets are not equal!")

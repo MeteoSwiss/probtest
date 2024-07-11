@@ -104,3 +104,45 @@ def nc_with_T_U_V(tmp_dir) -> str:
     ds.to_netcdf(filename)
 
     return filename
+
+
+@pytest.fixture(scope="module")
+def test_with_T_U_V(tmp_dir) -> str:
+    # Define dimensions
+    time = np.arange(0, 5)
+    lat = np.linspace(-90, 90, 10)
+    lon = np.linspace(-180, 180, 10)
+
+    # Create a meshgrid for lat and lon
+    lon, lat = np.meshgrid(lon, lat)
+
+    # Generate non-random data for variables T,V and U
+    T = 20 + 5 * np.sin(
+        np.pi * lat / 180
+    )  # Temperature varies sinusoidally with latitude
+    V = 100 * np.cos(np.pi * lon / 180)  # Velocity varies cosinusoidally with longitude
+    U = 100 * np.sin(np.pi * lon / 180)  # Velocity varies sinusoidally with longitude
+
+    # Create xarray Dataset
+    ds = xr.Dataset(
+        {
+            "T": (
+                ("time", "lat", "lon"),
+                np.tile(T[np.newaxis, :, :], (len(time), 1, 1)),
+            ),
+            "V": (
+                ("time", "lat", "lon"),
+                np.tile(V[np.newaxis, :, :], (len(time), 1, 1)),
+            ),
+            "U": (
+                ("time", "lat", "lon"),
+                np.tile(U[np.newaxis, :, :], (len(time), 1, 1)),
+            ),
+        },
+        coords={"time": time, "lat": ("lat", lat[:, 0]), "lon": ("lon", lon[0, :])},
+    )
+    # Save to netcdf
+    filename = os.path.join(tmp_dir, "cdo_table_initial_condition.nc")
+    ds.to_netcdf(filename)
+
+    return filename

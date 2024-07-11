@@ -126,6 +126,7 @@ def cdo_table(
     assert isinstance(file_specification, dict), "must be dict"
 
     # modify netcdf parse method:
+    tmp = model_output_parser.dataframe_from_ncfile
     model_output_parser.dataframe_from_ncfile = rel_diff_stats
 
     # step 1: compute rel-diff netcdf files
@@ -193,3 +194,4 @@ def cdo_table(
 
         Path(cdo_table_file).parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(cdo_table_file)
+        model_output_parser.dataframe_from_ncfile = tmp

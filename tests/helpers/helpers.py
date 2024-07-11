@@ -3,6 +3,7 @@ import pandas as pd
 import xarray as xr
 from click.testing import CliRunner
 
+from engine.cdo_table import cdo_table
 from engine.perturb import perturb
 from engine.stats import stats
 from engine.tolerance import tolerance
@@ -56,6 +57,10 @@ def run_tolerance_cli(stats_file_name, tolerance_file_name):
         "dp",
     ]
     run_cli(tolerance, args)
+
+
+def generate_ensemble(tmp_path, filename, perturb_amplitude=10e-12):
+    return run_perturb_cli(tmp_path, filename, perturb_amplitude)
 
 
 def run_perturb_cli(model_input_dir, files, perturb_amplitude, member_num=10):
@@ -116,9 +121,37 @@ def run_stats_cli(
     run_cli(stats, args)
 
 
+def run_cdo_table_cli(model_output_dir, cdo_table_file, perturbed_model_output_dir):
+    args = [
+        "--model-output-dir",
+        model_output_dir,
+        "--cdo-table-file",
+        cdo_table_file,
+        "--member-type",
+        "dp",
+        "--file-id",
+        "NetCDF",
+        "*.nc",
+        "--perturbed-model-output-dir",
+        perturbed_model_output_dir,
+        "--file-specification",
+        [
+            {
+                "NetCDF": {
+                    "format": "netcdf",
+                    "time_dim": "time",
+                    "horizontal_dims": ["lat", "lon"],
+                }
+            }
+        ],
+    ]
+    run_cli(cdo_table, args)
+
+
 def run_cli(command, args):
     runner = CliRunner()
     result = runner.invoke(command, args)
+    print(result.output)
     if result.exit_code != 0:
         error_message = "Error executing command:\n" + result.output
         if result.exception:
