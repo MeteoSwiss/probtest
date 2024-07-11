@@ -4,6 +4,7 @@ import xarray as xr
 from click.testing import CliRunner
 
 from engine.cdo_table import cdo_table
+from engine.performance import performance
 from engine.perturb import perturb
 from engine.stats import stats
 from engine.tolerance import tolerance
@@ -43,6 +44,16 @@ def assert_empty_list(lst, msg):
 
 def assert_empty_df(df, msg):
     assert len(df.values) == 0, f"{msg}:\n{df}"
+
+
+def run_performance_cli(timing_regex, timing_database):
+    args = [
+        "--timing-regex",
+        timing_regex,
+        "--timing-database",
+        timing_database,
+    ]
+    run_cli(performance, args)
 
 
 def run_tolerance_cli(stats_file_name, tolerance_file_name):

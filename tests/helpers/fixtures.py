@@ -7,11 +7,22 @@ import pytest
 import xarray as xr
 
 from tests.helpers.helpers import generate_ensemble
+from util.tree import TimingTree
 
 
 @pytest.fixture()
 def ref_data():
     return "tests/data"
+
+
+@pytest.fixture()
+def timing_logfile(ref_data):
+    return os.path.join(ref_data, "timing_example_1.txt")
+
+
+@pytest.fixture()
+def df_ref_performance(ref_data):
+    return TimingTree.from_json(os.path.join(ref_data, "ref"))
 
 
 @pytest.fixture(scope="module")
