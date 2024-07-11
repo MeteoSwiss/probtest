@@ -8,7 +8,7 @@ from tests.helpers.fixtures import (  # noqa: F401
     nc_with_T_U_V,
     ref_data,
     tmp_dir,
-    wrong_ensemble,
+    too_small_ensemble,
 )
 from tests.helpers.helpers import (
     assert_empty_df,
@@ -18,9 +18,10 @@ from tests.helpers.helpers import (
 )
 
 
-def test_cdo_table_cli(tmp_dir, wrong_ensemble, df_ref_cdo_table):
+def test_cdo_table_cli(tmp_dir, ensemble, df_ref_cdo_table):
     cdo_table_file = os.path.join(tmp_dir, "cdo_table.csv")
-    run_cdo_table_cli(tmp_dir, cdo_table_file, wrong_ensemble)
+    run_cdo_table_cli(tmp_dir, cdo_table_file, ensemble)
+    print(cdo_table_file)
     df_test = load_pandas(cdo_table_file, index_col=[0, 1])
     err = pandas_error(df_ref_cdo_table, df_test)
 
@@ -32,10 +33,10 @@ def test_cdo_table_cli(tmp_dir, wrong_ensemble, df_ref_cdo_table):
     strict=True,
 )
 def test_cdo_table_cli_with_too_small_perturb_amplitude(
-    tmp_dir, ensemble, df_ref_cdo_table
+    tmp_dir, too_small_ensemble, df_ref_cdo_table
 ):
     cdo_table_file = os.path.join(tmp_dir, "cdo_table.csv")
-    run_cdo_table_cli(tmp_dir, cdo_table_file, ensemble)
+    run_cdo_table_cli(tmp_dir, cdo_table_file, too_small_ensemble)
     df_test = load_pandas(cdo_table_file, index_col=[0, 1])
     err = pandas_error(df_ref_cdo_table, df_test)
 

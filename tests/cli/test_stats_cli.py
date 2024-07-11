@@ -9,7 +9,7 @@ from tests.helpers.fixtures import (  # noqa: F401
     nc_with_T_U_V,
     ref_data,
     tmp_dir,
-    wrong_ensemble,
+    too_small_ensemble,
 )
 from tests.helpers.helpers import (
     assert_empty_df,
@@ -37,11 +37,14 @@ def test_stats_cli_no_ensemble(nc_with_T_U_V, df_ref_stats):
 )
 @pytest.mark.parametrize("member", range(1, 11))
 def test_stats_cli_ensemble_with_too_small_perturb_amplitude_for_member(
-    tmp_dir, wrong_ensemble, df_ref_ensemble_stats, member
+    tmp_dir, too_small_ensemble, df_ref_ensemble_stats, member
 ):
     stats_file = os.path.join(tmp_dir, "stats_{member_id}.csv")
     run_stats_cli(
-        tmp_dir, stats_file, ensemble=True, perturbed_model_output_dir=wrong_ensemble
+        tmp_dir,
+        stats_file,
+        ensemble=True,
+        perturbed_model_output_dir=too_small_ensemble,
     )
     df_test = load_pandas(
         stats_file.format(member_id="dp_" + str(member)),

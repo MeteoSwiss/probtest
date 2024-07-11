@@ -15,7 +15,7 @@ from tests.helpers.helpers import (
 from util.tree import TimingTree
 
 
-def test_performance_cli(timing_logfile, tmp_dir, df_ref_performance):
+def test_performance_cli_timing(timing_logfile, tmp_dir, df_ref_performance):
     timing_database = os.path.join(tmp_dir, "test")
     run_performance_cli(timing_logfile, timing_database)
     df_test = TimingTree.from_json(timing_database)
@@ -26,9 +26,9 @@ def test_performance_cli(timing_logfile, tmp_dir, df_ref_performance):
 
 
 def test_performance_cli_tree(timing_logfile, tmp_dir, df_ref_performance):
-    timing_database = os.path.join(tmp_dir, "test")
-    run_performance_cli(timing_logfile, timing_database)
-    df_test = TimingTree.from_json(timing_database)
+    tree_database = os.path.join(tmp_dir, "test")
+    run_performance_cli(timing_logfile, tree_database)
+    df_test = TimingTree.from_json(tree_database)
 
     for i in range(len(df_ref_performance.root)):
         ref_nodes = set(df_ref_performance.root[i].to_ancestry_name_list())

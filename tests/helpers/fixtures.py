@@ -37,7 +37,7 @@ def ensemble(tmp_dir, nc_with_T_U_V):
 
 
 @pytest.fixture(scope="module")
-def wrong_ensemble(tmp_dir, nc_with_T_U_V):
+def too_small_ensemble(tmp_dir, nc_with_T_U_V):
     initial_condition = os.path.basename(nc_with_T_U_V)
     return generate_ensemble(tmp_dir, initial_condition, perturb_amplitude=10e-14)
 
