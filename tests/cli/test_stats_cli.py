@@ -7,6 +7,7 @@ from tests.helpers.fixtures import (  # noqa: F401
     df_ref_stats,
     ensemble,
     nc_with_T_U_V,
+    new_ref,
     ref_data,
     tmp_dir,
     too_small_ensemble,
@@ -16,10 +17,11 @@ from tests.helpers.helpers import (
     load_pandas,
     pandas_error,
     run_stats_cli,
+    store_as_potential_new_ref,
 )
 
 
-def test_stats_cli_no_ensemble(nc_with_T_U_V, df_ref_stats):
+def test_stats_cli_no_ensemble(new_ref, nc_with_T_U_V, df_ref_stats):
     tmp_path = os.path.dirname(nc_with_T_U_V)
     stats_file = os.path.join(tmp_path, "stats_{member_id}.csv")
     run_stats_cli(tmp_path, stats_file, ensemble=False)
@@ -27,6 +29,8 @@ def test_stats_cli_no_ensemble(nc_with_T_U_V, df_ref_stats):
         stats_file.format(member_id="ref"), index_col=[0, 1, 2], header=[0, 1]
     )
     err = pandas_error(df_ref_stats, df_test)
+
+    store_as_potential_new_ref(stats_file.format(member_id="ref"), new_ref)
 
     assert_empty_df(err, "Stats datasets are not equal!")
 
@@ -58,7 +62,7 @@ def test_stats_cli_ensemble_with_too_small_perturb_amplitude_for_member(
 
 @pytest.mark.parametrize("member", range(1, 11))
 def test_stats_cli_ensemble_for_member(
-    tmp_dir, ensemble, df_ref_ensemble_stats, member
+    tmp_dir, ensemble, df_ref_ensemble_stats, new_ref, member
 ):
     stats_file = os.path.join(tmp_dir, "stats_{member_id}.csv")
     run_stats_cli(
@@ -70,5 +74,9 @@ def test_stats_cli_ensemble_for_member(
         header=[0, 1],
     )
     err = pandas_error(df_ref_ensemble_stats[member], df_test)
+
+    store_as_potential_new_ref(
+        stats_file.format(member_id="dp_" + str(member)), new_ref
+    )
 
     assert_empty_df(err, "Stats datasets are not equal!")

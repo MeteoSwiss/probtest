@@ -31,6 +31,13 @@ def tmp_dir() -> str:
 
 
 @pytest.fixture(scope="module")
+def new_ref() -> str:
+    new_ref = os.path.join(tempfile.mkdtemp())
+    print(f"\nNew reference data will be stored in {new_ref}")
+    return new_ref
+
+
+@pytest.fixture(scope="module")
 def ensemble(tmp_dir, nc_with_T_U_V) -> str:
     initial_condition = os.path.basename(nc_with_T_U_V)
     return generate_ensemble(tmp_dir, initial_condition, perturb_amplitude=10e-12)
