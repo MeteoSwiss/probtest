@@ -5,6 +5,7 @@ from click.testing import CliRunner
 
 from engine.perturb import perturb
 from engine.stats import stats
+from engine.tolerance import tolerance
 
 
 def load_netcdf(path):
@@ -37,6 +38,24 @@ def check_netcdf(data_ref, data_cur):
 
 def assert_empty_list(lst, msg):
     assert lst == [], f"{msg}:\n{lst}"
+
+
+def assert_empty_df(df, msg):
+    assert len(df.values) == 0, f"{msg}:\n{df}"
+
+
+def run_tolerance_cli(stats_file_name, tolerance_file_name):
+    args = [
+        "--stats-file-name",
+        stats_file_name,
+        "--tolerance-file-name",
+        tolerance_file_name,
+        "--member-num",
+        "10",
+        "--member-type",
+        "dp",
+    ]
+    run_cli(tolerance, args)
 
 
 def run_perturb_cli(model_input_dir, files, perturb_amplitude, member_num=10):
