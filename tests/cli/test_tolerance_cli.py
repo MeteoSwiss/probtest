@@ -1,11 +1,6 @@
 import os
 
-from tests.helpers.fixtures import (  # noqa: F401
-    df_ref_tolerance,
-    new_ref,
-    ref_data,
-    tmp_dir,
-)
+from tests.helpers.fixtures import df_ref_tolerance, ref_data, tmp_dir  # noqa: F401
 from tests.helpers.helpers import (
     assert_empty_df,
     load_pandas,

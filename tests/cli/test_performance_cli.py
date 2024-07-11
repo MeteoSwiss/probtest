@@ -2,7 +2,6 @@ import os
 
 from tests.helpers.fixtures import (  # noqa: F401
     df_ref_performance,
-    new_ref,
     ref_data,
     timing_logfile,
     tmp_dir,

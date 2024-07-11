@@ -6,7 +6,6 @@ from tests.helpers.fixtures import (  # noqa: F401
     df_ref_cdo_table,
     ensemble,
     nc_with_T_U_V,
-    new_ref,
     ref_data,
     tmp_dir,
     too_small_ensemble,
@@ -20,7 +19,7 @@ from tests.helpers.helpers import (
 )
 
 
-def test_cdo_table_cli(tmp_dir, new_ref, ensemble, df_ref_cdo_table):
+def test_cdo_table_cli(tmp_dir, ensemble, df_ref_cdo_table, new_ref):
     cdo_table_file = os.path.join(tmp_dir, "cdo_table.csv")
     run_cdo_table_cli(tmp_dir, cdo_table_file, ensemble)
     df_test = load_pandas(cdo_table_file, index_col=[0, 1])
