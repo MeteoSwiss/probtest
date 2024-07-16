@@ -9,6 +9,7 @@ from engine.performance import performance
 from engine.performance_check import performance_check
 from engine.perturb import perturb
 from engine.run_ensemble import run_ensemble
+from engine.select_members import select_members
 from engine.stats import stats
 from engine.tolerance import tolerance
 from util.click_util import load_defaults
@@ -43,6 +44,7 @@ cli.add_command(perturb)
 cli.add_command(stats)
 cli.add_command(check)
 cli.add_command(tolerance)
+cli.add_command(select_members)
 cli.add_command(run_ensemble)
 cli.add_command(performance)
 cli.add_command(check_plot)
