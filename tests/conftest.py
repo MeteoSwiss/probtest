@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-from tests.helpers.helpers import generate_ensemble, load_pandas
+from tests.helpers import generate_ensemble, load_pandas
 from util.tree import TimingTree
 
 
