@@ -152,13 +152,13 @@ python probtest.py check --input-file-ref stats_ref.csv --input-file-cur stats_c
 Note that the reference `--input-file-ref` and test stats files `--input-file-cur` need to be set by command line arguments. This is because the default stored in the `ICON.jinja` template is pointing to two files from the ensemble as a sanity check.
 
 ## Developing in probtest
-#### Testing with `pytest`
+#### Testing with [pytest](https://docs.pytest.org/en/8.2.x/)
 
 Our tests are executed using `pytest`, ensuring a consistent and efficient testing process. Each test dynamically generates its necessary test data, allowing for flexible and isolated testing scenarios.
 
 Simply run
 ```console
-pytest -s -v tests/*`
+pytest -s -v tests/*
 ```
 in order to run all tests.
 
