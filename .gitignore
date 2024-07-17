@@ -1,6 +1,5 @@
 .idea*
 .vscode/*
-!.vscode/launch.json
 !.vscode/settings.json
 *pycache*
 *.swp
