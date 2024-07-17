@@ -2,13 +2,6 @@ import os
 
 import pytest
 
-from tests.helpers.fixtures import (  # noqa: F401
-    ds_ref_with_T_U_V,
-    ds_with_T_U_V,
-    nc_with_T_U_V,
-    ref_data,
-    tmp_dir,
-)
 from tests.helpers.helpers import (
     assert_empty_list,
     check_netcdf,

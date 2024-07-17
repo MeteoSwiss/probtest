@@ -1,11 +1,5 @@
 import os
 
-from tests.helpers.fixtures import (  # noqa: F401
-    df_ref_performance,
-    ref_data,
-    timing_logfile,
-    tmp_dir,
-)
 from tests.helpers.helpers import (
     assert_empty_df,
     assert_empty_list,
