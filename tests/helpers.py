@@ -178,7 +178,6 @@ def run_cdo_table_cli(model_output_dir, cdo_table_file, perturbed_model_output_d
 def run_cli(command, args):
     runner = CliRunner()
     result = runner.invoke(command, args)
-    print(result.output)
     if result.exit_code != 0:
         error_message = "Error executing command:\n" + result.output
         if result.exception:

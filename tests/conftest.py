@@ -1,4 +1,5 @@
 import os
+import shutil
 import tempfile
 
 import numpy as np
@@ -33,8 +34,10 @@ def df_ref_performance(ref_data) -> TimingTree:
 
 
 @pytest.fixture(scope="module")
-def tmp_dir() -> str:
-    return tempfile.mkdtemp()
+def tmp_dir():
+    tmp_dir = tempfile.mkdtemp()
+    yield tmp_dir
+    shutil.rmtree(tmp_dir)
 
 
 @pytest.fixture(scope="module")
