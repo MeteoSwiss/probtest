@@ -3,9 +3,12 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from engine.check import check_intersection, check_variable
 from util.constants import CHECK_THRESHOLD
-from util.dataframe_ops import compute_rel_diff_dataframe
+from util.dataframe_ops import (
+    check_intersection,
+    check_variable,
+    compute_rel_diff_dataframe,
+)
 
 
 class TestCheck(unittest.TestCase):
@@ -28,13 +31,13 @@ class TestCheck(unittest.TestCase):
         array2 = np.linspace(1.1, 2.1, 4 * 12).transpose().reshape(4, 12)
         array2[:2] *= -1  # make some test data negative
         self.df2 = pd.DataFrame(array2, index=index, columns=columns)
-        # Relative differences (df1-df2)/((df1+df2)/2) are between 0.2 and 0.1.
+        # Relative differences |df1-df2|/((1+|df1|) are between 0.069 and 0.105.
 
-        self.tol1 = pd.DataFrame(
+        self.tol_large = pd.DataFrame(
             np.ones((2, 12)) * 0.21, index=["var_1", "var_2"], columns=columns
         )
-        self.tol2 = pd.DataFrame(
-            np.ones((2, 12)) * 0.15, index=["var_1", "var_2"], columns=columns
+        self.tol_small = pd.DataFrame(
+            np.ones((2, 12)) * 0.06, index=["var_1", "var_2"], columns=columns
         )
 
     def check(self, df1, df2):
@@ -43,8 +46,8 @@ class TestCheck(unittest.TestCase):
         # take maximum over height
         diff_df = diff_df.groupby(["variable"]).max()
 
-        out1, err1, _ = check_variable(diff_df, self.tol1)
-        out2, err2, _ = check_variable(diff_df, self.tol2)
+        out1, err1, _ = check_variable(diff_df, self.tol_large)
+        out2, err2, _ = check_variable(diff_df, self.tol_small)
         self.assertTrue(
             out1,
             "Check with large tolerances did not validate! "
@@ -68,7 +71,7 @@ class TestCheck(unittest.TestCase):
         diff_df = compute_rel_diff_dataframe(df1, df2)
         diff_df = diff_df.groupby(["variable"]).max()
 
-        out, err, _ = check_variable(diff_df, self.tol1)
+        out, err, _ = check_variable(diff_df, self.tol_large)
 
         self.assertFalse(
             out,
