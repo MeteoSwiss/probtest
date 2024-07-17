@@ -1,6 +1,5 @@
 .idea*
 .vscode/*
-!.vscode/launch.json
 !.vscode/settings.json
 *pycache*
 *.swp
@@ -8,11 +7,9 @@
 *.png
 *.log
 *.nc
-tests/util/icon/test/*
-tests/tmp/*
-probtest_env
 
-mock_output
-env
-probtest_data
-reference_data
+# output from unittest
+test_stats.csv
+test_stats_csv.csv
+test_stats_csv.dat
+random_tolerance.csv
