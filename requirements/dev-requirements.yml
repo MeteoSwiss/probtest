@@ -22,5 +22,6 @@ dependencies:
   - sphinx-autobuild
   - toml>=0.10.2
   - pip
+  - earthkit-data
   - pip:
     - flake8-pyproject

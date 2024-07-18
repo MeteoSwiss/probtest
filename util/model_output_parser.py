@@ -4,6 +4,7 @@ from collections.abc import Iterable
 import numpy as np
 import pandas as pd
 import xarray
+import earthkit.data
 
 from util.constants import compute_statistics
 from util.log_handler import logger
@@ -59,6 +60,80 @@ def parse_netcdf(file_id, filename, specification):
 
     ds.close()
     return var_dfs
+
+def parse_grib(file_id, filename, specification):
+    logger.debug("parse GRIB file {}".format(filename))
+    time_dim = specification["time_dim"]
+    horizontal_dims = specification["horizontal_dims"]
+    fill_value_key = specification.get("fill_value_key", None)
+
+    ds_grib = earthkit.data.from_source("file", filename)
+    short_name_excl = specification["var_excl"]
+
+    short_name = np.unique(ds_grib.metadata("shortName"))
+    short_name = short_name[np.where(~np.isin(short_name, short_name_excl))].tolist()
+
+    level_type = np.unique(ds_grib.metadata("typeOfLevel")).tolist()
+    level_type.remove("unknown")
+
+
+    var_dfs = []
+    for lev in level_type:
+        paramId = np.unique(ds_grib.sel(typeOfLevel=lev, shortName=short_name).metadata("paramId")).tolist()
+        for pid in paramId:
+            ds_temp = get_ds(ds_grib, pid, lev)
+            v = list(ds_temp.keys())[0]
+
+            dim_to_squeeze = [dim for dim, size in zip(ds_temp[v].dims, ds_temp[v].shape) if size==1 and dim != time_dim]
+            ds = ds_temp.squeeze(dim=dim_to_squeeze)
+
+            sub_df = dataframe_from_ncfile(
+                file_id=file_id,
+                filename=filename,
+                varname=v,
+                time_dim=time_dim,
+                horizontal_dims=horizontal_dims,
+                xarray_ds=ds,
+                fill_value_key=fill_value_key,
+            )
+            var_dfs.append(sub_df)
+
+
+    return var_dfs
+
+
+def get_ds(ds_grib, pid, lev):
+    try:
+        ds = ds_grib.sel(paramId=pid, typeOfLevel=lev).to_xarray()
+    except:
+        stepType = np.unique(ds_grib.sel(paramId=pid, typeOfLevel=lev).metadata("stepType")).tolist()
+        for steps in stepType:
+            try:
+                ds = ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps).to_xarray()
+            except:
+                num_points = np.unique(ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps).metadata("numberOfPoints")).tolist()
+                for points in num_points:
+                    try:
+                        ds = ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points).to_xarray()
+                    except:
+                        units = np.unique(ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points).metadata("stepUnits")).tolist()
+                        for unit in units:
+                            try:
+                                ds = ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points, stepUnits=unit).to_xarray()
+                            except:
+                                dataType = np.unique(ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points, stepUnits=unit).metadata("dataType")).tolist()
+                                for dtype in dataType:
+                                    try:
+                                        ds = ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points, stepUnits=unit, dataType=dtype).to_xarray()
+                                    except:
+                                        gridType = np.unique(ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points, stepUnits=unit, dataType=dtype).metadata("gridType")).tolist()
+                                        for gtype in gridType:
+                                            try:
+                                                ds = ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points, stepUnits=unit, dataType=dtype, gridType=gtype).to_xarray()
+                                            except:
+                                                print("not working!")
+
+    return ds
 
 
 def __get_variables(data, time_dim, horizontal_dims):
@@ -228,4 +303,5 @@ def parse_csv(file_id, filename, specification):
 model_output_parser = {  # global lookup dict
     "netcdf": parse_netcdf,
     "csv": parse_csv,
+    "grib": parse_grib,
 }

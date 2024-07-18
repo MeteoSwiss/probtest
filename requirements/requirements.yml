@@ -15,5 +15,6 @@ dependencies:
   - scipy>=1.4.1
   - xarray>=0.16.1
   - pip
+  - earthkit-data
   - pip:
     # add pip requirements here if needed.

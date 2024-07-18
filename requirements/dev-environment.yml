@@ -255,5 +255,6 @@ dependencies:
   - zipp=3.11.0
   - zlib=1.2.13
   - zstd=1.5.2
+  - earthkit-data
   - pip:
       - flake8-pyproject==1.2.2
