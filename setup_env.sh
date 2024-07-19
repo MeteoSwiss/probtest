@@ -106,3 +106,14 @@ else
         fi
     fi
 fi
+
+
+# setting ECCODES_DEFINITION_PATH:
+git clone --recursive https://github.com/COSMO-ORG/eccodes-cosmo-resources.git
+
+conda_loc=${CONDA_PREFIX}
+base_dir=$(pwd)
+def_path_default=${conda_loc}/share/eccodes/definitions
+def_path_resources=${base_dir}/eccodes-cosmo-resources/definitions
+
+conda env config vars set ECCODES_DEFINITION_PATH=${def_path_default}:${def_path_resources}
