@@ -5,10 +5,9 @@ import re
 
 import click
 import pytest
-from click.testing import CliRunner
 
 from engine.select_members import select_members
-from engine.tolerance import tolerance
+from tests.helpers import run_select_members_cli, run_tolerance_cli
 
 
 def create_dummy_stats_file(filename, configurations, seed, perturbation):
@@ -147,35 +146,17 @@ def test_select_members_failure(setup_files, caplog):
 
 
 def test_test_tolerance(setup_files, caplog):
-    context = click.Context(tolerance)
-    context.invoke(
-        tolerance,
-        stats_file_name="stats_{member_id}.csv",
-        tolerance_file_name="tolerance.csv",
-        member_num=[5],
+    run_tolerance_cli("stats_{member_id}.csv", "tolerance.csv", member_num=5)
+
+    log = run_select_members_cli(
+        "stats_{member_id}.csv", "selected_members.csv", "tolerance.csv", caplog
     )
 
-    caplog.set_level(logging.INFO)
-    runner = CliRunner()
-    runner.invoke(
-        select_members,
-        [
-            "--stats-file-name",
-            "stats_{member_id}.csv",
-            "--selected-members-file-name",
-            "selected_members.csv",
-            "--tolerance-file-name",
-            "tolerance.csv",
-            "--test-tolerance",
-        ],
-    )
-
-    log_output = caplog.text
-    match = re.search(r"passed for (\d+) out of 50", log_output)
+    match = re.search(r"passed for (\d+) out of 50", log)
     passed_count = match.group(1) if match else "0"
     error_message = (
         f"The test-tolerance output is incorrect. It should pass for "
         f"49 out of 50 but it passed for {passed_count} out of 50."
     )
 
-    assert "49 out of 50" in log_output, error_message
+    assert "49 out of 50" in log, error_message

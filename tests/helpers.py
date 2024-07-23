@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 
@@ -9,6 +10,7 @@ from click.testing import CliRunner
 from engine.cdo_table import cdo_table
 from engine.performance import performance
 from engine.perturb import perturb
+from engine.select_members import select_members
 from engine.stats import stats
 from engine.tolerance import tolerance
 
@@ -72,17 +74,20 @@ def run_performance_cli(timing_regex, timing_database):
     run_cli(performance, args)
 
 
-def run_tolerance_cli(stats_file_name, tolerance_file_name):
+def run_tolerance_cli(
+    stats_file_name, tolerance_file_name, member_type=None, member_num=10
+):
     args = [
         "--stats-file-name",
         stats_file_name,
         "--tolerance-file-name",
         tolerance_file_name,
         "--member-num",
-        "10",
-        "--member-type",
-        "dp",
+        str(member_num),
     ]
+    if member_type:
+        args.append("--member-type")
+        args.append(member_type)
     run_cli(tolerance, args)
 
 
@@ -175,7 +180,24 @@ def run_cdo_table_cli(model_output_dir, cdo_table_file, perturbed_model_output_d
     run_cli(cdo_table, args)
 
 
-def run_cli(command, args):
+def run_select_members_cli(
+    stats_file_name, selected_members_file_name, tolerance_file_name, log=None
+):
+    args = [
+        "--stats-file-name",
+        stats_file_name,
+        "--selected-members-file-name",
+        selected_members_file_name,
+        "--tolerance-file-name",
+        tolerance_file_name,
+        "--test-tolerance",
+    ]
+    return run_cli(select_members, args, log)
+
+
+def run_cli(command, args, log=None):
+    if log:
+        log.set_level(logging.INFO)
     runner = CliRunner()
     result = runner.invoke(command, args)
     if result.exit_code != 0:
@@ -183,3 +205,4 @@ def run_cli(command, args):
         if result.exception:
             error_message += "\nException: " + str(result.exception)
         raise Exception(error_message)
+    return log.text if log else None
