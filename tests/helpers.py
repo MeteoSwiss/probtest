@@ -184,8 +184,10 @@ def run_select_members_cli(
     stats_file_name,
     selected_members_file_name,
     tolerance_file_name,
-    log=None,
     test_tolerance=False,
+    max_member_num=15,
+    iterations=50,
+    log=None,
 ):
     args = [
         "--stats-file-name",
@@ -194,6 +196,10 @@ def run_select_members_cli(
         selected_members_file_name,
         "--tolerance-file-name",
         tolerance_file_name,
+        "--max-member-num",
+        str(max_member_num),
+        "--iterations",
+        str(iterations),
     ]
     if test_tolerance:
         args.append("--test-tolerance")
