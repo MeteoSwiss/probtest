@@ -6,14 +6,16 @@ from tests.helpers import run_select_members_cli, run_tolerance_cli
 
 def test_select_members(stats_file_set):
     run_select_members_cli(
-        "stats_{member_id}.csv", "selected_members.csv", "tolerance.csv"
+        stats_file_set["stats"],
+        stats_file_set["members"],
+        stats_file_set["tol"],
     )
 
     assert os.path.isfile(
-        "selected_members.csv"
+        stats_file_set["members"]
     ), "File 'selected_members.csv' was not created"
 
-    with open("selected_members.csv", "r") as file:
+    with open(stats_file_set["members"], "r") as file:
         content = file.read().strip()
     expected_content = "50,21,40,39,16\nexport FACTOR=5"
     assert content == expected_content, "The member selection failed"
@@ -21,18 +23,18 @@ def test_select_members(stats_file_set):
 
 def test_select_members_increase_factor(stats_file_set):
     run_select_members_cli(
-        "stats_{member_id}.csv",
-        "selected_members.csv",
-        "tolerance.csv",
+        stats_file_set["stats"],
+        stats_file_set["members"],
+        stats_file_set["tol"],
         max_member_num=5,
         iterations=1,
     )
 
     assert os.path.isfile(
-        "selected_members.csv"
+        stats_file_set["members"]
     ), "File 'selected_members.csv' was not created"
 
-    with open("selected_members.csv", "r") as file:
+    with open(stats_file_set["members"], "r") as file:
         content = file.read().strip()
     expected_content = "50,21,40,39,16\nexport FACTOR=10"
     assert (
@@ -42,9 +44,9 @@ def test_select_members_increase_factor(stats_file_set):
 
 def test_select_members_failure(stats_file_set, caplog):
     log = run_select_members_cli(
-        "stats_{member_id}.csv",
-        "selected_members.csv",
-        "tolerance.csv",
+        stats_file_set["stats"],
+        stats_file_set["members"],
+        stats_file_set["tol"],
         max_member_num=5,
         iterations=1,
         max_factor=5,
@@ -54,12 +56,12 @@ def test_select_members_failure(stats_file_set, caplog):
 
 
 def test_test_tolerance(stats_file_set, caplog):
-    run_tolerance_cli("stats_{member_id}.csv", "tolerance.csv", member_num=5)
+    run_tolerance_cli(stats_file_set["stats"], stats_file_set["tol"], member_num=5)
 
     log = run_select_members_cli(
-        "stats_{member_id}.csv",
-        "selected_members.csv",
-        "tolerance.csv",
+        stats_file_set["stats"],
+        stats_file_set["members"],
+        stats_file_set["tol"],
         test_tolerance=True,
         log=caplog,
     )

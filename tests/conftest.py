@@ -146,7 +146,7 @@ def nc_with_T_U_V(tmp_dir) -> str:
 
 
 @pytest.fixture(scope="module")
-def stats_file_set():
+def stats_file_set(tmp_dir):
     configurations = [
         {
             "time_dim": 3,
@@ -168,17 +168,21 @@ def stats_file_set():
         },
     ]
     seed = 42
-    create_artificial_stats_file("stats_ref.csv", configurations, seed - 1, 0.0)
+    stats_pattern = os.path.join(tmp_dir, "stats_{member_id}.csv")
+    create_artificial_stats_file(
+        stats_pattern.format(member_id="ref"), configurations, seed - 1, 0.0
+    )
     for i in range(1, 50):
-        filename = f"stats_{i}.csv"
-        create_artificial_stats_file(filename, configurations, seed + i, 1e-3)
-    create_artificial_stats_file("stats_50.csv", configurations, seed + 50, 1e2)
-    yield
-    # Teardown code to remove created files
-    os.remove("stats_ref.csv")
-    for i in range(1, 51):
-        os.remove(f"stats_{i}.csv")
-    if os.path.exists("selected_members.csv"):
-        os.remove("selected_members.csv")
-    if os.path.exists("tolerance.csv"):
-        os.remove("tolerance.csv")
+        create_artificial_stats_file(
+            stats_pattern.format(member_id=i), configurations, seed + i, 1e-3
+        )
+    create_artificial_stats_file(
+        stats_pattern.format(member_id=50), configurations, seed + 50, 1e2
+    )
+    files = {}
+    files["stats"] = stats_pattern
+    files["members"] = os.path.join(tmp_dir, "selected_members.csv")
+    files["tol"] = os.path.join("tolerance.csv")
+    yield files
+    if os.path.exists(files["tol"]):
+        os.remove(files["tol"])
