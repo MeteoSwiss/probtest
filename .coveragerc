@@ -2,6 +2,6 @@
 source =
 	engine/
     probtest.py
-	utils/
+	util/
 omit =
 	tests/*

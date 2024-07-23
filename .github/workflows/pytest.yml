@@ -34,4 +34,12 @@ jobs:
       env:
         TZ: Europe/Zurich
       run: |
-        conda run --name dev_env pytest -v -s --cov tests/
+        conda run --name dev_env pytest -v -s --cov --cov-report=xml tests/
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }} # Not required for public repos
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: true
