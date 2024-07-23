@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 import shutil
 
 import numpy as np
@@ -187,6 +188,7 @@ def run_select_members_cli(
     test_tolerance=False,
     max_member_num=15,
     iterations=50,
+    max_factor=50.0,
     log=None,
 ):
     args = [
@@ -200,6 +202,8 @@ def run_select_members_cli(
         str(max_member_num),
         "--iterations",
         str(iterations),
+        "--max-factor",
+        str(max_factor),
     ]
     if test_tolerance:
         args.append("--test-tolerance")
@@ -209,11 +213,54 @@ def run_select_members_cli(
 def run_cli(command, args, log=None):
     if log:
         log.set_level(logging.INFO)
+
     runner = CliRunner()
     result = runner.invoke(command, args)
+    if not log:
+        catch_error(result)
+    else:
+        return log.text
+
+
+def catch_error(result):
     if result.exit_code != 0:
         error_message = "Error executing command:\n" + result.output
         if result.exception:
             error_message += "\nException: " + str(result.exception)
         raise Exception(error_message)
-    return log.text if log else None
+
+
+def create_artificial_stats_file(filename, configurations, seed, perturbation):
+    random.seed(seed)
+    max_time_dim = max(config["time_dim"] for config in configurations)
+    time_header = ",".join(f"{t},{t},{t}" for t in range(max_time_dim))
+    header = [
+        f"time,,,{time_header}",
+        "statistic,," + ",max,mean,min" * max_time_dim,
+        "file_ID,variable,height,,,,,,,,,",
+    ]
+
+    data = []
+    for config in configurations:
+        time_dim = config["time_dim"]
+        height_dim = config["height_dim"]
+        variable = config["variable"]
+        file_format = config["file_format"]
+
+        for h in range(height_dim):
+            row = f"{file_format},{variable},{h}.0"
+            for t in range(time_dim):
+                base_mean = round(random.uniform(0, 5), 5)
+                mean = base_mean + round(random.uniform(-perturbation, perturbation), 5)
+                max_val = mean + round(random.uniform(0, perturbation), 5)
+                min_val = mean - round(random.uniform(0, perturbation), 5)
+                row += f",{max_val},{mean},{min_val}"
+            for _ in range(time_dim, max_time_dim):
+                row += ",,,"
+            data.append(row)
+
+    with open(filename, "w") as f:
+        for line in header:
+            f.write(line + "\n")
+        for row in data:
+            f.write(row + "\n")

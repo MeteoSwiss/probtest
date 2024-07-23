@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-from tests.helpers import generate_ensemble, load_pandas
+from tests.helpers import create_artificial_stats_file, generate_ensemble, load_pandas
 from util.tree import TimingTree
 
 
@@ -143,3 +143,42 @@ def nc_with_T_U_V(tmp_dir) -> str:
     ds.to_netcdf(filename)
 
     return filename
+
+
+@pytest.fixture(scope="module")
+def stats_file_set():
+    configurations = [
+        {
+            "time_dim": 3,
+            "height_dim": 5,
+            "variable": "v1",
+            "file_format": "Format1:*test_3d*.nc",
+        },
+        {
+            "time_dim": 3,
+            "height_dim": 2,
+            "variable": "v2",
+            "file_format": "Format2:*test_2d*.nc",
+        },
+        {
+            "time_dim": 2,
+            "height_dim": 4,
+            "variable": "v3",
+            "file_format": "Format3:*test_2d*.nc",
+        },
+    ]
+    seed = 42
+    create_artificial_stats_file("stats_ref.csv", configurations, seed - 1, 0.0)
+    for i in range(1, 50):
+        filename = f"stats_{i}.csv"
+        create_artificial_stats_file(filename, configurations, seed + i, 1e-3)
+    create_artificial_stats_file("stats_50.csv", configurations, seed + 50, 1e2)
+    yield
+    # Teardown code to remove created files
+    os.remove("stats_ref.csv")
+    for i in range(1, 51):
+        os.remove(f"stats_{i}.csv")
+    if os.path.exists("selected_members.csv"):
+        os.remove("selected_members.csv")
+    if os.path.exists("tolerance.csv"):
+        os.remove("tolerance.csv")
