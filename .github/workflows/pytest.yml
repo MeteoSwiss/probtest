@@ -31,5 +31,7 @@ jobs:
         conda env create --name dev_env --file requirements/requirements.yml
         conda env update --name dev_env --file requirements/dev-requirements.yml
     - name: Run Pytest
+      env:
+        TZ: Europe/Zurich
       run: |
         conda run --name dev_env pytest -v -s tests/
