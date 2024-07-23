@@ -34,4 +34,4 @@ jobs:
       env:
         TZ: Europe/Zurich
       run: |
-        conda run --name dev_env pytest -v -s tests/
+        conda run --name dev_env pytest -v -s --cov tests/
