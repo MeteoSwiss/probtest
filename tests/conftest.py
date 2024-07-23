@@ -147,6 +147,11 @@ def nc_with_T_U_V(tmp_dir) -> str:
 
 @pytest.fixture(scope="module")
 def stats_file_set(tmp_dir):
+    """
+    Create a set of stats files for testing the selection of members
+    For convenience also the filenames for the members and the tolerance
+    are provided.
+    """
     configurations = [
         {
             "time_dim": 3,
@@ -182,6 +187,8 @@ def stats_file_set(tmp_dir):
     files = {}
     files["stats"] = stats_pattern
     files["members"] = os.path.join(tmp_dir, "selected_members.csv")
+    # not possible to move to /tmp because of
+    # [Errno 18] Invalid cross-device link from i.e. /scratch to /tmp
     files["tol"] = os.path.join("tolerance.csv")
     yield files
     if os.path.exists(files["tol"]):
