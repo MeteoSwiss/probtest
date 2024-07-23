@@ -86,12 +86,8 @@ def setup_files():
 
 
 def test_select_members(setup_files):
-    context = click.Context(select_members)
-    context.invoke(
-        select_members,
-        stats_file_name="stats_{member_id}.csv",
-        selected_members_file_name="selected_members.csv",
-        tolerance_file_name="tolerance.csv",
+    run_select_members_cli(
+        "stats_{member_id}.csv", "selected_members.csv", "tolerance.csv"
     )
 
     assert os.path.isfile(
@@ -149,7 +145,11 @@ def test_test_tolerance(setup_files, caplog):
     run_tolerance_cli("stats_{member_id}.csv", "tolerance.csv", member_num=5)
 
     log = run_select_members_cli(
-        "stats_{member_id}.csv", "selected_members.csv", "tolerance.csv", caplog
+        "stats_{member_id}.csv",
+        "selected_members.csv",
+        "tolerance.csv",
+        caplog,
+        test_tolerance=True,
     )
 
     match = re.search(r"passed for (\d+) out of 50", log)

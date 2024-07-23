@@ -181,7 +181,11 @@ def run_cdo_table_cli(model_output_dir, cdo_table_file, perturbed_model_output_d
 
 
 def run_select_members_cli(
-    stats_file_name, selected_members_file_name, tolerance_file_name, log=None
+    stats_file_name,
+    selected_members_file_name,
+    tolerance_file_name,
+    log=None,
+    test_tolerance=False,
 ):
     args = [
         "--stats-file-name",
@@ -190,8 +194,9 @@ def run_select_members_cli(
         selected_members_file_name,
         "--tolerance-file-name",
         tolerance_file_name,
-        "--test-tolerance",
     ]
+    if test_tolerance:
+        args.append("--test-tolerance")
     return run_cli(select_members, args, log)
 
 
