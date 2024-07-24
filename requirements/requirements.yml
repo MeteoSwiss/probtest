@@ -16,4 +16,4 @@ dependencies:
   - xarray>=0.16.1
   - pip
   - pip:
-    # add pip requirements here if needed.
+    - pytest-cov
