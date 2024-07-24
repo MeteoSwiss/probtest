@@ -7,6 +7,8 @@
 *.png
 *.log
 *.nc
+.coverage
+coverage.xml
 
 # output from unittest
 test_stats.csv
