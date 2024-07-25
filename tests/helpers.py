@@ -86,7 +86,7 @@ def run_tolerance_cli(
         "--member-num",
         str(member_num),
     ]
-    if member_type:
+    if member_type is not None:
         args.append("--member-type")
         args.append(member_type)
     run_cli(tolerance, args)
