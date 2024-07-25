@@ -230,7 +230,7 @@ def catch_error(result):
         raise Exception(error_message)
 
 
-def create_artificial_stats_file(filename, configurations, seed, perturbation):
+def create_random_stats_file(filename, configurations, seed, perturbation):
     random.seed(seed)
     max_time_dim = max(config["time_dim"] for config in configurations)
     time_header = ",".join(f"{t},{t},{t}" for t in range(max_time_dim))

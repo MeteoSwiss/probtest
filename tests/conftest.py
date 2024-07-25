@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-from tests.helpers import create_artificial_stats_file, generate_ensemble, load_pandas
+from tests.helpers import create_random_stats_file, generate_ensemble, load_pandas
 from util.tree import TimingTree
 
 
@@ -174,14 +174,14 @@ def stats_file_set(tmp_dir):
     ]
     seed = 42
     stats_pattern = os.path.join(tmp_dir, "stats_{member_id}.csv")
-    create_artificial_stats_file(
+    create_random_stats_file(
         stats_pattern.format(member_id="ref"), configurations, seed - 1, 0.0
     )
     for i in range(1, 50):
-        create_artificial_stats_file(
+        create_random_stats_file(
             stats_pattern.format(member_id=i), configurations, seed + i, 1e-3
         )
-    create_artificial_stats_file(
+    create_random_stats_file(
         stats_pattern.format(member_id=50), configurations, seed + 50, 1e2
     )
     files = {}
