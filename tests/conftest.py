@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-from tests.helpers import generate_ensemble, load_pandas
+from tests.helpers import create_random_stats_file, generate_ensemble, load_pandas
 from util.tree import TimingTree
 
 
@@ -143,3 +143,53 @@ def nc_with_T_U_V(tmp_dir) -> str:
     ds.to_netcdf(filename)
 
     return filename
+
+
+@pytest.fixture(scope="module")
+def stats_file_set(tmp_dir):
+    """
+    Create a set of stats files for testing the selection of members
+    For convenience also the filenames for the members and the tolerance
+    are provided.
+    """
+    configurations = [
+        {
+            "time_dim": 3,
+            "height_dim": 5,
+            "variable": "v1",
+            "file_format": "Format1:*test_3d*.nc",
+        },
+        {
+            "time_dim": 3,
+            "height_dim": 2,
+            "variable": "v2",
+            "file_format": "Format2:*test_2d*.nc",
+        },
+        {
+            "time_dim": 2,
+            "height_dim": 4,
+            "variable": "v3",
+            "file_format": "Format3:*test_2d*.nc",
+        },
+    ]
+    seed = 42
+    stats_pattern = os.path.join(tmp_dir, "stats_{member_id}.csv")
+    create_random_stats_file(
+        stats_pattern.format(member_id="ref"), configurations, seed - 1, 0.0
+    )
+    for i in range(1, 50):
+        create_random_stats_file(
+            stats_pattern.format(member_id=i), configurations, seed + i, 1e-3
+        )
+    create_random_stats_file(
+        stats_pattern.format(member_id=50), configurations, seed + 50, 1e2
+    )
+    files = {}
+    files["stats"] = stats_pattern
+    files["members"] = os.path.join(tmp_dir, "selected_members.csv")
+    # not possible to move to /tmp because of
+    # [Errno 18] Invalid cross-device link from i.e. /scratch to /tmp
+    files["tol"] = os.path.join("tolerance.csv")
+    yield files
+    if os.path.exists(files["tol"]):
+        os.remove(files["tol"])
