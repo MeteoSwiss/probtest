@@ -71,10 +71,9 @@ def parse_grib(file_id, filename, specification):
     short_name_excl = specification["var_excl"]
 
     short_name = np.unique(ds_grib.metadata("shortName"))
-    short_name = short_name[np.where(~np.isin(short_name, short_name_excl))].tolist()
+    short_name = short_name[np.isin(short_name, short_name_excl, invert=True, assume_unique=True)].tolist()
 
     level_type = np.unique(ds_grib.metadata("typeOfLevel")).tolist()
-    level_type.remove("unknown")
 
 
     var_dfs = []
@@ -131,7 +130,7 @@ def get_ds(ds_grib, pid, lev):
                                             try:
                                                 ds = ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points, stepUnits=unit, dataType=dtype, gridType=gtype).to_xarray()
                                             except:
-                                                print("not working!")
+                                                print(f"GRIB file of level {lev} and paramId {pid} cannot be read.")
 
     return ds
 
