@@ -1,10 +1,10 @@
 import sys
 from collections.abc import Iterable
 
+import earthkit.data
 import numpy as np
 import pandas as pd
 import xarray
-import earthkit.data
 
 from util.constants import compute_statistics
 from util.log_handler import logger
@@ -61,6 +61,7 @@ def parse_netcdf(file_id, filename, specification):
     ds.close()
     return var_dfs
 
+
 def parse_grib(file_id, filename, specification):
     logger.debug("parse GRIB file {}".format(filename))
     time_dim = specification["time_dim"]
@@ -71,19 +72,26 @@ def parse_grib(file_id, filename, specification):
     short_name_excl = specification["var_excl"]
 
     short_name = np.unique(ds_grib.metadata("shortName"))
-    short_name = short_name[np.isin(short_name, short_name_excl, invert=True, assume_unique=True)].tolist()
+    short_name = short_name[
+        np.isin(short_name, short_name_excl, invert=True, assume_unique=True)
+    ].tolist()
 
     level_type = np.unique(ds_grib.metadata("typeOfLevel")).tolist()
 
-
     var_dfs = []
     for lev in level_type:
-        paramId = np.unique(ds_grib.sel(typeOfLevel=lev, shortName=short_name).metadata("paramId")).tolist()
+        paramId = np.unique(
+            ds_grib.sel(typeOfLevel=lev, shortName=short_name).metadata("paramId")
+        ).tolist()
         for pid in paramId:
             ds_temp = get_ds(ds_grib, pid, lev)
             v = list(ds_temp.keys())[0]
 
-            dim_to_squeeze = [dim for dim, size in zip(ds_temp[v].dims, ds_temp[v].shape) if size==1 and dim != time_dim]
+            dim_to_squeeze = [
+                dim
+                for dim, size in zip(ds_temp[v].dims, ds_temp[v].shape)
+                if size == 1 and dim != time_dim
+            ]
             ds = ds_temp.squeeze(dim=dim_to_squeeze)
 
             sub_df = dataframe_from_ncfile(
@@ -97,40 +105,100 @@ def parse_grib(file_id, filename, specification):
             )
             var_dfs.append(sub_df)
 
-
     return var_dfs
 
 
 def get_ds(ds_grib, pid, lev):
     try:
         ds = ds_grib.sel(paramId=pid, typeOfLevel=lev).to_xarray()
-    except:
-        stepType = np.unique(ds_grib.sel(paramId=pid, typeOfLevel=lev).metadata("stepType")).tolist()
+    except KeyError:
+        stepType = np.unique(
+            ds_grib.sel(paramId=pid, typeOfLevel=lev).metadata("stepType")
+        ).tolist()
         for steps in stepType:
             try:
-                ds = ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps).to_xarray()
-            except:
-                num_points = np.unique(ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps).metadata("numberOfPoints")).tolist()
+                ds = ds_grib.sel(
+                    paramId=pid, typeOfLevel=lev, stepType=steps
+                ).to_xarray()
+            except KeyError:
+                num_points = np.unique(
+                    ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps).metadata(
+                        "numberOfPoints"
+                    )
+                ).tolist()
                 for points in num_points:
                     try:
-                        ds = ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points).to_xarray()
-                    except:
-                        units = np.unique(ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points).metadata("stepUnits")).tolist()
+                        ds = ds_grib.sel(
+                            paramId=pid,
+                            typeOfLevel=lev,
+                            stepType=steps,
+                            numberOfPoints=points,
+                        ).to_xarray()
+                    except KeyError:
+                        units = np.unique(
+                            ds_grib.sel(
+                                paramId=pid,
+                                typeOfLevel=lev,
+                                stepType=steps,
+                                numberOfPoints=points,
+                            ).metadata("stepUnits")
+                        ).tolist()
                         for unit in units:
                             try:
-                                ds = ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points, stepUnits=unit).to_xarray()
-                            except:
-                                dataType = np.unique(ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points, stepUnits=unit).metadata("dataType")).tolist()
+                                ds = ds_grib.sel(
+                                    paramId=pid,
+                                    typeOfLevel=lev,
+                                    stepType=steps,
+                                    numberOfPoints=points,
+                                    stepUnits=unit,
+                                ).to_xarray()
+                            except KeyError:
+                                dataType = np.unique(
+                                    ds_grib.sel(
+                                        paramId=pid,
+                                        typeOfLevel=lev,
+                                        stepType=steps,
+                                        numberOfPoints=points,
+                                        stepUnits=unit,
+                                    ).metadata("dataType")
+                                ).tolist()
                                 for dtype in dataType:
                                     try:
-                                        ds = ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points, stepUnits=unit, dataType=dtype).to_xarray()
-                                    except:
-                                        gridType = np.unique(ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points, stepUnits=unit, dataType=dtype).metadata("gridType")).tolist()
+                                        ds = ds_grib.sel(
+                                            paramId=pid,
+                                            typeOfLevel=lev,
+                                            stepType=steps,
+                                            numberOfPoints=points,
+                                            stepUnits=unit,
+                                            dataType=dtype,
+                                        ).to_xarray()
+                                    except KeyError:
+                                        gridType = np.unique(
+                                            ds_grib.sel(
+                                                paramId=pid,
+                                                typeOfLevel=lev,
+                                                stepType=steps,
+                                                numberOfPoints=points,
+                                                stepUnits=unit,
+                                                dataType=dtype,
+                                            ).metadata("gridType")
+                                        ).tolist()
                                         for gtype in gridType:
                                             try:
-                                                ds = ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps, numberOfPoints=points, stepUnits=unit, dataType=dtype, gridType=gtype).to_xarray()
-                                            except:
-                                                print(f"GRIB file of level {lev} and paramId {pid} cannot be read.")
+                                                ds = ds_grib.sel(
+                                                    paramId=pid,
+                                                    typeOfLevel=lev,
+                                                    stepType=steps,
+                                                    numberOfPoints=points,
+                                                    stepUnits=unit,
+                                                    dataType=dtype,
+                                                    gridType=gtype,
+                                                ).to_xarray()
+                                            except KeyError:
+                                                print(
+                                                    f"GRIB file of level {lev} and"
+                                                    "paramId {pid} cannot be read."
+                                                )
 
     return ds
 
