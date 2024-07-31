@@ -31,9 +31,6 @@ dependencies:
   - pylint>=2.6.0
   - rope
   - rstcheck>=6.1.1
-  - sphinx
-  - sphinx-autobuild
-  - toml>=0.10.2
   - pip:
     # development
     - flake8-pyproject
