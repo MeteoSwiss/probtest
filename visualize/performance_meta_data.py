@@ -25,7 +25,6 @@ def plot_meta_data_timer(timer, data, revs, ax, experiment_name, savedir):
     y = y[nonnan]
     revs = [r for r, n in zip(revs, nonnan) if n]
     x = range(len(revs))
-    y = y
     ax.bar(x, y)
     srevs = [s[:8] for s in revs]
     ax.set_xticks(x)
@@ -41,7 +40,7 @@ def plot_meta_data_timer(timer, data, revs, ax, experiment_name, savedir):
         path = "{}/{}".format(
             savedir, "perf_meta_{}_{}.png".format(experiment_name, timer)
         )
-        logger.info("saving figure to {}".format(path))
+        logger.info("saving figure to %s", path)
         fig.savefig(path)
     else:
         plt.show()
@@ -115,7 +114,7 @@ def performance_meta_data(
     # plotting
     ncols = min(len(timing_names), 3)
     nrows = int(np.ceil(len(timing_names) / 3.0))
-    fig, ax = plt.subplots(
+    _, ax = plt.subplots(
         ncols=ncols,
         nrows=nrows,
         figsize=(5 * ncols, 3.5 * nrows),

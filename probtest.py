@@ -36,7 +36,6 @@ def cli(ctx, log_level, log_file):
     if "init" not in sections:
         defaults = load_defaults(sections)
         ctx.default_map = {subcommand: defaults}
-    pass
 
 
 cli.add_command(init)

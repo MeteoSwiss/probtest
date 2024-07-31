@@ -37,8 +37,8 @@ def statistics_over_horizontal_dim(
                 ]
 
     logger.error(
-        "Could not find horizontal dimension for variable '{}'. Dims: {}".format(
-            xarray_da.name, dims
-        )
+        "Could not find horizontal dimension for variable '%s'. Dims: %s",
+        xarray_da.name,
+        dims,
     )
     sys.exit(1)

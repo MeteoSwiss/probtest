@@ -6,7 +6,7 @@ builder = sys.argv[2]
 
 regex = '.*{0}.*configureflags="(?P<flags>.*?)"'.format(builder)
 
-with open(file_path) as f:
+with open(file_path, encoding="utf-8") as f:
     data = f.read()
     try:
         m = re.search(regex, data, re.IGNORECASE).groupdict()

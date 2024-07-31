@@ -19,4 +19,4 @@ def initialize_logger(log_level="DEBUG", log_file="probtest.log"):
     logger.addHandler(file_handler)
     logger.setLevel(log_level)
 
-    logger.info("initialized logger with level {}".format(log_level))
+    logger.info("initialized logger with level %s", log_level)

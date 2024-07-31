@@ -14,7 +14,7 @@ from util.file_system import file_names_from_pattern
 from util.log_handler import logger
 
 
-def rel_diff(var1, var2):
+def compute_rel_diff(var1, var2):
     rel_diff = np.zeros_like(var1)
 
     mask_0 = np.logical_and(np.abs(var1) < 1e-15, np.abs(var2) < 1e-15)
@@ -52,7 +52,7 @@ def rel_diff_stats(
             mask = data != dataarray.attrs[fill_value_key]
             data = data[mask]
 
-        hist, edges = np.histogram(data, bins=[0] + cdo_bins)
+        hist, _ = np.histogram(data, bins=[0] + cdo_bins)
         matrix[i * ncol] = amax[i]
         matrix[i * ncol + 1 : i * ncol + ncol] = hist
 
@@ -132,13 +132,11 @@ def cdo_table(
 
     # step 1: compute rel-diff netcdf files
     with tempfile.TemporaryDirectory() as tmpdir:
-        for file_type, file_pattern in file_id:
+        for _, file_pattern in file_id:
             ref_files, err = file_names_from_pattern(model_output_dir, file_pattern)
             if err > 0:
                 logger.info(
-                    "did not find any files for pattern {}. Continue.".format(
-                        file_pattern
-                    )
+                    "did not find any files for pattern %s. Continue.", file_pattern
                 )
                 continue
             ref_files.sort()
@@ -147,9 +145,7 @@ def cdo_table(
             )
             if err > 0:
                 logger.info(
-                    "did not find any files for pattern {}. Continue.".format(
-                        file_pattern
-                    )
+                    "did not find any files for pattern %s. Continue.", file_pattern
                 )
                 continue
             perturb_files.sort()
@@ -171,7 +167,7 @@ def cdo_table(
                 ]
 
                 for v in varnames:
-                    diff_data.variables.get(v).values = rel_diff(
+                    diff_data.variables.get(v).values = compute_rel_diff(
                         ref_data.variables.get(v).values,
                         perturb_data.variables.get(v).values,
                     )
@@ -191,7 +187,7 @@ def cdo_table(
                 df.loc[:, (t, cdo_bins)].sum(axis=1), axis=0
             )
 
-        logger.info("writing cdo table to {}.".format(cdo_table_file))
+        logger.info("writing cdo table to %s.", cdo_table_file)
 
         Path(cdo_table_file).parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(cdo_table_file)

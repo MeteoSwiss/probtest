@@ -15,7 +15,7 @@ def test_select_members(stats_file_set):
         stats_file_set["members"]
     ), "File 'selected_members.csv' was not created"
 
-    with open(stats_file_set["members"], "r") as file:
+    with open(stats_file_set["members"], "r", encoding="utf-8") as file:
         content = file.read().strip()
     expected_content = "50,21,40,39,16\nexport FACTOR=5"
     assert content == expected_content, "The member selection failed"
@@ -34,7 +34,7 @@ def test_select_members_increase_factor(stats_file_set):
         stats_file_set["members"]
     ), "File 'selected_members.csv' was not created"
 
-    with open(stats_file_set["members"], "r") as file:
+    with open(stats_file_set["members"], "r", encoding="utf-8") as file:
         content = file.read().strip()
     expected_content = "50,21,40,39,16\nexport FACTOR=10"
     assert (

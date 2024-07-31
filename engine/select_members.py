@@ -36,9 +36,9 @@ def find_members_and_factor_validating_for_all_stats_files(
     for f in range(
         int(min_factor), int(max_factor) + 1, 5
     ):  # Try with bigger factor if max_member_num is not enough
-        logger.info("Set factor to {}".format(f))
+        logger.info("Set factor to %s", f)
         for mem_num in range(min_member_num, max_member_num + 1):
-            logger.info("Try with {} members.".format(mem_num))
+            logger.info("Try with %s members.", mem_num)
             max_passed = 1
             vars = []
             for iter in range(iterations):
@@ -46,9 +46,10 @@ def find_members_and_factor_validating_for_all_stats_files(
                     members, size=mem_num, replace=False, p=weights
                 )
                 logger.info(
-                    "Test {} with {} randomly selected members and factor {}.".format(
-                        iter + 1, mem_num, f
-                    )
+                    "Test %s with %s randomly selected members and factor %s.",
+                    iter + 1,
+                    mem_num,
+                    f,
                 )
                 # Create tolerances from random members
                 context = click.Context(tolerance)
@@ -106,12 +107,14 @@ def find_members_and_factor_validating_for_all_stats_files(
         item for item, count in sorted_duplicates.items() if count == max_count
     ]
     logger.error(
-        (
-            "ERROR: Could not find {} random members, which pass for all stat files. "
-            + "The most sensitive variable(s) is/are {}, which failed for {} out of {} "
-            + "random selections. Consider removing this/those variable(s) from the "
-            + "experiment and run again."
-        ).format(max_member_num, most_common_vars, max_count, iter + 1)
+        "ERROR: Could not find %s random members, which pass for all stat files. "
+        + "The most sensitive variable(s) is/are %s, which failed for %s out of %s "
+        + "random selections. Consider removing this/those variable(s) from the "
+        + "experiment and run again.",
+        max_member_num,
+        most_common_vars,
+        max_count,
+        iter + 1,
     )
     exit(1)
 
@@ -138,7 +141,7 @@ def test_selection(
     for m_num in members:
         m_id = str(m_num) if not member_type else member_type + "_" + str(m_num)
 
-        out, err, tol = test_stats_file_with_tolerances(
+        out, err, _ = test_stats_file_with_tolerances(
             tolerance_file_name,
             stats_file_name.format(member_id="ref"),
             stats_file_name.format(member_id=m_id),
@@ -158,9 +161,9 @@ def test_selection(
     # Reset logger level
     logging.getLogger().setLevel(original_level)
     logger.info(
-        "The tolerance test passed for {} out of {} references.".format(
-            sum(passed), total_member_num
-        )
+        "The tolerance test passed for %s out of %s references.",
+        sum(passed),
+        total_member_num,
     )
     return passed, vars
 
@@ -285,23 +288,22 @@ def select_members(
         )
         end_time = datetime.now()
         elapsed_time = end_time - start_time
-        logger.info(
-            "The member selection took {}s.".format(elapsed_time.total_seconds())
-        )
+        logger.info("The member selection took %ss.", elapsed_time.total_seconds())
 
         # Write selection into a file
         selection = ",".join(map(str, selection))
         logger.info(
-            "Writing selected members {} with tolerance factor {} to file {}".format(
-                selection, int(factor), selected_members_file_name
-            )
+            "Writing selected members %s with tolerance factor %s to file %s",
+            selection,
+            int(factor),
+            selected_members_file_name,
         )
-        with open(selected_members_file_name, "w") as file:
+        with open(selected_members_file_name, "w", encoding="utf-8") as file:
             file.write(selection + "\n")
             file.write("export FACTOR=" + str(int(factor)))
 
         # The last created file was successful
-        logger.info("Writing tolerance file to {}".format(tolerance_file_name))
+        logger.info("Writing tolerance file to %s", tolerance_file_name)
         os.rename("random_tolerance.csv", tolerance_file_name)
 
     return

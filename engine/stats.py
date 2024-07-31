@@ -14,7 +14,7 @@ def monotonically_increasing(L):
 def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specification):
     df = df_from_file_ids(file_id, input_dir, file_specification)
 
-    logger.info("writing stats file to {}".format(stats_file_name))
+    logger.info("writing stats file to %s", stats_file_name)
 
     Path(stats_file_name).parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(stats_file_name)

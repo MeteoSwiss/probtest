@@ -92,12 +92,14 @@ def read_logfile(filename):
                 if len(elements) != len(header_elements):
                     logger.critical(
                         (
-                            "Number of header elements ({}) "
-                            + "does not match number of table elements ({})"
-                        ).format(len(header_elements), len(elements))
+                            "Number of header elements (%s) "
+                            + "does not match number of table elements (%s)"
+                        ),
+                        len(header_elements),
+                        len(elements),
                     )
-                    logger.critical("header: {}".format(" -- ".join(header_elements)))
-                    logger.critical("table : {}".format(" -- ".join(elements)))
+                    logger.critical("header: %s", " -- ".join(header_elements))
+                    logger.critical("table : %s", " -- ".join(elements))
                     sys.exit(1)
                 # find indentation level for each table line
                 first = re.search(indent_regex, table_line).group(0)
@@ -115,6 +117,8 @@ def read_logfile(filename):
 
         # get start and finish time from job
         found_dateline_yes = False
+        start_datetime_converted = ""
+        finish_datetime_converted = ""
         for dateline_regex, icon_date_format in zip(dateline_regexs, icon_date_formats):
             dateline = re.findall(dateline_regex, full_file)
 
@@ -160,6 +164,9 @@ def parse_time(time_string):
         h = 0
         m = 0
     else:
+        s = 0
+        m = 0
+        h = 0
         logger.error("did not match regex")
     out = float(h) * 60 * 60 + float(m) * 60 + float(s)
     return out

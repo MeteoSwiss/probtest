@@ -15,7 +15,9 @@ datafile_template = "{base}_data.json"
 
 
 class TimingNode(dict):
-    def __init__(self, name, ancestry=[]):
+    def __init__(self, name, ancestry=None):
+        if ancestry is None:
+            ancestry = []
         super().__init__()
         self.__dict__ = self
         self.name = name
@@ -117,7 +119,7 @@ class TimingTree:
 
     @classmethod
     def from_logfile(cls, logfile, logfile_reader):
-        logger.info("initializing TimingTree from file {}".format(logfile))
+        logger.info("initializing TimingTree from file %s", logfile)
         timing_data, meta_data = logfile_reader(logfile)
 
         dfs = []
@@ -131,14 +133,14 @@ class TimingTree:
 
     @classmethod
     def from_json(cls, filename):
-        with open(metafile_template.format(base=filename)) as f:
+        with open(metafile_template.format(base=filename), encoding="utf-8") as f:
             meta_data = json.load(f)
 
         roots = []
         dfs = []
         for i in range(meta_data["n_tables"]):
             filename_i = "{}_{}".format(filename, i)
-            with open(treefile_template.format(base=filename_i)) as f:
+            with open(treefile_template.format(base=filename_i), encoding="utf-8") as f:
                 json_dict = json.load(f)
             roots.append(TimingNode.from_dict(json_dict))
 
@@ -193,31 +195,33 @@ class TimingTree:
         data_exists = os.path.exists(datafile)
 
         if not tree_exists:
-            logger.info("Treefile does not exist: {}".format(treefile))
+            logger.info("Treefile does not exist: %s", treefile)
         if not meta_exists:
-            logger.info("Metafile does not exist: {}".format(metafile))
+            logger.info("Metafile does not exist: %s", metafile)
         if not data_exists:
-            logger.info("Datafile does not exist: {}".format(datafile))
+            logger.info("Datafile does not exist: %s", datafile)
 
         return tree_exists and meta_exists and data_exists
 
     def json_dump(self, filename):
         for i in range(self.meta_data["n_tables"]):
             filename_i = "{}_{}".format(filename, i)
-            with open(treefile_template.format(base=filename_i), "w") as f:
+            with open(
+                treefile_template.format(base=filename_i), "w", encoding="utf-8"
+            ) as f:
                 json.dump(self.root[i], f, indent=2)
 
             self.data[i].to_json(
                 datafile_template.format(base=filename_i), orient="table", indent=2
             )
 
-        with open(metafile_template.format(base=filename), "w") as f:
+        with open(metafile_template.format(base=filename), "w", encoding="utf-8") as f:
             json.dump(self.meta_data, f, indent=2)
 
     def find(self, name, i_table):
         out = self.root[i_table].search_children(name)
         if not out:
-            logger.info("did not find node {}".format(name))
+            logger.info("did not find node %s", name)
         return out
 
     def find_ancestor(self, node, i_table, k=1):
@@ -244,9 +248,9 @@ class TimingTree:
         for key, val in self.meta_data.items():
             if key not in other.meta_data.keys():
                 logger.critical(
-                    "incompatible meta_data keys:\nfound: {}\nexpected: {}".format(
-                        self.meta_data.keys(), other.meta_data.keys()
-                    )
+                    "incompatible meta_data keys:\nfound: %s\nexpected: %s",
+                    self.meta_data.keys(),
+                    other.meta_data.keys(),
                 )
                 sys.exit(1)
             other_val = other.meta_data[key]
@@ -256,7 +260,9 @@ class TimingTree:
                 if val != other_val:
                     logger.critical(
                         "Trying to add a timing file with different number of tables\n"
-                        + "expected {}, got {}".format(val, other_val)
+                        + "expected %s, got %s",
+                        val,
+                        other_val,
                     )
                     sys.exit(1)
             else:
@@ -264,13 +270,13 @@ class TimingTree:
                     self.meta_data[key] = [val]
                 self.meta_data[key].append(other_val)
 
-    def add_tree(self, other):
+    def add_tree(self, other, i_table):
         # manage tree
         new_nodes = other.root.sub(self.root)
         new_names = [n.get_name() for n in new_nodes]
-        logger.info("growing the tree by new nodes: {}".format(" ".join(new_names)))
+        logger.info("growing the tree by new nodes: %s", " ".join(new_names))
         if len(new_nodes) > 0:
-            self.grow(new_nodes)
+            self.grow(new_nodes, i_table)
 
     def add(self, other):
         self.add_data(other)
@@ -288,14 +294,13 @@ class TimingTree:
             if old_node:
                 logger.info(
                     "trying to grow tree by node which is already present: "
-                    + "{}. Remove.".format(old_node.get_ancestry_name())
+                    + "%s. Remove.",
+                    old_node.get_ancestry_name(),
                 )
                 old_parent = self.find_ancestor(old_node, i_table, k=1)
                 old_parent.remove_child(old_node)
             logger.info(
-                "adding new node {} to {}".format(
-                    n.get_ancestry_name(), n.get_ancestry()[-1]
-                )
+                "adding new node %s to %s", n.get_ancestry_name(), n.get_ancestry()[-1]
             )
             new_parent = self.find_ancestor(n, i_table, k=1)
             new_parent.add_child(n)

@@ -13,7 +13,7 @@ from util.utils import get_seed_from_member_num
 def create_perturb_files(in_path, in_files, out_path, copy_all_files=False):
     path = os.path.abspath(in_path)
     if not os.path.exists(out_path):
-        logger.info("creating new directory: {}".format(out_path))
+        logger.info("creating new directory: %s", out_path)
         os.makedirs(out_path)
     data = [
         nc4_get_copy("{}/{}".format(path, f), "{}/{}".format(out_path, f))

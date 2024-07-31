@@ -114,5 +114,5 @@ def performance_plot(timing_database, savedir, timing_names, experiment_name, i_
             path = "{}/{}".format(
                 savedir, "perf_{}_{}.png".format(experiment_name, timer)
             )
-            logger.info("saving figure to {}".format(path))
+            logger.info("saving figure to %s", path)
             fig.savefig(path)

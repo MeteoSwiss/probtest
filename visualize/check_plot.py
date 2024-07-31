@@ -47,16 +47,17 @@ colors = prop_cycle.by_key()["color"]
 def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, savedir):
     df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
 
-    logger.info("applying a factor of {} to the spread".format(factor))
+    logger.info("applying a factor of %s to the spread", factor)
     df_tol *= factor
 
     df_ref = parse_probtest_csv(input_file_ref, index_col=[0, 1, 2])
     df_cur = parse_probtest_csv(input_file_cur, index_col=[0, 1, 2])
 
     logger.info(
-        "checking {} against {} using tolerances from {}".format(
-            input_file_cur, input_file_ref, tolerance_file_name
-        )
+        "checking %s against %s using tolerances from %s",
+        input_file_cur,
+        input_file_ref,
+        tolerance_file_name,
     )
 
     # compute relative difference
@@ -139,7 +140,7 @@ def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, save
     if savedir:
         Path(savedir).mkdir(exist_ok=True, parents=True)
         path = "{}/{}".format(savedir, "check_plot.png")
-        logger.info("saving figure to {}".format(path))
+        logger.info("saving figure to %s", path)
         fig.savefig(path)
     else:
         plt.show()

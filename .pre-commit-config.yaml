@@ -111,16 +111,17 @@ repos:
           entry: pydocstyle
           types: [python]
           files: ^src/
-  # -   repo: local
-  #     hooks:
-  #     -   id: pylint
-  #         name: pylint
-  #         description: Check Python code for correctness, consistency and adherence to best practices
-  #         language: system
-  #         entry: pylint
-  #         types: [python]
-  #         args:
-  #         - "--max-line-length=88"
+  -   repo: local
+      hooks:
+      -   id: pylint
+          name: pylint
+          description: Check Python code for correctness, consistency and adherence to best practices
+          language: system
+          entry: pylint
+          types: [python]
+          args:
+          - "--max-line-length=88"
+          - "--disable=C,R,W0622,W1114,W0201,W0719,W0613,W0511"
   -   repo: local
       hooks:
       -   id: flake8

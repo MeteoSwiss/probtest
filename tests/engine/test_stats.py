@@ -2,7 +2,7 @@ import os
 import unittest
 
 import numpy as np
-from netCDF4 import Dataset
+from netCDF4 import Dataset  # pylint: disable=no-name-in-module
 
 from engine.stats import create_stats_dataframe
 
@@ -108,7 +108,7 @@ class TestStatsCsv(unittest.TestCase):
             "20   2.4 25 26 27 28",
             "30   3.4 35 36 37 38",
         )
-        with open(self.dat_file_name, "w") as f:
+        with open(self.dat_file_name, "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
 
     def TearDown(self):

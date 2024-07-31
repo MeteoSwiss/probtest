@@ -43,7 +43,7 @@ def replace_assignment(line, left, right_new, right_old, seed):
     right_new = right_new.format(seed=seed)
 
     out_line = "{}={}\n".format(left, right_new)
-    logger.info("generating new line: {}".format(out_line.replace("\n", "")))
+    logger.info("generating new line: %s", out_line.replace("\n", ""))
     return out_line
 
 
@@ -63,8 +63,8 @@ def prepare_perturbed_run_script(
     rhs_old,
     seed,
 ):
-    in_file = open(runscript, "r")
-    out_file = open(perturbed_runscript, "w")
+    in_file = open(runscript, "r", encoding="utf-8")
+    out_file = open(perturbed_runscript, "w", encoding="utf-8")
 
     if rhs_old is None:
         rhs_old = [None] * len(rhs_new)
@@ -95,7 +95,7 @@ def prepare_perturbed_run_script(
     else:
         out_file.write(in_file.read())
 
-    logger.info("writing model run script to: {}".format(perturbed_runscript))
+    logger.info("writing model run script to: %s", perturbed_runscript)
     out_file.close()
     in_file.close()
 
@@ -254,7 +254,7 @@ def run_ensemble(
 
         if not dry:
             job = submit_command.split() + [perturbed_runscript]
-            logger.info("running the model with '{}'".format(" ".join(job)))
+            logger.info("running the model with '%s'", " ".join(job))
             append_job(job, job_list, parallel)
 
     finalize_jobs(job_list, dry, parallel)

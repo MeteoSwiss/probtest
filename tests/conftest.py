@@ -13,18 +13,18 @@ from util.tree import TimingTree
 
 @pytest.fixture(autouse=True, scope="session")
 def new_ref() -> str:
-    new_ref = os.path.join(tempfile.mkdtemp())
-    print(f"\nNew reference data will be stored in {new_ref}")
-    return new_ref
+    ref = os.path.join(tempfile.mkdtemp())
+    print(f"\nNew reference data will be stored in {ref}")
+    return ref
 
 
-@pytest.fixture()
-def ref_data() -> str:
+@pytest.fixture(name="ref_data")
+def fixture_ref_data() -> str:
     return "tests/data"
 
 
-@pytest.fixture()
-def timing_logfile(ref_data) -> str:
+@pytest.fixture(name="timing_logfile")
+def fixture_timing_logfile(ref_data) -> str:
     return os.path.join(ref_data, "timing_example_1.txt")
 
 
@@ -33,11 +33,11 @@ def df_ref_performance(ref_data) -> TimingTree:
     return TimingTree.from_json(os.path.join(ref_data, "ref"))
 
 
-@pytest.fixture(scope="module")
-def tmp_dir():
-    tmp_dir = tempfile.mkdtemp()
-    yield tmp_dir
-    shutil.rmtree(tmp_dir)
+@pytest.fixture(name="tmp_dir", scope="module")
+def fixture_tmp_dir():
+    dir = tempfile.mkdtemp()
+    yield dir
+    shutil.rmtree(dir)
 
 
 @pytest.fixture(scope="module")
@@ -99,8 +99,8 @@ def df_ref_ensemble_stats(ref_data) -> dict:
     }
 
 
-@pytest.fixture(scope="module")
-def nc_with_T_U_V(tmp_dir) -> str:
+@pytest.fixture(name="nc_with_T_U_V", scope="module")
+def fixture_nc_with_T_U_V(tmp_dir) -> str:
     """
     Create a netcdf file with variables T, U and V.
     The variables are 3D with dimensions time, lat and lon.

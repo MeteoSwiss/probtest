@@ -14,22 +14,21 @@ def load_defaults(sections):
 
     if not os.path.isfile(configfile):
         logger.warning(
-            "careful, configfile {} does not exist in {}. No defaults.".format(
-                configfile, os.getcwd()
-            )
+            "careful, configfile %s does not exist in %s. No defaults.",
+            configfile,
+            os.getcwd(),
         )
         logger.warning(
-            "If you need e.g. ICON defaults, try: export PROBTEST_CONFIG={}".format(
-                pathlib.Path(__file__).parent.parent.absolute() / "templates/ICON.jinja"
-            )
+            "If you need e.g. ICON defaults, try: export PROBTEST_CONFIG=%s",
+            pathlib.Path(__file__).parent.parent.absolute() / "templates/ICON.jinja",
         )
     else:
-        logger.info("reading config file from {}".format(configfile))
-        with open(configfile) as f:
+        logger.info("reading config file from %s", configfile)
+        with open(configfile, encoding="utf-8") as f:
             try:
                 config = json.load(f)
             except json.decoder.JSONDecodeError as err:
-                logger.error("failed to load configfile {}".format(configfile))
+                logger.error("failed to load configfile %s", configfile)
                 logger.error(err)
 
     tmp = {}

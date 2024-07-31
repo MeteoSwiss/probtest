@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 from matplotlib import pyplot as plt
-from netCDF4 import Dataset
+from netCDF4 import Dataset  # pylint: disable=no-name-in-module
 
 from engine.perturb import perturb_array
 
