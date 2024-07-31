@@ -47,15 +47,13 @@ class TestTimingTree(unittest.TestCase):
             self.assertDictEqual(
                 t1.meta_data,
                 t2.meta_data,
-                msg="meta data does not match for table {}".format(i),
+                msg=f"meta data does not match for table {i}",
             )
-            self.assertLess(
-                diff_sum, 1e-12, msg="data does not match for table {}".format(i)
-            )
+            self.assertLess(diff_sum, 1e-12, msg=f"data does not match for table {i}")
             self.assertListEqual(
                 t1.root[i].to_ancestry_name_list(),
                 t2.root[i].to_ancestry_name_list(),
-                msg="tree does not match for table {}".format(i),
+                msg=f"tree does not match for table {i}",
             )
 
     def test_read_timing(self):

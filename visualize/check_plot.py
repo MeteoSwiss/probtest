@@ -78,8 +78,8 @@ def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, save
         )
         diff_df = diff_df.loc[selected_keys]
         print(
-            "Limit the subplots to the graphs with the {}"
-            " largest error relative to tolerance".format(max_nsubplots)
+            f"Limit the subplots to the graphs with the {max_nsubplots}"
+            " largest error relative to tolerance"
         )
 
     times = np.array(diff_df.columns.levels[0])
@@ -119,7 +119,7 @@ def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, save
             )
             ax[i // ncols, i % ncols].set_ylim(bottom=1e-15, top=1)
             ax[i // ncols, i % ncols].set_xlabel("timestep")
-            ax[i // ncols, i % ncols].set_title("{}: {}".format(fid, vn))
+            ax[i // ncols, i % ncols].set_title(f"{fid}: {vn}")
         if i % ncols == 0:
             ax[i // ncols, 0].set_ylabel("relative error")
 
@@ -139,7 +139,7 @@ def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, save
     )  # use an absolute margin for the legend
     if savedir:
         Path(savedir).mkdir(exist_ok=True, parents=True)
-        path = "{}/{}".format(savedir, "check_plot.png")
+        path = f"{savedir}/{"check_plot.png"}"
         logger.info("saving figure to %s", path)
         fig.savefig(path)
     else:

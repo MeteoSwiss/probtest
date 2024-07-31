@@ -15,10 +15,7 @@ def create_perturb_files(in_path, in_files, out_path, copy_all_files=False):
     if not os.path.exists(out_path):
         logger.info("creating new directory: %s", out_path)
         os.makedirs(out_path)
-    data = [
-        nc4_get_copy("{}/{}".format(path, f), "{}/{}".format(out_path, f))
-        for f in in_files
-    ]
+    data = [nc4_get_copy(f"{path}/{f}", f"{out_path}/{f}") for f in in_files]
 
     if copy_all_files:
         all_files = os.listdir(path)
@@ -26,7 +23,7 @@ def create_perturb_files(in_path, in_files, out_path, copy_all_files=False):
         other_files = [f for f in all_files if f not in in_files]
         # copy all other files
         for f in other_files:
-            shutil.copy("{}/{}".format(in_path, f), out_path)
+            shutil.copy(f"{in_path}/{f}", out_path)
 
     return data
 

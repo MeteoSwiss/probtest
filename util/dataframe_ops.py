@@ -11,7 +11,7 @@ from util.model_output_parser import model_output_parser
 
 pd.set_option("display.max_colwidth", None)
 pd.set_option("display.max_columns", None)
-pd.set_option("display.float_format", "{:,.2e}".format)
+pd.set_option("display.float_format", lambda x: f"{x:,.2e}")
 
 
 def force_monotonic(dataframe):
@@ -131,8 +131,8 @@ def df_from_file_ids(file_id, input_dir, file_specification):
         file_dfs = []
         for f in input_files:
             var_df = read_input_file(
-                label="{}:{}".format(file_type, file_pattern),
-                file_name="{}/{}".format(input_dir, f),
+                label=f"{file_type}:{file_pattern}",
+                file_name=f"{input_dir}/{f}",
                 specification=specification,
             )
             file_dfs.append(var_df)
@@ -204,15 +204,13 @@ def check_intersection(df_ref, df_cur):
     if missing_in_ref:
         warning_msg = (
             "WARNING: The following variables are in the test case but not in the"
-            " reference case and therefore not tested: {}".format(
-                ", ".join(missing_in_ref)
-            )
+            f" reference case and therefore not tested: {", ".join(missing_in_ref)}"
         )
         warnings.warn(warning_msg, UserWarning)
     if missing_in_cur:
         warning_msg = (
             "WARNING: The following variables are in the reference case but not in the"
-            " test case and therefore not tested: {}".format(", ".join(missing_in_cur))
+            f" test case and therefore not tested: {", ".join(missing_in_cur)}"
         )
         warnings.warn(warning_msg, UserWarning)
 

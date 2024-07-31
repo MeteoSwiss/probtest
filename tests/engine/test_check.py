@@ -51,12 +51,12 @@ class TestCheck(unittest.TestCase):
         self.assertTrue(
             out1,
             "Check with large tolerances did not validate! "
-            + "Here is the DataFrame:\n{}".format(err1),
+            + f"Here is the DataFrame:\n{err1}",
         )
         self.assertFalse(
             out2,
             "Check with small tolerances did validate! "
-            + "Here is the DataFrame:\n{}".format(err2),
+            + f"Here is the DataFrame:\n{err2}",
         )
 
     def test_check(self):
@@ -76,7 +76,7 @@ class TestCheck(unittest.TestCase):
         self.assertFalse(
             out,
             "Check with 0-value reference validated! "
-            + "Here is the DataFrame:\n{}".format(err),
+            + f"Here is the DataFrame:\n{err}",
         )
 
         df2.loc[("NetCDF:*atm_3d*.nc", "var_1", 2), (0, "max")] = CHECK_THRESHOLD / 2

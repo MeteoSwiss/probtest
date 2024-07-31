@@ -139,7 +139,7 @@ class TimingTree:
         roots = []
         dfs = []
         for i in range(meta_data["n_tables"]):
-            filename_i = "{}_{}".format(filename, i)
+            filename_i = f"{filename}_{i}"
             with open(treefile_template.format(base=filename_i), encoding="utf-8") as f:
                 json_dict = json.load(f)
             roots.append(TimingNode.from_dict(json_dict))
@@ -186,9 +186,9 @@ class TimingTree:
 
     @staticmethod
     def input_exists(filename):
-        treefile = treefile_template.format(base="{}_0".format(filename))
-        metafile = metafile_template.format(base="{}".format(filename))
-        datafile = datafile_template.format(base="{}_0".format(filename))
+        treefile = treefile_template.format(base=f"{filename}_0")
+        metafile = metafile_template.format(base=f"{filename}")
+        datafile = datafile_template.format(base=f"{filename}_0")
 
         tree_exists = os.path.exists(treefile)
         meta_exists = os.path.exists(metafile)
@@ -205,7 +205,7 @@ class TimingTree:
 
     def json_dump(self, filename):
         for i in range(self.meta_data["n_tables"]):
-            filename_i = "{}_{}".format(filename, i)
+            filename_i = f"{filename}_{i}"
             with open(
                 treefile_template.format(base=filename_i), "w", encoding="utf-8"
             ) as f:
@@ -234,7 +234,7 @@ class TimingTree:
             logger.critical("cannot add reports with unequal number of tables")
             sys.exit(1)
 
-        for i_table in range(len(self.data)):
+        for i_table, _ in enumerate(self.data):
             self.data[i_table], _ = self.data[i_table].align(other.data[i_table])
             self.data[i_table].loc[(slice(None), other.meta_data["finish_time"]), :] = (
                 other.data[i_table]

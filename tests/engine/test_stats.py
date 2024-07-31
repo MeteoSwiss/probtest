@@ -93,7 +93,7 @@ class TestStatsNetcdf(unittest.TestCase):
 
         self.assertTrue(
             np.array_equal(df.values, expected),
-            "stats dataframe incorrect. Difference:\n{}".format(df.values == expected),
+            f"stats dataframe incorrect. Difference:\n{df.values == expected}",
         )
 
 
@@ -147,7 +147,7 @@ class TestStatsCsv(unittest.TestCase):
 
         self.assertTrue(
             np.array_equal(df.values, expected),
-            "stats dataframe incorrect. Difference:\n{}".format(df.values == expected),
+            f"stats dataframe incorrect. Difference:\n{df.values == expected}",
         )
 
 

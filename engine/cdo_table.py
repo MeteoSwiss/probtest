@@ -153,11 +153,9 @@ def cdo_table(
             for rf, pf in zip(ref_files, perturb_files):
                 if not rf.endswith(".nc") or not pf.endswith(".nc"):
                     continue
-                ref_data = xr.open_dataset("{}/{}".format(model_output_dir, rf))
+                ref_data = xr.open_dataset(f"{model_output_dir}/{rf}")
                 perturb_data = xr.open_dataset(
-                    "{}/{}".format(
-                        perturbed_model_output_dir.format(member_id=member_id), pf
-                    )
+                    f"{perturbed_model_output_dir.format(member_id=member_id)}/{pf}"
                 )
                 diff_data = ref_data.copy()
                 varnames = [
@@ -172,7 +170,7 @@ def cdo_table(
                         perturb_data.variables.get(v).values,
                     )
 
-                diff_data.to_netcdf("{}/{}".format(tmpdir, rf))
+                diff_data.to_netcdf(f"{tmpdir}/{rf}")
                 ref_data.close()
                 perturb_data.close()
                 diff_data.close()

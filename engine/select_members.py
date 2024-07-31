@@ -124,7 +124,7 @@ def find_members_and_factor_validating_for_all_stats_files(
 def test_selection(
     stats_file_name, tolerance_file_name, total_member_num, member_type, factor
 ):
-    if type(total_member_num) is int:
+    if isinstance(total_member_num, int):
         members = [i for i in range(1, total_member_num + 1)]
     else:
         members = total_member_num

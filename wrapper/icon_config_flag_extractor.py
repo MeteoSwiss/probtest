@@ -4,7 +4,7 @@ import sys
 file_path = sys.argv[1]
 builder = sys.argv[2]
 
-regex = '.*{0}.*configureflags="(?P<flags>.*?)"'.format(builder)
+regex = f'.*{builder}.*configureflags="(?P<flags>.*?)"'
 
 with open(file_path, encoding="utf-8") as f:
     data = f.read()
@@ -12,4 +12,4 @@ with open(file_path, encoding="utf-8") as f:
         m = re.search(regex, data, re.IGNORECASE).groupdict()
         print(m["flags"])
     except AttributeError:
-        print("ERROR: did not find configure flags for {}".format(builder))
+        print(f"ERROR: did not find configure flags for {builder}")

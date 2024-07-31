@@ -42,7 +42,7 @@ def replace_assignment(line, left, right_new, right_old, seed):
 
     right_new = right_new.format(seed=seed)
 
-    out_line = "{}={}\n".format(left, right_new)
+    out_line = f"{left}={right_new}\n"
     logger.info("generating new line: %s", out_line.replace("\n", ""))
     return out_line
 
@@ -235,11 +235,11 @@ def run_ensemble(
         os.chdir(perturbed_run_dir.format(member_id=m_id))
         if member_type:
             m_id = member_type + "_" + m_id
-        runscript = "{}/{}".format(run_dir, run_script_name)
-        perturbed_runscript = "{}/{}".format(
-            perturbed_run_dir.format(member_id=m_id),
-            perturbed_run_script_name.format(member_id=m_id),
-        )
+        runscript = f"{run_dir}/{run_script_name}"
+
+        perturbed_run_dir_path = perturbed_run_dir.format(member_id=m_id)
+        perturbed_run_script_path = perturbed_run_script_name.format(member_id=m_id)
+        perturbed_runscript = f"{perturbed_run_dir_path}/{perturbed_run_script_path}"
 
         prepare_perturbed_run_script(
             runscript,

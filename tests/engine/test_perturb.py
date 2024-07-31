@@ -56,7 +56,7 @@ class TestPerturb(unittest.TestCase):
 
         # create two dummy netcdf4 files, one with single, one with double precision
         for i, dt in enumerate([np.float32, np.float64]):
-            self.data[i] = Dataset("dummy{}.nc".format(i), "w")
+            self.data[i] = Dataset(f"dummy{i}.nc", "w")
             self.data[i].createDimension("x", size=ARRAY_DIM)
             self.data[i].createDimension("y", size=ARRAY_DIM)
             self.data[i].createVariable("z", dt, dimensions=("x", "y"))
@@ -73,7 +73,7 @@ class TestPerturb(unittest.TestCase):
 
         # reopen the files to make sure we get the values form disk
         for i in range(2):
-            self.data[i] = Dataset("dummy{}.nc".format(i), "r")
+            self.data[i] = Dataset(f"dummy{i}.nc", "r")
         zf = self.data[0].variables["z"][:]
         zd_perturb = self.data[1].variables["z"][:]
 
@@ -98,7 +98,7 @@ class TestPerturb(unittest.TestCase):
         xx, yy = np.meshgrid(np.linspace(0, 1, ARRAY_DIM), np.linspace(0, 1, ARRAY_DIM))
         cs = ax.contourf(xx, yy, diff)
         fig.colorbar(cs, ax=ax)
-        fig.savefig("{}/diff_figure.pdf".format(self.test_path))
+        fig.savefig(f"{self.test_path}/diff_figure.pdf")
 
 
 if __name__ == "__main__":

@@ -52,7 +52,7 @@ class CommaSeperatedInts(click.ParamType):
         if isinstance(value, list):
             return value
         if not isinstance(value, str):
-            self.fail("Input must be a string, found {}".format(value), param, ctx)
+            self.fail(f"Input must be a string, found {value}", param, ctx)
         return [int(e) for e in filter(lambda x: x != "", value.split(","))]
 
 
@@ -63,7 +63,7 @@ class CommaSeperatedStrings(click.ParamType):
         if isinstance(value, list):
             return value
         elif not isinstance(value, str):
-            self.fail("Input must be a int, found {}".format(value), param, ctx)
+            self.fail(f"Input must be a int, found {value}", param, ctx)
         return list(filter(lambda x: x != "", value.split(",")))
 
 
