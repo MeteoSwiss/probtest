@@ -173,7 +173,7 @@ dependencies:
   - pexpect=4.9.0
   - pickleshare=0.7.5
   - pillow=10.4.0
-  - pip=24.0
+  - pip=24.1.2
   - pixman=0.43.2
   - platformdirs=4.2.2
   - pluggy=1.5.0
@@ -199,10 +199,10 @@ dependencies:
   - pyqt5-sip=12.12.2
   - pysocks=1.7.1
   - pytest=8.3.2
-  - python=3.12.4
+  - python=3.11.9
   - python-dateutil=2.9.0
   - python-tzdata=2024.1
-  - python_abi=3.12
+  - python_abi=3.11
   - pytoolconfig=1.2.5
   - pytz=2024.1
   - pyyaml=6.0.1
@@ -254,7 +254,6 @@ dependencies:
   - watchfiles=0.22.0
   - wcwidth=0.2.13
   - websockets=12.0
-  - wheel=0.43.0
   - xarray=2024.7.0
   - xcb-util=0.4.1
   - xcb-util-image=0.4.0

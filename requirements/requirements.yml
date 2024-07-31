@@ -7,7 +7,6 @@ dependencies:
   - codespell>=2.2.2
   - flake8>=5.0.4
   - flake8-black
-  - python>=3.10
   - ipdb
   - ipython
   - isort>=5
