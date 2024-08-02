@@ -36,7 +36,7 @@ def get_seed_from_member_num(member_num, use_64_bits=True):
             "Invalid member number: only values between 1 and 100 are valid."
         )
 
-    SEEDS = [
+    seeds = [
         4820203056152078343,
         -2050370216167377885,
         5288723146233497607,
@@ -139,7 +139,7 @@ def get_seed_from_member_num(member_num, use_64_bits=True):
         -4677366596323783742,
     ]
 
-    seed = SEEDS[member_num - 1]
+    seed = seeds[member_num - 1]
     if not use_64_bits:
         seed = np.uint32(seed & 0xFFFFFFFF)
 

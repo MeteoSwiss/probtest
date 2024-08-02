@@ -16,8 +16,8 @@ from tests.helpers import (
 )
 
 
-def test_stats_cli_no_ensemble(new_ref, nc_with_T_U_V, df_ref_stats):
-    tmp_path = os.path.dirname(nc_with_T_U_V)
+def test_stats_cli_no_ensemble(new_ref, nc_with_t_u_v, df_ref_stats):
+    tmp_path = os.path.dirname(nc_with_t_u_v)
     stats_file = os.path.join(tmp_path, "stats_{member_id}.csv")
     run_stats_cli(tmp_path, stats_file, ensemble=False)
     df_test = load_pandas(

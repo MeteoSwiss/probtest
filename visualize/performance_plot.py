@@ -20,7 +20,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from util.click_util import CommaSeperatedStrings, cli_help
-from util.constants import datetime_format
+from util.constants import DATETIME_FORMAT
 from util.log_handler import logger
 from util.tree import TimingTree
 from util.utils import first_idx_of, last_idx_of, unique_elements
@@ -35,9 +35,9 @@ def colour_revs(times, revs, ax):
     i = 0
     for f, l in first_last:
         c = "gray" if i % 2 == 0 else "white"
-        t0 = matplotlib.dates.date2num(datetime.strptime(times[f], datetime_format))
+        t0 = matplotlib.dates.date2num(datetime.strptime(times[f], DATETIME_FORMAT))
         t1 = matplotlib.dates.date2num(
-            datetime.strptime(times[min(ntot - 1, l + 1)], datetime_format)
+            datetime.strptime(times[min(ntot - 1, l + 1)], DATETIME_FORMAT)
         )
 
         r = srevs[f]
@@ -78,7 +78,7 @@ def performance_plot(timing_database, savedir, timing_names, experiment_name, i_
     if isinstance(dates, str):
         dates = [dates]
 
-    dates = sorted([datetime.strptime(s, datetime_format) for s in dates])
+    dates = sorted([datetime.strptime(s, DATETIME_FORMAT) for s in dates])
     x = matplotlib.dates.date2num(dates)
 
     last_measurement = dates[-1]

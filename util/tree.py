@@ -12,11 +12,11 @@ import pandas as pd
 
 from util.log_handler import logger
 
-tree_name_separator = ">"
+TREE_NAME_SEPARATOR = ">"
 
-treefile_template = "{base}_tree.json"
-metafile_template = "{base}_meta.json"
-datafile_template = "{base}_data.json"
+TREEFILE_TEMPLATE = "{base}_tree.json"
+METAFILE_TEMPLATE = "{base}_meta.json"
+DATAFILE_TEMPLATE = "{base}_data.json"
 
 
 class TimingNode(dict):
@@ -53,7 +53,7 @@ class TimingNode(dict):
 
     @staticmethod
     def name_from_ancestry_name(ancestry_name):
-        return ancestry_name.split(tree_name_separator)[-1]
+        return ancestry_name.split(TREE_NAME_SEPARATOR)[-1]
 
     def to_name_list(self):
         out = [c.get_name() for c in self.children]
@@ -95,7 +95,7 @@ class TimingNode(dict):
 
     def get_ancestry_name(self):
         tmp = self.ancestry + [self.get_name()]
-        return tree_name_separator.join(tmp)
+        return TREE_NAME_SEPARATOR.join(tmp)
 
     def get_name(self):
         return self.name
@@ -158,19 +158,19 @@ class TimingTree:
 
     @classmethod
     def from_json(cls, filename):
-        with open(metafile_template.format(base=filename), encoding="utf-8") as f:
+        with open(METAFILE_TEMPLATE.format(base=filename), encoding="utf-8") as f:
             meta_data = json.load(f)
 
         roots = []
         dfs = []
         for i in range(meta_data["n_tables"]):
             filename_i = f"{filename}_{i}"
-            with open(treefile_template.format(base=filename_i), encoding="utf-8") as f:
+            with open(TREEFILE_TEMPLATE.format(base=filename_i), encoding="utf-8") as f:
                 json_dict = json.load(f)
             roots.append(TimingNode.from_dict(json_dict))
 
             dfs.append(
-                pd.read_json(datafile_template.format(base=filename_i), orient="table")
+                pd.read_json(DATAFILE_TEMPLATE.format(base=filename_i), orient="table")
             )
 
         return cls(roots, dfs, meta_data)
@@ -211,9 +211,9 @@ class TimingTree:
 
     @staticmethod
     def input_exists(filename):
-        treefile = treefile_template.format(base=f"{filename}_0")
-        metafile = metafile_template.format(base=f"{filename}")
-        datafile = datafile_template.format(base=f"{filename}_0")
+        treefile = TREEFILE_TEMPLATE.format(base=f"{filename}_0")
+        metafile = METAFILE_TEMPLATE.format(base=f"{filename}")
+        datafile = DATAFILE_TEMPLATE.format(base=f"{filename}_0")
 
         tree_exists = os.path.exists(treefile)
         meta_exists = os.path.exists(metafile)
@@ -232,15 +232,15 @@ class TimingTree:
         for i in range(self.meta_data["n_tables"]):
             filename_i = f"{filename}_{i}"
             with open(
-                treefile_template.format(base=filename_i), "w", encoding="utf-8"
+                TREEFILE_TEMPLATE.format(base=filename_i), "w", encoding="utf-8"
             ) as f:
                 json.dump(self.root[i], f, indent=2)
 
             self.data[i].to_json(
-                datafile_template.format(base=filename_i), orient="table", indent=2
+                DATAFILE_TEMPLATE.format(base=filename_i), orient="table", indent=2
             )
 
-        with open(metafile_template.format(base=filename), "w", encoding="utf-8") as f:
+        with open(METAFILE_TEMPLATE.format(base=filename), "w", encoding="utf-8") as f:
             json.dump(self.meta_data, f, indent=2)
 
     def find(self, name, i_table):

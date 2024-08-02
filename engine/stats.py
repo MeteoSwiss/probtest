@@ -16,8 +16,8 @@ from util.dataframe_ops import df_from_file_ids
 from util.log_handler import logger
 
 
-def monotonically_increasing(L):
-    return all(x <= y for x, y in zip(L[:-1], L[1:]))
+def monotonically_increasing(li):
+    return all(x <= y for x, y in zip(li[:-1], li[1:]))
 
 
 def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specification):

@@ -72,7 +72,7 @@ class TestStatsNetcdf(unittest.TestCase):
 
         data.close()
 
-    def TearDown(self):
+    def tear_down(self):
         os.remove(self.nc_file_name)
         os.remove(self.stats_file_names)
 
@@ -137,7 +137,7 @@ class TestStatsCsv(unittest.TestCase):
         with open(self.dat_file_name, "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
 
-    def TearDown(self):
+    def tear_down(self):
         os.remove(self.dat_file_name)
         os.remove(self.stats_file_name)
 

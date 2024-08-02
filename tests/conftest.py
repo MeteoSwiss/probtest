@@ -51,19 +51,19 @@ def fixture_tmp_dir():
 
 
 @pytest.fixture(scope="module")
-def ensemble(tmp_dir, nc_with_T_U_V) -> str:
-    initial_condition = os.path.basename(nc_with_T_U_V)
+def ensemble(tmp_dir, nc_with_t_u_v) -> str:
+    initial_condition = os.path.basename(nc_with_t_u_v)
     return generate_ensemble(tmp_dir, initial_condition, perturb_amplitude=10e-12)
 
 
 @pytest.fixture(scope="module")
-def too_small_ensemble(tmp_dir, nc_with_T_U_V) -> str:
-    initial_condition = os.path.basename(nc_with_T_U_V)
+def too_small_ensemble(tmp_dir, nc_with_t_u_v) -> str:
+    initial_condition = os.path.basename(nc_with_t_u_v)
     return generate_ensemble(tmp_dir, initial_condition, perturb_amplitude=10e-14)
 
 
 @pytest.fixture()
-def ds_ref_with_T_U_V(ref_data) -> xr.Dataset:
+def ds_ref_with_t_u_v(ref_data) -> xr.Dataset:
     data_ref = pd.read_csv(os.path.join(ref_data, "initial_condition.csv")).set_index(
         ["time", "lon", "lat"]
     )
@@ -71,8 +71,8 @@ def ds_ref_with_T_U_V(ref_data) -> xr.Dataset:
 
 
 @pytest.fixture()
-def ds_with_T_U_V(nc_with_T_U_V) -> xr.Dataset:
-    return xr.load_dataset(nc_with_T_U_V)
+def ds_with_t_u_v(nc_with_t_u_v) -> xr.Dataset:
+    return xr.load_dataset(nc_with_t_u_v)
 
 
 @pytest.fixture()
@@ -109,8 +109,8 @@ def df_ref_ensemble_stats(ref_data) -> dict:
     }
 
 
-@pytest.fixture(name="nc_with_T_U_V", scope="module")
-def fixture_nc_with_T_U_V(tmp_dir) -> str:
+@pytest.fixture(name="nc_with_t_u_v", scope="module")
+def fixture_nc_with_t_u_v(tmp_dir) -> str:
     """
     Create a netcdf file with variables T, U and V.
     The variables are 3D with dimensions time, lat and lon.
@@ -124,26 +124,26 @@ def fixture_nc_with_T_U_V(tmp_dir) -> str:
     lon, lat = np.meshgrid(lon, lat)
 
     # Generate non-random data for variables T,V and U
-    T = 20 + 5 * np.sin(
+    t = 20 + 5 * np.sin(
         np.pi * lat / 180
     )  # Temperature varies sinusoidally with latitude
-    V = 100 * np.cos(np.pi * lon / 180)  # Velocity varies cosinusoidally with longitude
-    U = 100 * np.sin(np.pi * lon / 180)  # Velocity varies sinusoidally with longitude
+    v = 100 * np.cos(np.pi * lon / 180)  # Velocity varies cosinusoidally with longitude
+    u = 100 * np.sin(np.pi * lon / 180)  # Velocity varies sinusoidally with longitude
 
     # Create xarray Dataset
     ds = xr.Dataset(
         {
             "T": (
                 ("time", "lat", "lon"),
-                np.tile(T[np.newaxis, :, :], (len(time), 1, 1)),
+                np.tile(t[np.newaxis, :, :], (len(time), 1, 1)),
             ),
             "V": (
                 ("time", "lat", "lon"),
-                np.tile(V[np.newaxis, :, :], (len(time), 1, 1)),
+                np.tile(v[np.newaxis, :, :], (len(time), 1, 1)),
             ),
             "U": (
                 ("time", "lat", "lon"),
-                np.tile(U[np.newaxis, :, :], (len(time), 1, 1)),
+                np.tile(u[np.newaxis, :, :], (len(time), 1, 1)),
             ),
         },
         coords={"time": time, "lat": ("lat", lat[:, 0]), "lon": ("lon", lon[0, :])},

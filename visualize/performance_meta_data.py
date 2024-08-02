@@ -16,7 +16,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from util.click_util import CommaSeperatedStrings, cli_help
-from util.constants import datetime_format
+from util.constants import DATETIME_FORMAT
 from util.log_handler import logger
 from util.tree import TimingTree
 from util.utils import unique_elements
@@ -80,7 +80,7 @@ def performance_meta_data(
     dates = tt.meta_data["finish_time"]
     if isinstance(dates, str):
         dates = [dates]
-    dates = sorted([datetime.strptime(s, datetime_format) for s in dates])
+    dates = sorted([datetime.strptime(s, DATETIME_FORMAT) for s in dates])
 
     # create dataframe for revisions and align to tt.data
     index = tt.data[i_table].index
@@ -96,7 +96,7 @@ def performance_meta_data(
     seltime = [
         t
         for t in tt.meta_data["finish_time"]
-        if datetime.strptime(t, datetime_format) > reftime
+        if datetime.strptime(t, DATETIME_FORMAT) > reftime
     ]
     data = pd.concat(
         [

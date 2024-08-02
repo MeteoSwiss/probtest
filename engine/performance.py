@@ -18,7 +18,7 @@ from util.click_util import cli_help
 from util.file_system import file_names_from_pattern
 from util.icon.extract_timings import read_logfile
 from util.log_handler import logger
-from util.tree import TimingTree, treefile_template
+from util.tree import TREEFILE_TEMPLATE, TimingTree
 
 
 @click.command()
@@ -88,8 +88,8 @@ def performance(timing_regex, timing_database, append_time):
                         )
                         logger.info("tree changed, saving backup as: %s", backup)
                         shutil.copy(
-                            treefile_template.format(base=f"{timing_database}_{i}"),
-                            treefile_template.format(base=f"{backup}_{i}"),
+                            TREEFILE_TEMPLATE.format(base=f"{timing_database}_{i}"),
+                            TREEFILE_TEMPLATE.format(base=f"{backup}_{i}"),
                         )
                 base.add(tt)
                 base.json_dump(timing_database)
