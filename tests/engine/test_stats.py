@@ -36,6 +36,15 @@ def initialize_dummy_netcdf_file(name):
 
 
 class TestStatsNetcdf(unittest.TestCase):
+    """
+    Unit test class for validating statistical calculations from NetCDF files.
+
+    This class tests the accuracy of statistical calculations (mean, max, min)
+    performed on data extracted from NetCDF files.
+    It ensures that the statistics DataFrame produced from the NetCDF data
+    matches expected values.
+    """
+
     nc_file_name = "test_stats.nc"
     nc_file_glob = "test_s*.nc"
     stats_file_names = "test_stats.csv"
@@ -104,6 +113,17 @@ class TestStatsNetcdf(unittest.TestCase):
 
 
 class TestStatsCsv(unittest.TestCase):
+    """
+    Test suite for validating statistical calculations and CSV file handling.
+
+    This class contains unit tests for creating and validating statistics from a
+    CSV file.
+    The primary focus is on ensuring that the statistics calculated from the
+    input data match the expected values.
+    The CSV file used for testing is created and cleaned up during the test
+    lifecycle.
+    """
+
     dat_file_name = "test_stats_csv.dat"
     stats_file_name = "test_stats_csv.csv"
 

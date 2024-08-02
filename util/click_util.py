@@ -53,6 +53,15 @@ def load_defaults(sections):
 
 
 class CommaSeperatedInts(click.ParamType):
+    """
+    A custom Click parameter type for handling comma-separated integers.
+
+    This class defines a Click parameter type that converts a comma-separated
+    string input into a list of integers.
+    It is used to parse command-line arguments where multiple integer values are
+    provided as a single comma-separated string.
+    """
+
     name = "CommaSeperatedInts"
 
     def convert(self, value, param, ctx):
@@ -64,6 +73,15 @@ class CommaSeperatedInts(click.ParamType):
 
 
 class CommaSeperatedStrings(click.ParamType):
+    """
+    A custom Click parameter type for handling comma-separated strings.
+
+    This class defines a Click parameter type that converts a comma-separated
+    string input into a list of strings.
+    It is used to parse command-line arguments where multiple string values are
+    provided as a single comma-separated string.
+    """
+
     name = "CommaSeperatedStrings"
 
     def convert(self, value, param, ctx):

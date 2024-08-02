@@ -20,6 +20,16 @@ datafile_template = "{base}_data.json"
 
 
 class TimingNode(dict):
+    """
+    Represents a node in a timing tree structure, which can have a hierarchical
+    relationship with other nodes.
+
+    The `TimingNode` class extends `dict` to store additional attributes like
+    `name`, `ancestry`, and `children`.
+    It supports various operations to manipulate and query nodes within a timing
+    tree.
+    """
+
     def __init__(self, name, ancestry=None):
         if ancestry is None:
             ancestry = []
@@ -117,6 +127,16 @@ class TimingNode(dict):
 
 
 class TimingTree:
+    """
+    A class representing a tree structure for timing data with associated
+    metadata.
+
+    This class provides functionality for constructing, manipulating, and
+    storing timing data organized in a tree structure.
+    It supports loading data from log files or JSON files, adding and combining
+    data from different sources, and saving the tree and its data to files.
+    """
+
     def __init__(self, root, data, meta_data):
         self.root = root
         self.data = data

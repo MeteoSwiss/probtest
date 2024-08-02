@@ -30,6 +30,17 @@ pd.set_option("display.max_columns", None)
 
 
 class TestTimingTree(unittest.TestCase):
+    """
+    Unit tests for the `TimingTree` class, covering initialization, data
+    manipulation, and tree operations.
+
+    This class uses the `unittest` framework to verify the correctness of
+    methods and functionality in the `TimingTree` class.
+    It includes tests for reading timing data from log files, loading and
+    comparing timing trees from JSON files, and performing tree operations like
+    intersection, subtractions, growing, and addition.
+    """
+
     @classmethod
     def setUpClass(cls):
         test_path = os.path.realpath("tests/tmp")

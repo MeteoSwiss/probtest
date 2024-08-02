@@ -18,6 +18,15 @@ from util.dataframe_ops import (
 
 
 class TestCheck(unittest.TestCase):
+    """
+    Unit tests for the functionality of tolerance checking in dataframes.
+
+    This class uses the `unittest` framework to validate the correctness of
+    functions involved in computing and checking tolerances between dataframes,
+    especially in the context of relative differences between expected and
+    observed data.
+    """
+
     def setUp(self):
         index = pd.MultiIndex.from_arrays(
             [

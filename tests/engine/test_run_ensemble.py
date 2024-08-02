@@ -12,6 +12,14 @@ from engine.run_ensemble import append_job, finalize_jobs
 
 
 class TestRunEnsemble(unittest.TestCase):
+    """
+    Test suite for validating job management functions in different execution
+    modes.
+
+    This class contains unit tests for functions responsible for appending and
+    finalizing jobs, both in serial and parallel execution modes.
+    """
+
     def testJobSuccessfulSerial(self):
         job = "test 1 = 1".split()
         append_job(job=job, job_list=[], parallel=False)

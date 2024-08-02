@@ -21,6 +21,15 @@ ARRAY_DIM = 100
 
 
 class TestPerturb(unittest.TestCase):
+    """
+    Unit tests for verifying the functionality of perturbation methods applied
+    to arrays and NetCDF datasets.
+
+    This class uses the `unittest` framework to ensure the correctness of
+    perturbation operations on both in-memory arrays and NetCDF4 datasets.
+    It checks that perturbation functions produce the expected results and
+    handle different data types correctly.
+    """
 
     def __init__(self, methodName="runTest"):
         super().__init__(methodName=methodName)
