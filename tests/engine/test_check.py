@@ -133,7 +133,7 @@ class TestCheckSwapped(TestCheck):
     """Test that all Checks are symmetrical"""
 
     def check(self, df1, df2):
-        super().check(df2, df1)
+        super().check(df2, df1)  # pylint: disable=arguments-out-of-order
 
 
 if __name__ == "__main__":
