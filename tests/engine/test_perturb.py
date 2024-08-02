@@ -14,6 +14,11 @@ ARRAY_DIM = 100
 
 
 class TestPerturb(unittest.TestCase):
+
+    def __init__(self, methodName="runTest"):
+        super().__init__(methodName=methodName)
+        self.data = [None] * 2
+
     @classmethod
     def setUpClass(cls):
         test_path = os.path.realpath("tests/tmp")
@@ -52,7 +57,6 @@ class TestPerturb(unittest.TestCase):
         )
 
     def test_perturb_nc(self):
-        self.data = [None] * 2
 
         # create two dummy netcdf4 files, one with single, one with double precision
         for i, dt in enumerate([np.float32, np.float64]):
