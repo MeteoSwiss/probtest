@@ -1,3 +1,10 @@
+"""
+This module contains unittests for verifying the behavior of the `perturb_array`
+function and its application to numpy arrays and NetCDF4 files.
+It ensures the correctness of array perturbations and validates the precision
+and amplitude of the perturbations.
+"""
+
 import os
 import shutil
 import unittest

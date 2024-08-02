@@ -1,3 +1,8 @@
+"""
+This module contains test cases for verifying the functionality of the
+`stats_cli` command-line interface (CLI).
+"""
+
 import os
 
 import pytest

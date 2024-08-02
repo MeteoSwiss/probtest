@@ -1,3 +1,14 @@
+"""
+Extracts and prints configuration flags for a specified builder from a file.
+
+This script takes a file path and a builder name as command-line arguments. It
+searches the file for a configuration string associated with the specified
+builder and extracts the configuration flags.
+
+Usage:
+    python script_name.py <file_path> <builder>
+"""
+
 import re
 import sys
 

@@ -1,3 +1,14 @@
+"""
+CLI for performance checks
+
+This module provides a command-line interface (CLI) tool for evaluating the
+performance of a current experiment by comparing its timing data with a
+reference.
+It assesses whether the current experiment's runtime is within acceptable limits
+based on specified parameters and provides feedback on whether the performance
+check has passed or failed.
+"""
+
 import sys
 
 import click

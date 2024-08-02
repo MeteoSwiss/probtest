@@ -1,3 +1,12 @@
+"""
+CLI for Checking Data Files with Tolerances
+
+This module defines a CLI to compare two data files (reference and current)
+against specified tolerances.
+It utilizes utility functions for testing statistical files with tolerances and
+computing divergence between DataFrames.
+"""
+
 import sys
 
 import click

@@ -1,3 +1,12 @@
+"""
+CLI for member selection
+
+This script provides a command line interface for selecting members and testing
+tolerance factors for statistical data.
+It can find members and a corresponding tolerance factor that validate for all
+stats files or test the tolerance of a given selection.
+"""
+
 import logging
 import os
 import sys

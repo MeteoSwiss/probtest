@@ -1,3 +1,8 @@
+"""
+This module contains test cases to validate the functionality of member
+selection and tolerance testing CLI commands.
+"""
+
 import os
 import re
 

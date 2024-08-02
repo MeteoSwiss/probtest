@@ -1,3 +1,12 @@
+"""
+CLI for initializing command-line options
+
+This module provides command line interface for initializing a configuration
+file for probtest by rendering a Jinja2 template with provided command-line
+options.
+The resulting configuration is saved as a JSON file.
+"""
+
 import json
 import pathlib
 from pathlib import Path

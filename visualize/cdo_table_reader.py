@@ -1,3 +1,8 @@
+"""
+This module provides a command-line interface (CLI) for processing and
+displaying data from a CSV file.
+"""
+
 import click
 import pandas as pd
 

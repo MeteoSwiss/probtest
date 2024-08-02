@@ -1,3 +1,13 @@
+"""
+CLI for perturbing NetCDF files.
+
+This command line tool provides functionality for:
+- Creating copies of specified model files and optionally copying all files from
+  a source directory to a destination directory.
+- Applying perturbations to arrays in NetCDF files based on a specified
+  amplitude and random seed.
+"""
+
 import os
 import shutil
 

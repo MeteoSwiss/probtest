@@ -1,3 +1,8 @@
+"""
+This module provides a function to copy a NetCDF file while converting variable
+data types.
+"""
+
 import numpy as np
 from netCDF4 import Dataset  # pylint: disable=no-name-in-module
 

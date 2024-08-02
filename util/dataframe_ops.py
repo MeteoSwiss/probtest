@@ -1,3 +1,10 @@
+"""
+This module provides functions for statistical analysis and comparison of
+datasets, primarily for performance testing and validation.
+It includes utilities to handle data reading, processing, and comparison against
+reference datasets with specified tolerances.
+"""
+
 import sys
 import warnings
 

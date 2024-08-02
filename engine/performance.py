@@ -1,3 +1,12 @@
+"""
+CLI for Performance Timing
+
+This module provides a command-line interface (CLI) for managing performance
+timing data.
+It allows users to either append new timing data to an existing database or
+overwrite it with new data.
+"""
+
 import os
 import shutil
 import sys

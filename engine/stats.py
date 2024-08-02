@@ -1,3 +1,12 @@
+"""
+CLI for computing stats
+
+This command line tool provides functionality for:
+- Creating and saving statistics dataframes from specified model output files.
+- Verifying that lists of values are monotonically increasing.
+- Generating statistics for both ensemble and reference model runs.
+"""
+
 from pathlib import Path
 
 import click

@@ -1,3 +1,10 @@
+"""
+CLI for CDO Table Generation
+
+This module computes and generates a CDO table by comparing model output data
+against perturbed model data.
+"""
+
 import tempfile
 from pathlib import Path
 

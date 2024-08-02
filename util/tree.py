@@ -1,3 +1,8 @@
+"""
+This module provides classes and functions for managing and manipulating timing
+tree data.
+"""
+
 import json
 import os
 import sys

@@ -1,3 +1,10 @@
+"""
+This module contains test cases for validating the functionality of the
+`performance_cli` command-line interface (CLI).
+The tests are focused on checking the correctness of timing and performance data
+generated from the CLI, including comparing the results with reference data.
+"""
+
 import os
 
 from tests.helpers import (

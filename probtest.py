@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+"""
+Command-line interface (CLI) for the probabilistic testing and analysis tool.
+
+This script uses the Click library to define a command-line interface for
+various subcommands related to probabilistic testing, performance analysis, and
+visualization.
+"""
 import click
 import matplotlib
 

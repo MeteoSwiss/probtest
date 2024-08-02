@@ -1,3 +1,10 @@
+"""
+CLI for computing tolerance values from statistical datasets
+
+This module reads statistical data from CSV files, computes relative differences,
+and determines the tolerance levels for various ensemble members.
+"""
+
 import os
 import sys
 

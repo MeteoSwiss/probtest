@@ -1,3 +1,9 @@
+"""
+This module contains unit tests to verify the functionality of the TimingTree class,
+including reading log files, loading from JSON, intersection and subtraction of trees,
+growing trees with new nodes, and adding trees together.
+"""
+
 import os
 import shutil
 import unittest

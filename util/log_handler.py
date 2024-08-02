@@ -1,3 +1,11 @@
+"""
+This module provides logging utilities for setting up and configuring loggers.
+
+This module provides functionality for:
+- Initializing a logger with specified log levels and output destinations.
+- Configuring logging to both console and file with a simple format.
+"""
+
 import logging
 import sys
 

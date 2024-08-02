@@ -1,3 +1,9 @@
+"""
+This module contains unit tests for the `create_stats_dataframe` function from
+the `engine.stats` module. It tests the functionality of creating statistical
+dataframes from both NetCDF and CSV files.
+"""
+
 import os
 import unittest
 

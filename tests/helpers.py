@@ -1,3 +1,14 @@
+"""
+Test helper utilities
+
+This module provides a collection of utility functions and CLI wrappers for
+handling NetCDF data, pandas DataFrames, and various performance and
+perturbation operations.
+It includes functions to load and process data, perform statistical analysis,
+and run CLI commands related to performance, tolerance, perturbation, and
+selection of ensemble members.
+"""
+
 import logging
 import os
 import random

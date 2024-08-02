@@ -1,3 +1,10 @@
+"""
+This module contains unit tests for the `engine.run_ensemble` module functions,
+specifically `append_job` and `finalize_jobs`.
+It uses the `unittest` framework to ensure the correctness of these functions
+under different scenarios.
+"""
+
 import subprocess
 import unittest
 

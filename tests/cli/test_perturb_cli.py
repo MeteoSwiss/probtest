@@ -1,3 +1,7 @@
+"""
+This module contains tests for verifying the functionality of perturbing NetCDF files.
+"""
+
 import os
 
 import pytest

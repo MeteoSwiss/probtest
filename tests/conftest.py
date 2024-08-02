@@ -1,3 +1,13 @@
+"""
+Test Fixtures for Performance and Perturbation Testing
+
+This module defines various pytest fixtures for setting up test environments,
+data files, and configurations required for performance testing and perturbation
+experiments.
+These fixtures create necessary temporary files and directories, generate test
+data, and provide setup and teardown mechanisms for efficient testing.
+"""
+
 import os
 import shutil
 import tempfile

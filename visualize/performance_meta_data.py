@@ -1,3 +1,12 @@
+"""
+CLI for performance meta data plotting script
+
+This script provides a CLI for plotting performance meta data based on timing logs.
+It reads timing data from a specified JSON database and generates plots showing
+runtime changes across different revisions for specified timers.
+The script can save the plots to a specified directory or display them directly.
+"""
+
 from datetime import datetime, timedelta
 from pathlib import Path
 

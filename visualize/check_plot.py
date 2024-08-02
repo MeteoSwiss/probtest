@@ -1,3 +1,12 @@
+"""
+CLI for plotting and checking model results against tolerance levels
+
+This module provides functionality for:
+- Deleting uninitialized fields from DataFrames.
+- Generating plots to visualize the relative differences between model outputs
+  and reference data, compared against specified tolerance levels.
+"""
+
 from pathlib import Path
 
 import click

@@ -1,3 +1,10 @@
+"""
+This module provides a function to compute statistics over specified horizontal
+dimensions of an `xarray.DataArray`.
+The function supports calculating various statistics (mean, max, min, etc.) and
+handling missing values based on attributes defined in the dataset.
+"""
+
 import sys
 
 from util.log_handler import logger

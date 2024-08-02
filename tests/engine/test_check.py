@@ -1,3 +1,9 @@
+"""
+This module contains unittests for verifying the behavior of data frame operations
+related to the PROBTEST suite. It ensures the correctness of relative difference
+calculations and the checking of variable values against specified tolerances.
+"""
+
 import unittest
 
 import numpy as np

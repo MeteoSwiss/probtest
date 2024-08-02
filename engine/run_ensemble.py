@@ -1,3 +1,12 @@
+"""
+CLI for running ensembles
+
+This module provides a command-line interface (CLI) for running ensemble
+simulations with perturbed configurations.
+It allows users to execute a series of simulation runs by modifying the run
+scripts with specified perturbations and managing job submissions.
+"""
+
 import os
 import re
 import subprocess

@@ -1,3 +1,17 @@
+"""
+CLI for generating and saving performance plots
+
+This script creates performance plots for various timing names from a timing
+database. The performance data is visualized as time series graphs, where each
+timing name is plotted alongside its associated timing data. The script also
+highlights revision periods on the plot for easier comparison.
+
+Usage:
+    python script_name.py --timing-database <timing_database> --savedir
+    <savedir> --timing-names <timing_names> --experiment-name <experiment_name>
+    [--i-table <i_table>]
+"""
+
 from datetime import datetime, timedelta
 
 import click

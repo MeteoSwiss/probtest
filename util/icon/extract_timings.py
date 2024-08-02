@@ -1,3 +1,8 @@
+"""
+This module provides utilities for parsing log files and converting them into
+timing data.
+"""
+
 import re
 import sys
 from datetime import datetime

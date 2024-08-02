@@ -1,3 +1,7 @@
+"""
+This module provides a function for searching files in a directory based on a pattern.
+"""
+
 from pathlib import Path
 
 from util.log_handler import logger

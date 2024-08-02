@@ -1,3 +1,10 @@
+"""
+This module provides utility functionality for loading configuration defaults for
+probtest from a JSON configuration file and defining custom Click parameter
+types for handling comma-separated values.
+It also contains help messages for various command-line options.
+"""
+
 import json
 import os
 import pathlib

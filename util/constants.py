@@ -1,3 +1,8 @@
+"""
+This module contains constants, configuration settings, and type mappings for
+handling numerical data.
+"""
+
 import numpy as np
 
 MODE_INIT = "init"

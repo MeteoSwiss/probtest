@@ -1,3 +1,28 @@
+"""
+Definition of available model output data parsers
+
+All available parsers are summarized in the dict `model_output_parser` at the
+end of this module.
+
+Each parser expects two arguments:
+file_id: str
+  identifier of the file type
+filename: str
+  full file name
+specification: dict
+  Dictionary with type specific settings
+
+Each parser returns a list of Pandas DataFrame:
+  index = pd.MultiIndex.from_product(
+      [[file_id], [varname], height], names=("file_ID", "variable", "height")
+  )
+  columns = pd.MultiIndex.from_product(
+      [time, compute_statistics], names=("time", "statistic")
+  )
+
+  return [pd.DataFrame(matrix, index=index, columns=columns)]
+"""
+
 import sys
 from collections.abc import Iterable
 
@@ -9,29 +34,6 @@ from util.constants import compute_statistics
 from util.log_handler import logger
 from util.utils import numbers
 from util.xarray_ops import statistics_over_horizontal_dim
-
-# Definition of available model output data parsers
-#
-# All available parsers are summarized in the dict `model_output_parser` at the
-# end of this module.
-#
-# Each parser expects two arguments:
-# file_id: str
-#    identifier of the file type
-# filename: str
-#    full file name
-# specification: dict
-#    Dictionary with type specific settings
-#
-# Each parser returns a list of Pandas DataFrame:
-#    index = pd.MultiIndex.from_product(
-#        [[file_id], [varname], height], names=("file_ID", "variable", "height")
-#    )
-#    columns = pd.MultiIndex.from_product(
-#        [time, compute_statistics], names=("time", "statistic")
-#    )
-#
-#    return [pd.DataFrame(matrix, index=index, columns=columns)]
 
 
 def parse_netcdf(file_id, filename, specification):
