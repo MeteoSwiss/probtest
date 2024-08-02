@@ -31,8 +31,14 @@ def compute_rel_diff(var1, var2):
 
 
 def rel_diff_stats(
-    file_id, filename, varname, time_dim, horizontal_dims, xarray_ds, fill_value_key
-):
+    file_id,
+    filename,
+    varname,
+    time_dim,
+    horizontal_dims,
+    xarray_ds,
+    fill_value_key,
+):  # pylint: disable=unused-argument
     dims = xarray_ds[varname].dims
     dataarray = xarray_ds[varname]
     time = xarray_ds[time_dim].values

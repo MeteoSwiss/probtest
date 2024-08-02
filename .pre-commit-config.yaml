@@ -121,7 +121,7 @@ repos:
           types: [python]
           args:
           - "--max-line-length=88"
-          - "--disable=C0103,C0114,C0115,C0116,R0801,R0912,R0913,R0914,R0915,R1710,W0511,W0613,W0622,W0719,W1114"
+          - "--disable=C0103,C0114,C0115,C0116,R0801,R0912,R0913,R0914,R0915,R1710,W0511,W0622,W0719,W1114"
   -   repo: local
       hooks:
       -   id: flake8

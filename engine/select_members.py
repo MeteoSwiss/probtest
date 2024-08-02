@@ -253,7 +253,7 @@ def select_members(
     min_factor,
     max_factor,
     iterations,
-):
+):  # pylint: disable=unused-argument
 
     if min_member_num > max_member_num:
         logger.error(
