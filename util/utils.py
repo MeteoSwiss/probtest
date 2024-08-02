@@ -11,12 +11,12 @@ def unique_elements(inlist):
     return unique
 
 
-def first_idx_of(list, element):
-    return list.index(element)
+def first_idx_of(li, el):
+    return li.index(el)
 
 
-def last_idx_of(list, element):
-    return len(list) - list[::-1].index(element) - 1
+def last_idx_of(li, el):
+    return len(li) - li[::-1].index(el) - 1
 
 
 def numbers(s):

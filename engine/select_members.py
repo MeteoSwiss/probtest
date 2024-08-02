@@ -41,14 +41,14 @@ def find_members_and_factor_validating_for_all_stats_files(
         for mem_num in range(min_member_num, max_member_num + 1):
             logger.info("Try with %s members.", mem_num)
             max_passed = 1
-            vars = []
-            for iter in range(iterations):
+            variables = []
+            for iteration in range(iterations):
                 random_members = np.random.choice(
                     members, size=mem_num, replace=False, p=weights
                 )
                 logger.info(
                     "Test %s with %s randomly selected members and factor %s.",
-                    iter + 1,
+                    iteration + 1,
                     mem_num,
                     f,
                 )
@@ -81,20 +81,20 @@ def find_members_and_factor_validating_for_all_stats_files(
                 # weights needs to sum up to 1 for np.random.choice
                 weights = weights / sum(weights)
 
-                vars.extend(new_vars)
+                variables.extend(new_vars)
 
                 if (mem_num == max_member_num) and (f == max_factor):
-                    duplicates = dict(Counter(vars).items())
+                    duplicates = dict(Counter(variables).items())
                     sorted_duplicates = dict(
                         sorted(duplicates.items(), key=lambda x: x[1], reverse=True)
                     )
                 # The following is to save computing time
-                elif iter < 32:
+                elif iteration < 32:
                     max_passed = max(max_passed, sum(passed))
                     # The more combs were tested
                     # the higher should the success rate be to continue
                     tested_stats = len(validation_members)
-                    if max_passed < (iter + 1) * 0.03 * tested_stats:
+                    if max_passed < (iteration + 1) * 0.03 * tested_stats:
                         break
 
                 if sum(passed) == len(validation_members):
@@ -114,7 +114,7 @@ def find_members_and_factor_validating_for_all_stats_files(
         max_member_num,
         most_common_vars,
         max_count,
-        iter + 1,
+        iteration + 1,
     )
     sys.exit(1)
 
@@ -136,7 +136,7 @@ def test_selection(
     original_level = logging.getLogger().level
     logging.getLogger().setLevel(logging.ERROR)
 
-    vars = []
+    variables = []
     i = 0
     for m_num in members:
         m_id = str(m_num) if not member_type else member_type + "_" + str(m_num)
@@ -151,12 +151,12 @@ def test_selection(
         if not out:
             var = set(index[1] for index in err[0].index)
             var = list(var)
-            vars.extend(var)
+            variables.extend(var)
         else:
             passed[i] = 1
         i = i + 1
 
-    vars = list(set(vars))
+    variables = list(set(variables))
 
     # Reset logger level
     logging.getLogger().setLevel(original_level)
@@ -165,7 +165,7 @@ def test_selection(
         sum(passed),
         total_member_num,
     )
-    return passed, vars
+    return passed, variables
 
 
 @click.command()

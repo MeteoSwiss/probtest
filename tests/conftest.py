@@ -35,9 +35,9 @@ def df_ref_performance(ref_data) -> TimingTree:
 
 @pytest.fixture(name="tmp_dir", scope="module")
 def fixture_tmp_dir():
-    dir = tempfile.mkdtemp()
-    yield dir
-    shutil.rmtree(dir)
+    tmp_dir = tempfile.mkdtemp()
+    yield tmp_dir
+    shutil.rmtree(tmp_dir)
 
 
 @pytest.fixture(scope="module")
