@@ -1,3 +1,5 @@
+import sys
+
 import click
 
 from util.click_util import cli_help
@@ -71,7 +73,7 @@ def performance_check(
                 "The current experiment ran a lot faster than the reference. "
                 + "Consider updating the reference."
             )
-        exit(0)
+        sys.exit(0)
     else:
         logger.info("RESULT: performance_check FAILED")
-        exit(1)
+        sys.exit(1)

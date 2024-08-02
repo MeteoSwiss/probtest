@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from collections import Counter
 from datetime import datetime
 
@@ -24,7 +25,7 @@ def find_members_and_factor_validating_for_all_stats_files(
     iterations,
 ):
 
-    members = [i for i in range(1, total_member_num + 1)]
+    members = list(range(1, total_member_num + 1))
 
     # Iteratively change likelihood of members being selected
     # to come to a solution faster
@@ -83,14 +84,13 @@ def find_members_and_factor_validating_for_all_stats_files(
                 vars.extend(new_vars)
 
                 if (mem_num == max_member_num) and (f == max_factor):
-                    duplicates = {item: count for item, count in Counter(vars).items()}
+                    duplicates = dict(Counter(vars).items())
                     sorted_duplicates = dict(
                         sorted(duplicates.items(), key=lambda x: x[1], reverse=True)
                     )
                 # The following is to save computing time
                 elif iter < 32:
-                    if max_passed < sum(passed):
-                        max_passed = sum(passed)
+                    max_passed = max(max_passed, sum(passed))
                     # The more combs were tested
                     # the higher should the success rate be to continue
                     tested_stats = len(validation_members)
@@ -116,7 +116,7 @@ def find_members_and_factor_validating_for_all_stats_files(
         max_count,
         iter + 1,
     )
-    exit(1)
+    sys.exit(1)
 
 
 # Tests how may stats files pass the tolerance test for the selected members
@@ -125,7 +125,7 @@ def test_selection(
     stats_file_name, tolerance_file_name, total_member_num, member_type, factor
 ):
     if isinstance(total_member_num, int):
-        members = [i for i in range(1, total_member_num + 1)]
+        members = list(range(1, total_member_num + 1))
     else:
         members = total_member_num
         total_member_num = len(members)
@@ -259,15 +259,15 @@ def select_members(
         logger.error(
             "ERROR: min_member_num must be equal or smaller than max_member_num"
         )
-        exit(1)
+        sys.exit(1)
 
     if min_factor > max_factor:
         logger.error("ERROR: min_factor must be equal or smaller than max_factor")
-        exit(1)
+        sys.exit(1)
 
     if max_member_num >= total_member_num:
         logger.error("ERROR: max_member_num must be smaller than total_member_num")
-        exit(1)
+        sys.exit(1)
 
     if test_tolerance:
         # Test selection
@@ -305,5 +305,3 @@ def select_members(
         # The last created file was successful
         logger.info("Writing tolerance file to %s", tolerance_file_name)
         os.rename("random_tolerance.csv", tolerance_file_name)
-
-    return

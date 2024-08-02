@@ -81,7 +81,7 @@ def stats(
     # compute stats for the ensemble run
     if ensemble:
         if len(member_num) == 1:
-            member_num = [i for i in range(1, member_num[0] + 1)]
+            member_num = list(range(1, member_num[0] + 1))
         for m_num in member_num:
             m_id = str(m_num)
             if member_type:

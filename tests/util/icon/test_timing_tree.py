@@ -164,8 +164,6 @@ class TestTimingTree(unittest.TestCase):
             msg="did not add (non-present) node nh_solve.edgecomp",
         )
 
-        return
-
     def test_add(self):
         tt1 = TimingTree.from_logfile(timing_file_1, read_logfile)
         tt2 = TimingTree.from_logfile(timing_file_2, read_logfile)

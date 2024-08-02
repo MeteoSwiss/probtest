@@ -116,7 +116,7 @@ def cdo_table(
     # TODO: A single perturbed run provides enough data to make proper statistics.
     #       refactor cdo_table interface to reflect that
     if len(member_num) == 1:
-        member_num = [i for i in range(1, member_num[0] + 1)]
+        member_num = list(range(1, member_num[0] + 1))
     if member_type:
         member_id = member_type + "_" + str(member_num[0])
     else:

@@ -63,12 +63,12 @@ class TestStatsNetcdf(unittest.TestCase):
 
     def test_stats(self):
         file_specification = {
-            "Test data": dict(
-                format="netcdf",
-                time_dim="t",
-                horizontal_dims=["x"],
-                fill_value_key="_FillValue",  # This should be the name for fill_value.
-            ),
+            "Test data": {
+                "format": "netcdf",
+                "time_dim": "t",
+                "horizontal_dims": ["x"],
+                "fill_value_key": "_FillValue",  # should be the name for fill_value
+            },
         }
 
         df = create_stats_dataframe(
@@ -117,14 +117,14 @@ class TestStatsCsv(unittest.TestCase):
 
     def test_stats(self):
         file_specification = {
-            "Test data": dict(
-                format="csv",
-                parser_args=dict(
-                    delimiter="\\s+",
-                    header=0,
-                    index_col=0,
-                ),
-            ),
+            "Test data": {
+                "format": "csv",
+                "parser_args": {
+                    "delimiter": "\\s+",
+                    "header": 0,
+                    "index_col": 0,
+                },
+            },
         }
 
         df = create_stats_dataframe(

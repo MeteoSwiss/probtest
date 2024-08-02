@@ -144,5 +144,3 @@ def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, save
         fig.savefig(path)
     else:
         plt.show()
-
-    return

@@ -62,7 +62,7 @@ class CommaSeperatedStrings(click.ParamType):
     def convert(self, value, param, ctx):
         if isinstance(value, list):
             return value
-        elif not isinstance(value, str):
+        if not isinstance(value, str):
             self.fail(f"Input must be a int, found {value}", param, ctx)
         return list(filter(lambda x: x != "", value.split(",")))
 

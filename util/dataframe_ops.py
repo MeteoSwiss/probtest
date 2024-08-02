@@ -266,7 +266,7 @@ def test_stats_file_with_tolerances(
     skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
     if skip_test:  # No intersection
         logger.info("RESULT: check FAILED")
-        exit(1)
+        sys.exit(1)
 
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)

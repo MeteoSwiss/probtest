@@ -24,17 +24,16 @@ def statistics_over_horizontal_dim(
     dims = xarray_da.dims
     for hor_dim in horizontal_dims:
         hor_dim = hor_dim.split(":")
-        if all([d in dims for d in hor_dim]):
+        if all(d in dims for d in hor_dim):
             if mask is None:
                 return [
                     getattr(xarray_da, s)(dim=hor_dim, skipna=False)
                     for s in compute_statistics
                 ]
-            else:
-                return [
-                    getattr(xarray_da.where(mask), s)(dim=hor_dim, skipna=True)
-                    for s in compute_statistics
-                ]
+            return [
+                getattr(xarray_da.where(mask), s)(dim=hor_dim, skipna=True)
+                for s in compute_statistics
+            ]
 
     logger.error(
         "Could not find horizontal dimension for variable '%s'. Dims: %s",

@@ -53,7 +53,7 @@ class TimingNode(dict):
         return out
 
     def to_list(self):
-        out = [c for c in self.children]
+        out = list(self.children)
         for c in self.children:
             out += c.to_list()
         return out
@@ -304,4 +304,3 @@ class TimingTree:
             )
             new_parent = self.find_ancestor(n, i_table, k=1)
             new_parent.add_child(n)
-        return

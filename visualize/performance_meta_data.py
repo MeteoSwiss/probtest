@@ -128,5 +128,3 @@ def performance_meta_data(
         plot_meta_data_timer(
             t, data_mean, revs, ax[i // 3, i % 3], experiment_name, savedir
         )
-
-    return
