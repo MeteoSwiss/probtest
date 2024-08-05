@@ -172,6 +172,6 @@ def parse_time(time_string):
         s = 0
         m = 0
         h = 0
-        logger.error("did not match regex")
+        logger.warning("did not match regex")
     out = float(h) * 60 * 60 + float(m) * 60 + float(s)
     return out
