@@ -84,33 +84,36 @@ def parse_grib(file_id, filename, specification):
             ds_grib.sel(typeOfLevel=lev, shortName=short_name).metadata("paramId")
         ).tolist()
         for pid in paramId:
-            ds_temp = get_ds(ds_grib, pid, lev)
-            v = list(ds_temp.keys())[0]
+            ds_temp_list = get_ds(ds_grib, pid, lev)
+            for ds_temp in ds_temp_list:
+                v = list(ds_temp.keys())[0]
 
-            dim_to_squeeze = [
-                dim
-                for dim, size in zip(ds_temp[v].dims, ds_temp[v].shape)
-                if size == 1 and dim != time_dim
-            ]
-            ds = ds_temp.squeeze(dim=dim_to_squeeze)
+                dim_to_squeeze = [
+                    dim
+                    for dim, size in zip(ds_temp[v].dims, ds_temp[v].shape)
+                    if size == 1 and dim != time_dim
+                ]
+                ds = ds_temp.squeeze(dim=dim_to_squeeze)
 
-            sub_df = dataframe_from_ncfile(
-                file_id=file_id,
-                filename=filename,
-                varname=v,
-                time_dim=time_dim,
-                horizontal_dims=horizontal_dims,
-                xarray_ds=ds,
-                fill_value_key=fill_value_key,
-            )
-            var_dfs.append(sub_df)
+                sub_df = dataframe_from_ncfile(
+                    file_id=file_id,
+                    filename=filename,
+                    varname=v,
+                    time_dim=time_dim,
+                    horizontal_dims=horizontal_dims,
+                    xarray_ds=ds,
+                    fill_value_key=fill_value_key,
+                )
+                var_dfs.append(sub_df)
 
     return var_dfs
 
 
 def get_ds(ds_grib, pid, lev):
+    ds_list = []
     try:
         ds = ds_grib.sel(paramId=pid, typeOfLevel=lev).to_xarray()
+        ds_list.append(ds)
     except KeyError:
         stepType = np.unique(
             ds_grib.sel(paramId=pid, typeOfLevel=lev).metadata("stepType")
@@ -120,6 +123,7 @@ def get_ds(ds_grib, pid, lev):
                 ds = ds_grib.sel(
                     paramId=pid, typeOfLevel=lev, stepType=steps
                 ).to_xarray()
+                ds_list.append(ds)
             except KeyError:
                 num_points = np.unique(
                     ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps).metadata(
@@ -134,6 +138,7 @@ def get_ds(ds_grib, pid, lev):
                             stepType=steps,
                             numberOfPoints=points,
                         ).to_xarray()
+                        ds_list.append(ds)
                     except KeyError:
                         units = np.unique(
                             ds_grib.sel(
@@ -152,6 +157,7 @@ def get_ds(ds_grib, pid, lev):
                                     numberOfPoints=points,
                                     stepUnits=unit,
                                 ).to_xarray()
+                                ds_list.append(ds)
                             except KeyError:
                                 dataType = np.unique(
                                     ds_grib.sel(
@@ -172,6 +178,7 @@ def get_ds(ds_grib, pid, lev):
                                             stepUnits=unit,
                                             dataType=dtype,
                                         ).to_xarray()
+                                        ds_list.append(ds)
                                     except KeyError:
                                         gridType = np.unique(
                                             ds_grib.sel(
@@ -194,13 +201,14 @@ def get_ds(ds_grib, pid, lev):
                                                     dataType=dtype,
                                                     gridType=gtype,
                                                 ).to_xarray()
+                                                ds_list.append(ds)
                                             except KeyError:
                                                 print(
                                                     f"GRIB file of level {lev} and"
                                                     "paramId {pid} cannot be read."
                                                 )
 
-    return ds
+    return ds_list
 
 
 def __get_variables(data, time_dim, horizontal_dims):
