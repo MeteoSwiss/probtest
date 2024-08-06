@@ -251,9 +251,7 @@ def check_variable(diff_df, df_tol):
     return len(out[selector].index) == 0, diff_df[selector], df_tol[selector]
 
 
-def test_stats_file_with_tolerances(
-    tolerance_file_name, input_file_ref, input_file_cur, factor
-):
+def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
     df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
 
     logger.info("applying a factor of %s to the spread", factor)
@@ -267,6 +265,17 @@ def test_stats_file_with_tolerances(
         input_file_cur,
         input_file_ref,
         tolerance_file_name,
+    )
+
+    return df_tol, df_ref, df_cur
+
+
+def test_stats_file_with_tolerances(
+    tolerance_file_name, input_file_ref, input_file_cur, factor
+):
+
+    df_tol, df_ref, df_cur = parse_check(
+        tolerance_file_name, input_file_ref, input_file_cur, factor
     )
 
     # check if variables are available in reference file
