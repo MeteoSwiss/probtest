@@ -144,3 +144,22 @@ def get_seed_from_member_num(member_num, use_64_bits=True):
         seed = np.uint32(seed & 0xFFFFFFFF)
 
     return seed
+
+
+def process_member_num(member_num):
+    """
+    Processes the member numbers.
+    If a single number is provided, it generates a list of numbers from 1 to
+    that number.
+    It then converts each number to a string.
+
+    Args:
+        member_num (list): A list containing either a single integer or multiple
+                           integers.
+
+    Returns:
+        list: A list of strings representing the processed member numbers.
+    """
+    if len(member_num) == 1:
+        member_num = list(range(1, member_num[0] + 1))
+    return [(m_num, str(m_num)) for m_num in member_num]
