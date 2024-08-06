@@ -74,11 +74,8 @@ def colour_revs(times, revs, ax):
 def performance_plot(timing_database, savedir, timing_names, experiment_name, i_table):
     tt = TimingTree.from_json(timing_database)
 
-    dates = tt.meta_data["finish_time"]
-    if isinstance(dates, str):
-        dates = [dates]
+    dates = tt.get_sorted_finish_times()
 
-    dates = sorted([datetime.strptime(s, DATETIME_FORMAT) for s in dates])
     x = matplotlib.dates.date2num(dates)
 
     last_measurement = dates[-1]

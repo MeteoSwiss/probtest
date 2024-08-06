@@ -6,10 +6,12 @@ tree data.
 import json
 import os
 import sys
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
 
+from util.constants import DATETIME_FORMAT
 from util.log_handler import logger
 
 TREE_NAME_SEPARATOR = ">"
@@ -329,3 +331,16 @@ class TimingTree:
             )
             new_parent = self.find_ancestor(n, i_table, k=1)
             new_parent.add_child(n)
+
+    def get_sorted_finish_times(self):
+        """
+        Extract and sort finish times from the TimingTree's metadata.
+
+        Returns:
+            list of datetime: A sorted list of finish times.
+        """
+        dates = self.meta_data.get("finish_time", [])
+        if isinstance(dates, str):
+            dates = [dates]
+        sorted_dates = sorted([datetime.strptime(s, DATETIME_FORMAT) for s in dates])
+        return sorted_dates

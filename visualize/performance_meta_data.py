@@ -77,10 +77,7 @@ def performance_meta_data(
 ):
     tt = TimingTree.from_json(timing_database)
 
-    dates = tt.meta_data["finish_time"]
-    if isinstance(dates, str):
-        dates = [dates]
-    dates = sorted([datetime.strptime(s, DATETIME_FORMAT) for s in dates])
+    dates = tt.get_sorted_finish_times()
 
     # create dataframe for revisions and align to tt.data
     index = tt.data[i_table].index

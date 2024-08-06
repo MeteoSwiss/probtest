@@ -7,6 +7,7 @@ growing trees with new nodes, and adding trees together.
 import os
 import shutil
 import unittest
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -189,6 +190,16 @@ class TestTimingTree(unittest.TestCase):
         tt1.add(tt2)
 
         self.assert_trees_equal(tt1, tt_added)
+
+    def test_get_sorted_finish_times(self):
+        tt_json = TimingTree.from_json(JSON_REFERENCE)
+
+        dates = tt_json.get_sorted_finish_times()
+        print(dates)
+        self.assertTrue(
+            dates == [datetime(2022, 6, 26, 20, 11, 23)],
+            msg="sorted finish time does not match reference",
+        )
 
 
 if __name__ == "__main__":
