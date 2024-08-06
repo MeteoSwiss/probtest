@@ -10,8 +10,8 @@ import pytest
 from util.dataframe_ops import parse_check
 
 
-@pytest.fixture
-def setup_csv_files(tmp_path):
+@pytest.fixture(name="setup_csv_files")
+def fixture_setup_csv_files(tmp_path):
     # Create sample CSV files for testing
     tolerance_data = pd.DataFrame(
         {"A": [0.1, 0.2], "B": [0.3, 0.4]},
