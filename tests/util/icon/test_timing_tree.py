@@ -4,14 +4,13 @@ including reading log files, loading from JSON, intersection and subtraction of 
 growing trees with new nodes, and adding trees together.
 """
 
-import os
-import shutil
 import unittest
 from datetime import datetime
 
 import numpy as np
 import pandas as pd
 
+from tests.helpers import setup_test_directory
 from util.icon.extract_timings import read_logfile
 from util.tree import TimingTree
 
@@ -44,12 +43,7 @@ class TestTimingTree(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        test_path = os.path.realpath("tests/tmp")
-        cls.test_path = test_path
-        # create test directory (remake if it exists)
-        if os.path.exists(test_path):
-            shutil.rmtree(test_path)
-        os.mkdir(test_path)
+        cls.test_path = setup_test_directory("tests/tmp")
 
     def setUp(self):
         return

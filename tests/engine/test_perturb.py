@@ -5,8 +5,6 @@ It ensures the correctness of array perturbations and validates the precision
 and amplitude of the perturbations.
 """
 
-import os
-import shutil
 import unittest
 
 import numpy as np
@@ -14,6 +12,7 @@ from matplotlib import pyplot as plt
 from netCDF4 import Dataset  # pylint: disable=no-name-in-module
 
 from engine.perturb import perturb_array
+from tests.helpers import setup_test_directory
 
 atype = np.float32
 AMPLITUDE = atype(1e-14)
@@ -37,12 +36,7 @@ class TestPerturb(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        test_path = os.path.realpath("tests/tmp")
-        cls.test_path = test_path
-        # create test directory (remake if it exists)
-        if os.path.exists(test_path):
-            shutil.rmtree(test_path)
-        os.mkdir(test_path)
+        cls.test_path = setup_test_directory("tests/tmp")
 
     def test_perturb_array(self):
         # create two arrays, perturb one.
