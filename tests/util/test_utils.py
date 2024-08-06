@@ -2,8 +2,6 @@
 This module contains unit tests for the `utils.py` module.
 """
 
-import pytest
-
 from util.utils import process_member_num
 
 
@@ -13,8 +11,9 @@ def test_process_member_num_single_element():
     It should generate a list from 1 to that number and convert each to a string.
     """
     input_data = [5]
-    expected_output = [(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')]
+    expected_output = [(1, "1"), (2, "2"), (3, "3"), (4, "4"), (5, "5")]
     assert process_member_num(input_data) == expected_output
+
 
 def test_process_member_num_multiple_elements():
     """
@@ -22,8 +21,9 @@ def test_process_member_num_multiple_elements():
     It should convert each number to a string.
     """
     input_data = [2, 3, 4]
-    expected_output = [(2, '2'), (3, '3'), (4, '4')]
+    expected_output = [(2, "2"), (3, "3"), (4, "4")]
     assert process_member_num(input_data) == expected_output
+
 
 def test_process_member_num_empty_list():
     """
@@ -33,6 +33,7 @@ def test_process_member_num_empty_list():
     input_data = []
     expected_output = []
     assert process_member_num(input_data) == expected_output
+
 
 def test_process_member_num_single_element_zero():
     """
