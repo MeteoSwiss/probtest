@@ -1,3 +1,10 @@
+"""
+This module provides functions for statistical analysis and comparison of
+datasets, primarily for performance testing and validation.
+It includes utilities to handle data reading, processing, and comparison against
+reference datasets with specified tolerances.
+"""
+
 import sys
 import warnings
 
@@ -11,7 +18,7 @@ from util.model_output_parser import model_output_parser
 
 pd.set_option("display.max_colwidth", None)
 pd.set_option("display.max_columns", None)
-pd.set_option("display.float_format", "{:,.2e}".format)
+pd.set_option("display.float_format", lambda x: f"{x:,.2e}")
 
 
 def force_monotonic(dataframe):
@@ -61,17 +68,17 @@ def read_input_file(label, file_name, specification):
         file_parser = model_output_parser[specification["format"].lower()]
     except KeyError:
         logger.error(
-            "No parser defined for format `{}` of file `{}`.".format(
-                specification["format"], file_name
-            )
+            "No parser defined for format `%s` of file `%s`.",
+            specification["format"],
+            file_name,
         )
         sys.exit(1)
 
     var_dfs = file_parser(label, file_name, specification)
 
     if len(var_dfs) == 0:
-        logger.error("Could not find any variables in `{}`".format(file_name))
-        logger.error("Wrong file format or specification? Fid: `{}` ".format(label))
+        logger.error("Could not find any variables in `%s`", file_name)
+        logger.error("Wrong file format or specification? Fid: `%s` ", label)
         sys.exit(1)
 
     # different variables in a file have same timestamps:
@@ -114,9 +121,7 @@ def df_from_file_ids(file_id, input_dir, file_specification):
         input_files, err = file_names_from_pattern(input_dir, file_pattern)
         if err > 0:
             logger.info(
-                "Can not find any files for file_pattern {}. Continue.".format(
-                    file_pattern
-                )
+                "Can not find any files for file_pattern %s. Continue.", file_pattern
             )
             continue
 
@@ -124,17 +129,17 @@ def df_from_file_ids(file_id, input_dir, file_specification):
             specification = file_specification[file_type]
         except KeyError:
             logger.error(
-                "No parser defined for format `{}` of file_pattern `{}`.".format(
-                    file_type, file_pattern
-                )
+                "No parser defined for format `%s` of file_pattern `%s`.",
+                file_type,
+                file_pattern,
             )
             sys.exit(1)
 
         file_dfs = []
         for f in input_files:
             var_df = read_input_file(
-                label="{}:{}".format(file_type, file_pattern),
-                file_name="{}/{}".format(input_dir, f),
+                label=f"{file_type}:{file_pattern}",
+                file_name=f"{input_dir}/{f}",
                 specification=specification,
             )
             file_dfs.append(var_df)
@@ -206,15 +211,13 @@ def check_intersection(df_ref, df_cur):
     if missing_in_ref:
         warning_msg = (
             "WARNING: The following variables are in the test case but not in the"
-            " reference case and therefore not tested: {}".format(
-                ", ".join(missing_in_ref)
-            )
+            f" reference case and therefore not tested: {", ".join(missing_in_ref)}"
         )
         warnings.warn(warning_msg, UserWarning)
     if missing_in_cur:
         warning_msg = (
             "WARNING: The following variables are in the reference case but not in the"
-            " test case and therefore not tested: {}".format(", ".join(missing_in_cur))
+            f" test case and therefore not tested: {", ".join(missing_in_cur)}"
         )
         warnings.warn(warning_msg, UserWarning)
 
@@ -226,17 +229,15 @@ def check_intersection(df_ref, df_cur):
     if len(df_ref.columns) > len(df_cur.columns):
         logger.info(
             "WARNING: The reference includes more timesteps than the test case. "
-            "Only the first {} time step(s) are tested.\n".format(
-                len(df_cur.columns) // len(compute_statistics)
-            )
+            "Only the first %s time step(s) are tested.\n",
+            len(df_cur.columns) // len(compute_statistics),
         )
         df_ref = df_ref.iloc[:, : len(df_cur.columns)]
     elif len(df_ref.columns) < len(df_cur.columns):
         logger.info(
             "WARNING: The reference includes less timesteps than the test case. "
-            "Only the first {} time step(s) are tested.\n".format(
-                len(df_ref.columns) // len(compute_statistics)
-            )
+            "Only the first %s time step(s) are tested.\n",
+            len(df_ref.columns) // len(compute_statistics),
         )
         df_cur = df_cur.iloc[:, : len(df_ref.columns)]
     return skip_test, df_ref, df_cur
@@ -255,23 +256,24 @@ def test_stats_file_with_tolerances(
 ):
     df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
 
-    logger.info("applying a factor of {} to the spread".format(factor))
+    logger.info("applying a factor of %s to the spread", factor)
     df_tol *= factor
 
     df_ref = parse_probtest_csv(input_file_ref, index_col=[0, 1, 2])
     df_cur = parse_probtest_csv(input_file_cur, index_col=[0, 1, 2])
 
     logger.info(
-        "checking {} against {} using tolerances from {}".format(
-            input_file_cur, input_file_ref, tolerance_file_name
-        )
+        "checking %s against %s using tolerances from %s",
+        input_file_cur,
+        input_file_ref,
+        tolerance_file_name,
     )
 
     # check if variables are available in reference file
     skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
     if skip_test:  # No intersection
         logger.info("RESULT: check FAILED")
-        exit(1)
+        sys.exit(1)
 
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)

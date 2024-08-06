@@ -1,3 +1,8 @@
+""""
+This module provides utility functions for list and string operations, as well as
+a function to generate seeds based on a member number for probtest.
+"""
+
 import re
 
 import numpy as np
@@ -11,12 +16,12 @@ def unique_elements(inlist):
     return unique
 
 
-def first_idx_of(list, element):
-    return list.index(element)
+def first_idx_of(li, el):
+    return li.index(el)
 
 
-def last_idx_of(list, element):
-    return len(list) - list[::-1].index(element) - 1
+def last_idx_of(li, el):
+    return len(li) - li[::-1].index(el) - 1
 
 
 def numbers(s):
@@ -31,7 +36,7 @@ def get_seed_from_member_num(member_num, use_64_bits=True):
             "Invalid member number: only values between 1 and 100 are valid."
         )
 
-    SEEDS = [
+    seeds = [
         4820203056152078343,
         -2050370216167377885,
         5288723146233497607,
@@ -134,7 +139,7 @@ def get_seed_from_member_num(member_num, use_64_bits=True):
         -4677366596323783742,
     ]
 
-    seed = SEEDS[member_num - 1]
+    seed = seeds[member_num - 1]
     if not use_64_bits:
         seed = np.uint32(seed & 0xFFFFFFFF)
 

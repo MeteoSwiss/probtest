@@ -1,3 +1,10 @@
+"""
+This module provides utility functionality for loading configuration defaults for
+probtest from a JSON configuration file and defining custom Click parameter
+types for handling comma-separated values.
+It also contains help messages for various command-line options.
+"""
+
 import json
 import os
 import pathlib
@@ -14,22 +21,21 @@ def load_defaults(sections):
 
     if not os.path.isfile(configfile):
         logger.warning(
-            "careful, configfile {} does not exist in {}. No defaults.".format(
-                configfile, os.getcwd()
-            )
+            "careful, configfile %s does not exist in %s. No defaults.",
+            configfile,
+            os.getcwd(),
         )
         logger.warning(
-            "If you need e.g. ICON defaults, try: export PROBTEST_CONFIG={}".format(
-                pathlib.Path(__file__).parent.parent.absolute() / "templates/ICON.jinja"
-            )
+            "If you need e.g. ICON defaults, try: export PROBTEST_CONFIG=%s",
+            pathlib.Path(__file__).parent.parent.absolute() / "templates/ICON.jinja",
         )
     else:
-        logger.info("reading config file from {}".format(configfile))
-        with open(configfile) as f:
+        logger.info("reading config file from %s", configfile)
+        with open(configfile, encoding="utf-8") as f:
             try:
                 config = json.load(f)
             except json.decoder.JSONDecodeError as err:
-                logger.error("failed to load configfile {}".format(configfile))
+                logger.error("failed to load configfile %s", configfile)
                 logger.error(err)
 
     tmp = {}
@@ -47,24 +53,42 @@ def load_defaults(sections):
 
 
 class CommaSeperatedInts(click.ParamType):
+    """
+    A custom Click parameter type for handling comma-separated integers.
+
+    This class defines a Click parameter type that converts a comma-separated
+    string input into a list of integers.
+    It is used to parse command-line arguments where multiple integer values are
+    provided as a single comma-separated string.
+    """
+
     name = "CommaSeperatedInts"
 
     def convert(self, value, param, ctx):
         if isinstance(value, list):
             return value
         if not isinstance(value, str):
-            self.fail("Input must be a string, found {}".format(value), param, ctx)
+            self.fail(f"Input must be a string, found {value}", param, ctx)
         return [int(e) for e in filter(lambda x: x != "", value.split(","))]
 
 
 class CommaSeperatedStrings(click.ParamType):
+    """
+    A custom Click parameter type for handling comma-separated strings.
+
+    This class defines a Click parameter type that converts a comma-separated
+    string input into a list of strings.
+    It is used to parse command-line arguments where multiple string values are
+    provided as a single comma-separated string.
+    """
+
     name = "CommaSeperatedStrings"
 
     def convert(self, value, param, ctx):
         if isinstance(value, list):
             return value
-        elif not isinstance(value, str):
-            self.fail("Input must be a int, found {}".format(value), param, ctx)
+        if not isinstance(value, str):
+            self.fail(f"Input must be a int, found {value}", param, ctx)
         return list(filter(lambda x: x != "", value.split(",")))
 
 

@@ -1,3 +1,12 @@
+"""
+CLI for computing stats
+
+This command line tool provides functionality for:
+- Creating and saving statistics dataframes from specified model output files.
+- Verifying that lists of values are monotonically increasing.
+- Generating statistics for both ensemble and reference model runs.
+"""
+
 from pathlib import Path
 
 import click
@@ -7,14 +16,14 @@ from util.dataframe_ops import df_from_file_ids
 from util.log_handler import logger
 
 
-def monotonically_increasing(L):
-    return all(x <= y for x, y in zip(L[:-1], L[1:]))
+def monotonically_increasing(li):
+    return all(x <= y for x, y in zip(li[:-1], li[1:]))
 
 
 def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specification):
     df = df_from_file_ids(file_id, input_dir, file_specification)
 
-    logger.info("writing stats file to {}".format(stats_file_name))
+    logger.info("writing stats file to %s", stats_file_name)
 
     Path(stats_file_name).parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(stats_file_name)
@@ -81,7 +90,7 @@ def stats(
     # compute stats for the ensemble run
     if ensemble:
         if len(member_num) == 1:
-            member_num = [i for i in range(1, member_num[0] + 1)]
+            member_num = list(range(1, member_num[0] + 1))
         for m_num in member_num:
             m_id = str(m_num)
             if member_type:

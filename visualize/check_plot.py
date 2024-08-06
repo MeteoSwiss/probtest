@@ -1,3 +1,12 @@
+"""
+CLI for plotting and checking model results against tolerance levels
+
+This module provides functionality for:
+- Deleting uninitialized fields from DataFrames.
+- Generating plots to visualize the relative differences between model outputs
+  and reference data, compared against specified tolerance levels.
+"""
+
 from pathlib import Path
 
 import click
@@ -47,16 +56,17 @@ colors = prop_cycle.by_key()["color"]
 def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, savedir):
     df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
 
-    logger.info("applying a factor of {} to the spread".format(factor))
+    logger.info("applying a factor of %s to the spread", factor)
     df_tol *= factor
 
     df_ref = parse_probtest_csv(input_file_ref, index_col=[0, 1, 2])
     df_cur = parse_probtest_csv(input_file_cur, index_col=[0, 1, 2])
 
     logger.info(
-        "checking {} against {} using tolerances from {}".format(
-            input_file_cur, input_file_ref, tolerance_file_name
-        )
+        "checking %s against %s using tolerances from %s",
+        input_file_cur,
+        input_file_ref,
+        tolerance_file_name,
     )
 
     # compute relative difference
@@ -77,8 +87,8 @@ def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, save
         )
         diff_df = diff_df.loc[selected_keys]
         print(
-            "Limit the subplots to the graphs with the {}"
-            " largest error relative to tolerance".format(max_nsubplots)
+            f"Limit the subplots to the graphs with the {max_nsubplots}"
+            " largest error relative to tolerance"
         )
 
     times = np.array(diff_df.columns.levels[0])
@@ -118,7 +128,7 @@ def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, save
             )
             ax[i // ncols, i % ncols].set_ylim(bottom=1e-15, top=1)
             ax[i // ncols, i % ncols].set_xlabel("timestep")
-            ax[i // ncols, i % ncols].set_title("{}: {}".format(fid, vn))
+            ax[i // ncols, i % ncols].set_title(f"{fid}: {vn}")
         if i % ncols == 0:
             ax[i // ncols, 0].set_ylabel("relative error")
 
@@ -138,10 +148,8 @@ def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, save
     )  # use an absolute margin for the legend
     if savedir:
         Path(savedir).mkdir(exist_ok=True, parents=True)
-        path = "{}/{}".format(savedir, "check_plot.png")
-        logger.info("saving figure to {}".format(path))
+        path = f"{savedir}/{"check_plot.png"}"
+        logger.info("saving figure to %s", path)
         fig.savefig(path)
     else:
         plt.show()
-
-    return

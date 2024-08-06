@@ -1,3 +1,14 @@
+"""
+Test helper utilities
+
+This module provides a collection of utility functions and CLI wrappers for
+handling NetCDF data, pandas DataFrames, and various performance and
+perturbation operations.
+It includes functions to load and process data, perform statistical analysis,
+and run CLI commands related to performance, tolerance, perturbation, and
+selection of ensemble members.
+"""
+
 import logging
 import os
 import random
@@ -20,13 +31,17 @@ def load_netcdf(path):
     return xr.load_dataset(path)
 
 
-def load_pandas(file, index_col=[0, 1, 2], header=[0, 1]):
+def load_pandas(file, index_col=None, header=None):
+    if index_col is None:
+        index_col = [0, 1, 2]
+    if header is None:
+        header = [0, 1]
     return pd.read_csv(file, index_col=index_col, header=header)
 
 
 def store_timings_as_potential_new_ref(timings, dst):
     # get all files ending with *.json
-    for root, dirs, files in os.walk(timings):
+    for root, _, files in os.walk(timings):
         for file in files:
             if file.endswith(".json"):
                 store_as_potential_new_ref(os.path.join(root, file), dst)
@@ -259,7 +274,7 @@ def create_random_stats_file(filename, configurations, seed, perturbation):
                 row += ",,,"
             data.append(row)
 
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         for line in header:
             f.write(line + "\n")
         for row in data:

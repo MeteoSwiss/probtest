@@ -1,3 +1,14 @@
+"""
+CLI for Checking Data Files with Tolerances
+
+This module defines a CLI to compare two data files (reference and current)
+against specified tolerances.
+It utilizes utility functions for testing statistical files with tolerances and
+computing divergence between DataFrames.
+"""
+
+import sys
+
 import click
 
 from util.click_util import cli_help
@@ -42,4 +53,4 @@ def check(input_file_ref, input_file_cur, tolerance_file_name, factor):
         logger.info("\nError relative to tolerance")
         logger.info(div)
 
-    exit(0 if out else 1)
+    sys.exit(0 if out else 1)

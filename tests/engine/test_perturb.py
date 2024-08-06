@@ -1,10 +1,17 @@
+"""
+This module contains unittests for verifying the behavior of the `perturb_array`
+function and its application to numpy arrays and NetCDF4 files.
+It ensures the correctness of array perturbations and validates the precision
+and amplitude of the perturbations.
+"""
+
 import os
 import shutil
 import unittest
 
 import numpy as np
 from matplotlib import pyplot as plt
-from netCDF4 import Dataset
+from netCDF4 import Dataset  # pylint: disable=no-name-in-module
 
 from engine.perturb import perturb_array
 
@@ -14,6 +21,20 @@ ARRAY_DIM = 100
 
 
 class TestPerturb(unittest.TestCase):
+    """
+    Unit tests for verifying the functionality of perturbation methods applied
+    to arrays and NetCDF datasets.
+
+    This class uses the `unittest` framework to ensure the correctness of
+    perturbation operations on both in-memory arrays and NetCDF4 datasets.
+    It checks that perturbation functions produce the expected results and
+    handle different data types correctly.
+    """
+
+    def __init__(self, methodName="runTest"):
+        super().__init__(methodName=methodName)
+        self.data = [None] * 2
+
     @classmethod
     def setUpClass(cls):
         test_path = os.path.realpath("tests/tmp")
@@ -52,11 +73,10 @@ class TestPerturb(unittest.TestCase):
         )
 
     def test_perturb_nc(self):
-        self.data = [None] * 2
 
         # create two dummy netcdf4 files, one with single, one with double precision
         for i, dt in enumerate([np.float32, np.float64]):
-            self.data[i] = Dataset("dummy{}.nc".format(i), "w")
+            self.data[i] = Dataset(f"dummy{i}.nc", "w")
             self.data[i].createDimension("x", size=ARRAY_DIM)
             self.data[i].createDimension("y", size=ARRAY_DIM)
             self.data[i].createVariable("z", dt, dimensions=("x", "y"))
@@ -73,7 +93,7 @@ class TestPerturb(unittest.TestCase):
 
         # reopen the files to make sure we get the values form disk
         for i in range(2):
-            self.data[i] = Dataset("dummy{}.nc".format(i), "r")
+            self.data[i] = Dataset(f"dummy{i}.nc", "r")
         zf = self.data[0].variables["z"][:]
         zd_perturb = self.data[1].variables["z"][:]
 
@@ -98,7 +118,7 @@ class TestPerturb(unittest.TestCase):
         xx, yy = np.meshgrid(np.linspace(0, 1, ARRAY_DIM), np.linspace(0, 1, ARRAY_DIM))
         cs = ax.contourf(xx, yy, diff)
         fig.colorbar(cs, ax=ax)
-        fig.savefig("{}/diff_figure.pdf".format(self.test_path))
+        fig.savefig(f"{self.test_path}/diff_figure.pdf")
 
 
 if __name__ == "__main__":

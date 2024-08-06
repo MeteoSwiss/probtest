@@ -1,3 +1,12 @@
+"""
+CLI for initializing command-line options
+
+This module provides command line interface for initializing a configuration
+file for probtest by rendering a Jinja2 template with provided command-line
+options.
+The resulting configuration is saved as a JSON file.
+"""
+
 import json
 import pathlib
 from pathlib import Path
@@ -90,27 +99,27 @@ def init(
     # a default PROBTEST_CONFIG (even without running init first)
 
     # emit warnings if variables are not set
-    warn_template = "init argument '--{}' not set. default to '{}'"
+    warn_template = "init argument '--%s' not set. default to '%s'"
     if not codebase_install:
-        logger.warning(warn_template.format("codebase_install", ""))
+        logger.warning(warn_template, "codebase_install", "")
     if not experiment_name:
-        logger.warning(warn_template.format("experiment_name", ""))
+        logger.warning(warn_template, "experiment_name", "")
     if not file_id:
-        logger.warning(warn_template.format("file_id", ""))
+        logger.warning(warn_template, "file_id", "")
     if not reference:
-        logger.warning(warn_template.format("reference", ""))
+        logger.warning(warn_template, "reference", "")
     if not member_num:
-        logger.warning(warn_template.format("member_num", member_num))
+        logger.warning(warn_template, "member_num", member_num)
     if not member_type:
-        logger.warning(warn_template.format("member_type", member_type))
+        logger.warning(warn_template, "member_type", member_type)
     if not perturb_amplitude:
-        logger.warning(warn_template.format("perturb_amplitude", perturb_amplitude))
+        logger.warning(warn_template, "perturb_amplitude", perturb_amplitude)
     if not timing_current:
-        logger.warning(warn_template.format("timing_current", timing_current))
+        logger.warning(warn_template, "timing_current", timing_current)
     if not timing_reference:
-        logger.warning(warn_template.format("timing_reference", timing_reference))
+        logger.warning(warn_template, "timing_reference", timing_reference)
     if not append_time:
-        logger.warning(warn_template.format("append_time", append_time))
+        logger.warning(warn_template, "append_time", append_time)
 
     # compose render dictionary
     render_dict = {}
@@ -132,7 +141,7 @@ def init(
     json_dict["default"]["member_num"] = member_num
     rendered = json.dumps(json_dict, indent=2)
     # print file
-    with open(config, "w") as probtest_config:
+    with open(config, "w", encoding="utf-8") as probtest_config:
         probtest_config.write(rendered)
 
     print("Successfully wrote probtest configuration to " + config)
