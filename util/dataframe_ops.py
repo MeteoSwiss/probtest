@@ -281,7 +281,7 @@ def test_stats_file_with_tolerances(
     # check if variables are available in reference file
     skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
     if skip_test:  # No intersection
-        logger.info("RESULT: check FAILED")
+        logger.error("RESULT: check FAILED")
         sys.exit(1)
 
     # compute relative difference
