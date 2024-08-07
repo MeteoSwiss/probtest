@@ -1,0 +1,121 @@
+# Default configuration used by CI/CD.
+# You can run locally 'mchbuild build' to create the images,
+# 'mchbuild test' to run the tests using the images. The 'deploy' steps
+# can be run separately.
+default:
+  - build:
+      - getVersion:
+          gitCalculateVersion:
+      - imageTester:
+          containerBuildImage:
+            fullImageName: ${var.image}-tester
+            target: tester
+            extraArgs:
+              - --build-arg
+              - VERSION=${var.version}
+      - imageRunner:
+          containerBuildImage:
+            fullImageName: ${var.image}
+            target: runner
+            extraArgs:
+              - --build-arg
+              - VERSION=${var.version}
+            pullAlways: false
+      - docs:
+          - script: mkdir -p doc/_build
+          - pythonDocs:
+              fullImageName: ${var.image}-tester
+              packageManager: ''
+              pullAlways: false
+  - test:
+      - getVersion:
+          gitCalculateVersion:
+      - unit:
+          - script: mkdir -p test_reports
+          - pythonTest:
+              fullImageName: ${var.image}-tester
+              packageManager: ''
+              pullAlways: false
+          - pythonCoverage:
+              fullImageName: ${var.image}-tester
+              packageManager: ''
+              pullAlways: false
+      - lint:
+          - script: mkdir -p test_reports
+          - pythonLint:
+              fullImageName: ${var.image}-tester
+              packageManager: ''
+              pullAlways: false
+          - pythonTypeChecker:
+              fullImageName: ${var.image}-tester
+              packageManager: ''
+              pullAlways: false
+  - verify:
+      - scan:
+          openshiftTrivy:
+  - deploy:
+      - addNextTag:
+          gitAddNextTag:
+      - addTag:
+          gitAddTag:
+      - docs:
+          openshiftPublishDocs:
+            docSrc: doc/_build/
+            docType: python
+      - image:
+          containerPublishImage:
+            removeLocalImage: false
+      - cp:
+          openshiftDeploy:
+            restartDeployment: false
+      - cpDelete:
+          openshiftDelete:
+      - pypi:
+          pythonPublishPackage:
+            setPackageVersion: true
+            pythonImageName: '3.11'
+            pullAlways: false
+  - clean:
+      - getVersion:
+          gitCalculateVersion:
+      - images:
+          script: |
+            if test -n "${var.version}"; then
+              podman image rm -f $(podman image ls -q \
+                -f "label=ch.meteoswiss.project=${var.project}-${var.version}") || :
+            fi
+
+# Alternative configuration to install and test the service locally using
+# the local Python installation. Besides 'mchbuild local.build' and
+# 'mchbuild local.test' it is possible to run the job using
+# 'mchbuild local.run'.
+local:
+  - build:
+      - install:
+          pythonInstall:
+      - docs:
+          pythonDocs:
+      - format:
+          pythonFormat:
+            inPlace: true
+  - test:
+      - unit:
+          - script: mkdir -p test_reports
+          - pythonTest:
+          - pythonCoverage:
+      - lint:
+          - script: mkdir -p test_reports
+          - pythonLint:
+          - pythonTypeChecker:
+  - run:
+    - main:
+        - pythonRun:
+            commands: probtest greeting "the greeting command"
+
+variables:
+  project: probtest
+  solution: probtest
+  ocpHostNameForEnv:
+    devt: api.cpnonprod.meteoswiss.ch:6443
+    depl: api.cpnonprod.meteoswiss.ch:6443
+    prod: api.cp.meteoswiss.ch:6443
