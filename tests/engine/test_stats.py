@@ -1,6 +1,7 @@
 import os
 import unittest
 
+import eccodes
 import numpy as np
 from netCDF4 import Dataset
 
@@ -9,6 +10,11 @@ from engine.stats import create_stats_dataframe
 TIME_DIM_SIZE = 3
 HOR_DIM_SIZE = 100
 HEIGHT_DIM_SIZE = 5
+
+TIME_DIM_GRIB_SIZE = 1
+STEP_DIM_SIZE = 1
+HEIGHT_DIM_GRIB_SIZE = 1
+HORIZONTAL_DIM_GRIB_SIZE = 6114
 
 
 def initialize_dummy_netcdf_file(name):
@@ -27,6 +33,99 @@ def initialize_dummy_netcdf_file(name):
     data.variables["z"][:] = np.arange(HEIGHT_DIM_SIZE)
 
     return data
+
+
+def add_variable_to_grib(filename, dict_data):
+    with open(filename, "wb") as f_out:
+        for shortName in list(dict_data.keys()):
+            gid = eccodes.codes_grib_new_from_samples(
+                "reduced_rotated_gg_sfc_grib2.tmpl"
+            )
+            eccodes.codes_set(gid, "edition", 2)
+            eccodes.codes_set(gid, "centre", "lssw")
+            eccodes.codes_set(gid, "dataDate", 20230913)
+            eccodes.codes_set(gid, "dataTime", 0)
+            eccodes.codes_set(gid, "stepRange", 0)
+            eccodes.codes_set(gid, "typeOfLevel", "surface")
+            eccodes.codes_set(gid, "level", 0)
+            eccodes.codes_set(gid, "shortName", shortName)
+            eccodes.codes_set_values(gid, dict_data[shortName])
+            eccodes.codes_write(gid, f_out)
+            eccodes.codes_release(gid)
+
+
+class TestStatsGrib(unittest.TestCase):
+    grib_filename = "test_stats_grib.grib"
+    stats_file_names = "test_stats.csv"
+
+    def setUp(self):
+        array_t = np.ones(
+            (
+                TIME_DIM_GRIB_SIZE,
+                STEP_DIM_SIZE,
+                HEIGHT_DIM_GRIB_SIZE,
+                HORIZONTAL_DIM_GRIB_SIZE,
+            )
+        )
+        array_t[:, :, :, 0] = 0
+        array_t[:, :, :, -1] = 2
+
+        array_pres = (
+            np.ones(
+                (
+                    TIME_DIM_GRIB_SIZE,
+                    STEP_DIM_SIZE,
+                    HEIGHT_DIM_GRIB_SIZE,
+                    HORIZONTAL_DIM_GRIB_SIZE,
+                )
+            )
+            * 3
+        )
+        array_pres[:, :, :, 0] = 2
+        array_pres[:, :, :, -1] = 4
+
+        dict_data = {"t": array_pres, "v": array_t}
+
+        add_variable_to_grib(self.grib_filename, dict_data)
+
+    def test_stats(self):
+        file_specification = {
+            "Test data": dict(
+                format="grib",
+                time_dim="step",
+                horizontal_dims=["values"],
+                var_excl=[],
+                fill_value_key="_FillValue",  # This should be the name for fill_value.
+            ),
+        }
+
+        df = create_stats_dataframe(
+            input_dir=".",
+            file_id=[["Test data", self.grib_filename]],
+            stats_file_name=self.stats_file_names,
+            file_specification=file_specification,
+        )
+
+        # check that the mean/max/min are correct
+        expected = np.array(
+            [
+                [
+                    3.0,
+                    4.0,
+                    2.0,
+                ],
+                [
+                    1.0,
+                    2.0,
+                    0.0,
+                ],
+            ]
+        )
+
+        self.assertTrue(
+            np.array_equal(df.values, expected),
+            "stats dataframe incorrect. Difference:\n{}".format(df.values == expected),
+        )
 
 
 class TestStatsNetcdf(unittest.TestCase):
