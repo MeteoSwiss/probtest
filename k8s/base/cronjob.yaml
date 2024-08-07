@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: probtest
+spec:
+  schedule: "0 * * * *" # executes the job every hour
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: probtest
+              image: docker-all-nexus.meteoswiss.ch/probtest/probtest-job
+              args:
+                - "greeting"
+                - "ms/mr developer"
+              imagePullPolicy: Always
+              env:
+                - name: LOGGING__FORMATTER
+                  value: json
+              envFrom:
+                - configMapRef:
+                    name: probtest-config
+              resources:
+                limits:
+                  cpu: "1"
+                  memory: 256Mi
+                requests:
+                  cpu: 20m
+                  memory: 128Mi
+          restartPolicy: Never
