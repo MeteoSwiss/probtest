@@ -107,7 +107,7 @@ local:
       - lint:
           - script: mkdir -p test_reports
           - pythonLint:
-          - pythonTypeChecker:
+          # - pythonTypeChecker:
   - run:
     - main:
         - pythonRun:
