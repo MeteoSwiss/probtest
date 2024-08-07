@@ -11,14 +11,14 @@ data, and provide setup and teardown mechanisms for efficient testing.
 import os
 import shutil
 import tempfile
+from test.helpers import create_random_stats_file, generate_ensemble, load_pandas
 
 import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
 
-from tests.helpers import create_random_stats_file, generate_ensemble, load_pandas
-from util.tree import TimingTree
+from probtest.util.tree import TimingTree
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -30,7 +30,7 @@ def new_ref() -> str:
 
 @pytest.fixture(name="ref_data")
 def fixture_ref_data() -> str:
-    return "tests/data"
+    return "test/data"
 
 
 @pytest.fixture(name="timing_logfile")

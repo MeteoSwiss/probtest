@@ -11,9 +11,9 @@ from pathlib import Path
 
 import click
 
-from util.click_util import CommaSeperatedInts, cli_help
-from util.dataframe_ops import df_from_file_ids
-from util.log_handler import logger
+from probtest.util.click_util import CommaSeperatedInts, cli_help
+from probtest.util.dataframe_ops import df_from_file_ids
+from probtest.util.log_handler import logger
 
 
 def monotonically_increasing(li):

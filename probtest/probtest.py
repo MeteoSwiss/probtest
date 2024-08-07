@@ -9,22 +9,22 @@ visualization.
 import click
 import matplotlib
 
-from engine.cdo_table import cdo_table
-from engine.check import check
-from engine.init import init
-from engine.performance import performance
-from engine.performance_check import performance_check
-from engine.perturb import perturb
-from engine.run_ensemble import run_ensemble
-from engine.select_members import select_members
-from engine.stats import stats
-from engine.tolerance import tolerance
-from util.click_util import load_defaults
-from util.log_handler import initialize_logger
-from visualize.cdo_table_reader import cdo_table_reader
-from visualize.check_plot import check_plot
-from visualize.performance_meta_data import performance_meta_data
-from visualize.performance_plot import performance_plot
+from probtest.engine.cdo_table import cdo_table
+from probtest.engine.check import check
+from probtest.engine.init import init
+from probtest.engine.performance import performance
+from probtest.engine.performance_check import performance_check
+from probtest.engine.perturb import perturb
+from probtest.engine.run_ensemble import run_ensemble
+from probtest.engine.select_members import select_members
+from probtest.engine.stats import stats
+from probtest.engine.tolerance import tolerance
+from probtest.util.click_util import load_defaults
+from probtest.util.log_handler import initialize_logger
+from probtest.visualize.cdo_table_reader import cdo_table_reader
+from probtest.visualize.check_plot import check_plot
+from probtest.visualize.performance_meta_data import performance_meta_data
+from probtest.visualize.performance_plot import performance_plot
 
 matplotlib.use("Agg")
 
@@ -59,7 +59,6 @@ cli.add_command(performance_meta_data)
 cli.add_command(performance_check)
 cli.add_command(cdo_table)
 cli.add_command(cdo_table_reader)
-
 
 if __name__ == "__main__":
     cli()

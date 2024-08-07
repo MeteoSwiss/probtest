@@ -11,13 +11,13 @@ import sys
 import click
 import pandas as pd
 
-from util.click_util import CommaSeperatedInts, cli_help
-from util.dataframe_ops import (
+from probtest.util.click_util import CommaSeperatedInts, cli_help
+from probtest.util.dataframe_ops import (
     compute_rel_diff_dataframe,
     force_monotonic,
     parse_probtest_csv,
 )
-from util.log_handler import logger
+from probtest.util.log_handler import logger
 
 
 @click.command()

@@ -15,11 +15,11 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from util.click_util import CommaSeperatedStrings, cli_help
-from util.constants import DATETIME_FORMAT
-from util.log_handler import logger
-from util.tree import TimingTree
-from util.utils import unique_elements
+from probtest.util.click_util import CommaSeperatedStrings, cli_help
+from probtest.util.constants import DATETIME_FORMAT
+from probtest.util.log_handler import logger
+from probtest.util.tree import TimingTree
+from probtest.util.utils import unique_elements
 
 
 def plot_meta_data_timer(timer, data, revs, ax, experiment_name, savedir):

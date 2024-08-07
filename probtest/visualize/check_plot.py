@@ -14,10 +14,10 @@ import numpy as np
 from matplotlib import lines as mlines
 from matplotlib import pyplot as plt
 
-from util.click_util import cli_help
-from util.constants import compute_statistics
-from util.dataframe_ops import compute_rel_diff_dataframe, parse_probtest_csv
-from util.log_handler import logger
+from probtest.util.click_util import cli_help
+from probtest.util.constants import compute_statistics
+from probtest.util.dataframe_ops import compute_rel_diff_dataframe, parse_probtest_csv
+from probtest.util.log_handler import logger
 
 
 def delete_uninitialized_fields(df):

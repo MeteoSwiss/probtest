@@ -5,4 +5,4 @@ source =
     probtest.py
 	util/
 omit =
-	tests/*
+	test/*

@@ -19,12 +19,12 @@ import pandas as pd
 import xarray as xr
 from click.testing import CliRunner
 
-from engine.cdo_table import cdo_table
-from engine.performance import performance
-from engine.perturb import perturb
-from engine.select_members import select_members
-from engine.stats import stats
-from engine.tolerance import tolerance
+from probtest.engine.cdo_table import cdo_table
+from probtest.engine.performance import performance
+from probtest.engine.perturb import perturb
+from probtest.engine.select_members import select_members
+from probtest.engine.stats import stats
+from probtest.engine.tolerance import tolerance
 
 
 def load_netcdf(path):

@@ -13,12 +13,12 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from util import model_output_parser
-from util.click_util import CommaSeperatedInts, cli_help
-from util.constants import cdo_bins
-from util.dataframe_ops import df_from_file_ids
-from util.file_system import file_names_from_pattern
-from util.log_handler import logger
+from probtest.util import model_output_parser
+from probtest.util.click_util import CommaSeperatedInts, cli_help
+from probtest.util.constants import cdo_bins
+from probtest.util.dataframe_ops import df_from_file_ids
+from probtest.util.file_system import file_names_from_pattern
+from probtest.util.log_handler import logger
 
 
 def compute_rel_diff(var1, var2):

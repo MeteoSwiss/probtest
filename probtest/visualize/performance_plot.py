@@ -19,11 +19,11 @@ import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
 
-from util.click_util import CommaSeperatedStrings, cli_help
-from util.constants import DATETIME_FORMAT
-from util.log_handler import logger
-from util.tree import TimingTree
-from util.utils import first_idx_of, last_idx_of, unique_elements
+from probtest.util.click_util import CommaSeperatedStrings, cli_help
+from probtest.util.constants import DATETIME_FORMAT
+from probtest.util.log_handler import logger
+from probtest.util.tree import TimingTree
+from probtest.util.utils import first_idx_of, last_idx_of, unique_elements
 
 
 def colour_revs(times, revs, ax):

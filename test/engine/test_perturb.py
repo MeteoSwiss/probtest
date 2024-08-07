@@ -13,7 +13,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from netCDF4 import Dataset  # pylint: disable=no-name-in-module
 
-from engine.perturb import perturb_array
+from probtest.engine.perturb import perturb_array
 
 atype = np.float32
 AMPLITUDE = atype(1e-14)
@@ -37,7 +37,7 @@ class TestPerturb(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        test_path = os.path.realpath("tests/tmp")
+        test_path = os.path.realpath("test/tmp")
         cls.test_path = test_path
         # create test directory (remake if it exists)
         if os.path.exists(test_path):

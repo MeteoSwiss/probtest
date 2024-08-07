@@ -6,16 +6,15 @@ amplitudes.
 """
 
 import os
-
-import pytest
-
-from tests.helpers import (
+from test.helpers import (
     assert_empty_df,
     load_pandas,
     pandas_error,
     run_cdo_table_cli,
     store_as_potential_new_ref,
 )
+
+import pytest
 
 
 def test_cdo_table_cli(tmp_dir, ensemble, df_ref_cdo_table, new_ref):

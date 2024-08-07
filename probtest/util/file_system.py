@@ -4,7 +4,7 @@ This module provides a function for searching files in a directory based on a pa
 
 from pathlib import Path
 
-from util.log_handler import logger
+from probtest.util.log_handler import logger
 
 
 def file_names_from_pattern(dir_name, file_pattern):

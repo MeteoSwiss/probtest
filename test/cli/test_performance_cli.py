@@ -6,15 +6,15 @@ generated from the CLI, including comparing the results with reference data.
 """
 
 import os
-
-from tests.helpers import (
+from test.helpers import (
     assert_empty_df,
     assert_empty_list,
     pandas_error,
     run_performance_cli,
     store_timings_as_potential_new_ref,
 )
-from util.tree import TimingTree
+
+from probtest.util.tree import TimingTree
 
 
 def test_performance_cli_timing(new_ref, timing_logfile, tmp_dir, df_ref_performance):

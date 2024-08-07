@@ -98,6 +98,7 @@ local:
       - format:
           pythonFormat:
             inPlace: true
+            commands: poetry run black probtest
   - test:
       - unit:
           - script: mkdir -p test_reports
@@ -110,7 +111,7 @@ local:
   - run:
     - main:
         - pythonRun:
-            commands: probtest greeting "the greeting command"
+            commands: probtest --help
 
 variables:
   project: probtest

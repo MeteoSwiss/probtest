@@ -6,7 +6,7 @@ data types.
 import numpy as np
 from netCDF4 import Dataset  # pylint: disable=no-name-in-module
 
-from util.log_handler import logger
+from probtest.util.log_handler import logger
 
 
 def nc4_get_copy(name_in, name_out):

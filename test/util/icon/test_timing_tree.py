@@ -11,19 +11,19 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from util.icon.extract_timings import read_logfile
-from util.tree import TimingTree
+from probtest.util.icon.extract_timings import read_logfile
+from probtest.util.tree import TimingTree
 
-TIMING_FILE_1 = "tests/data/timing_example_1.txt"
-TIMING_FILE_2 = "tests/data/timing_example_2.txt"
-TIMING_FILE_3 = "tests/data/timing_example_3.txt"
+TIMING_FILE_1 = "test/data/timing_example_1.txt"
+TIMING_FILE_2 = "test/data/timing_example_2.txt"
+TIMING_FILE_3 = "test/data/timing_example_3.txt"
 
-JSON_REFERENCE = "tests/data/reference"
-JSON_TREE_REFERENCE = "tests/data/reference_tree.json"
-JSON_META_REFERENCE = "tests/data/reference_meta.json"
-JSON_DATA_REFERENCE = "tests/data/reference_data.json"
+JSON_REFERENCE = "test/data/reference"
+JSON_TREE_REFERENCE = "test/data/reference_tree.json"
+JSON_META_REFERENCE = "test/data/reference_meta.json"
+JSON_DATA_REFERENCE = "test/data/reference_data.json"
 
-JSON_ADD_REFERENCE = "tests/data/add"
+JSON_ADD_REFERENCE = "test/data/add"
 
 pd.set_option("display.max_colwidth", None)
 pd.set_option("display.max_columns", None)
@@ -43,7 +43,7 @@ class TestTimingTree(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        test_path = os.path.realpath("tests/tmp")
+        test_path = os.path.realpath("test/tmp")
         cls.test_path = test_path
         # create test directory (remake if it exists)
         if os.path.exists(test_path):

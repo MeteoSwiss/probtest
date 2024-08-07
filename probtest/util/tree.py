@@ -10,7 +10,7 @@ import sys
 import numpy as np
 import pandas as pd
 
-from util.log_handler import logger
+from probtest.util.log_handler import logger
 
 TREE_NAME_SEPARATOR = ">"
 

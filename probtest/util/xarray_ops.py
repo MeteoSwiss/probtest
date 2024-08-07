@@ -7,7 +7,7 @@ handling missing values based on attributes defined in the dataset.
 
 import sys
 
-from util.log_handler import logger
+from probtest.util.log_handler import logger
 
 
 def statistics_over_horizontal_dim(

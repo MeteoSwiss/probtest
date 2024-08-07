@@ -4,16 +4,15 @@ This module contains test cases for verifying the functionality of the
 """
 
 import os
-
-import pytest
-
-from tests.helpers import (
+from test.helpers import (
     assert_empty_df,
     load_pandas,
     pandas_error,
     run_stats_cli,
     store_as_potential_new_ref,
 )
+
+import pytest
 
 
 def test_stats_cli_no_ensemble(new_ref, nc_with_t_u_v, df_ref_stats):

@@ -9,8 +9,8 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from util.constants import CHECK_THRESHOLD
-from util.dataframe_ops import (
+from probtest.util.constants import CHECK_THRESHOLD
+from probtest.util.dataframe_ops import (
     check_intersection,
     check_variable,
     compute_rel_diff_dataframe,

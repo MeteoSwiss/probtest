@@ -15,9 +15,9 @@ from pathlib import Path
 
 import click
 
-from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
-from util.log_handler import logger
-from util.utils import get_seed_from_member_num
+from probtest.util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
+from probtest.util.log_handler import logger
+from probtest.util.utils import get_seed_from_member_num
 
 
 def is_float(string):

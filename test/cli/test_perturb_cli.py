@@ -1,12 +1,11 @@
 """
-This module contains tests for verifying the functionality of perturbing NetCDF files.
+This module contains test for verifying the functionality of perturbing NetCDF files.
 """
 
 import os
+from test.helpers import assert_empty_list, check_netcdf, load_netcdf, run_perturb_cli
 
 import pytest
-
-from tests.helpers import assert_empty_list, check_netcdf, load_netcdf, run_perturb_cli
 
 
 @pytest.mark.xfail

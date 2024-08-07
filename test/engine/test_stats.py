@@ -10,7 +10,7 @@ import unittest
 import numpy as np
 from netCDF4 import Dataset  # pylint: disable=no-name-in-module
 
-from engine.stats import create_stats_dataframe
+from probtest.engine.stats import create_stats_dataframe
 
 TIME_DIM_SIZE = 3
 HOR_DIM_SIZE = 100

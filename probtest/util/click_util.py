@@ -11,8 +11,8 @@ import pathlib
 
 import click
 
-from util import dataframe_ops
-from util.log_handler import logger
+from probtest.util import dataframe_ops
+from probtest.util.log_handler import logger
 
 
 def load_defaults(sections):

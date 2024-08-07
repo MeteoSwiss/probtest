@@ -6,8 +6,7 @@ and check for discrepancies.
 """
 
 import os
-
-from tests.helpers import (
+from test.helpers import (
     assert_empty_df,
     load_pandas,
     pandas_error,

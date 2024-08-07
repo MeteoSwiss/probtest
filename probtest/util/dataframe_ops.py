@@ -11,10 +11,10 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from util.constants import CHECK_THRESHOLD, compute_statistics
-from util.file_system import file_names_from_pattern
-from util.log_handler import logger
-from util.model_output_parser import model_output_parser
+from probtest.util.constants import CHECK_THRESHOLD, compute_statistics
+from probtest.util.file_system import file_names_from_pattern
+from probtest.util.log_handler import logger
+from probtest.util.model_output_parser import model_output_parser
 
 pd.set_option("display.max_colwidth", None)
 pd.set_option("display.max_columns", None)

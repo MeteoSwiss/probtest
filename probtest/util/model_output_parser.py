@@ -30,10 +30,10 @@ import numpy as np
 import pandas as pd
 import xarray
 
-from util.constants import compute_statistics
-from util.log_handler import logger
-from util.utils import numbers
-from util.xarray_ops import statistics_over_horizontal_dim
+from probtest.util.constants import compute_statistics
+from probtest.util.log_handler import logger
+from probtest.util.utils import numbers
+from probtest.util.xarray_ops import statistics_over_horizontal_dim
 
 
 def parse_netcdf(file_id, filename, specification):

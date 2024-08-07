@@ -8,7 +8,7 @@ under different scenarios.
 import subprocess
 import unittest
 
-from engine.run_ensemble import append_job, finalize_jobs
+from probtest.engine.run_ensemble import append_job, finalize_jobs
 
 
 class TestRunEnsemble(unittest.TestCase):

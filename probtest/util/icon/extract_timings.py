@@ -9,8 +9,8 @@ from datetime import datetime
 
 import numpy as np
 
-from util.constants import DATETIME_FORMAT
-from util.log_handler import logger
+from probtest.util.constants import DATETIME_FORMAT
+from probtest.util.log_handler import logger
 
 TIMING_START_REGEX = r"(?: +L? ?[a-zA-Z_.]+)"
 TIMING_ELEMENT_REGEX = r"(?:\[?\d+[.msh]?\d*s?\]? +)"

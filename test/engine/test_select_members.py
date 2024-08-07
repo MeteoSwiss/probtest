@@ -5,8 +5,7 @@ selection and tolerance testing CLI commands.
 
 import os
 import re
-
-from tests.helpers import run_select_members_cli, run_tolerance_cli
+from test.helpers import run_select_members_cli, run_tolerance_cli
 
 
 def test_select_members(stats_file_set):

@@ -14,10 +14,10 @@ import shutil
 import click
 import numpy as np
 
-from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
-from util.log_handler import logger
-from util.netcdf_io import nc4_get_copy
-from util.utils import get_seed_from_member_num
+from probtest.util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
+from probtest.util.log_handler import logger
+from probtest.util.netcdf_io import nc4_get_copy
+from probtest.util.utils import get_seed_from_member_num
 
 
 def create_perturb_files(in_path, in_files, out_path, copy_all_files=False):

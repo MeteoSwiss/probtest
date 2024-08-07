@@ -16,10 +16,10 @@ from datetime import datetime
 import click
 import numpy as np
 
-from engine.tolerance import tolerance
-from util.click_util import cli_help
-from util.dataframe_ops import test_stats_file_with_tolerances
-from util.log_handler import logger
+from probtest.engine.tolerance import tolerance
+from probtest.util.click_util import cli_help
+from probtest.util.dataframe_ops import test_stats_file_with_tolerances
+from probtest.util.log_handler import logger
 
 
 # finds members and a corresponding tolerance factor validating for all stats files.

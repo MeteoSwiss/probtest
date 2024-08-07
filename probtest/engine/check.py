@@ -11,9 +11,12 @@ import sys
 
 import click
 
-from util.click_util import cli_help
-from util.dataframe_ops import compute_div_dataframe, test_stats_file_with_tolerances
-from util.log_handler import logger
+from probtest.util.click_util import cli_help
+from probtest.util.dataframe_ops import (
+    compute_div_dataframe,
+    test_stats_file_with_tolerances,
+)
+from probtest.util.log_handler import logger
 
 
 @click.command()
