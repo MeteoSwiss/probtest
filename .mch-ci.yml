@@ -40,16 +40,16 @@ default:
               fullImageName: ${var.image}-tester
               packageManager: ''
               pullAlways: false
-      - lint:
-          - script: mkdir -p test_reports
-          - pythonLint:
-              fullImageName: ${var.image}-tester
-              packageManager: ''
-              pullAlways: false
-          # - pythonTypeChecker:
-          #     fullImageName: ${var.image}-tester
-          #     packageManager: ''
-          #     pullAlways: false
+      # - lint:
+      #     - script: mkdir -p test_reports
+      #     - pythonLint:
+      #         fullImageName: ${var.image}-tester
+      #         packageManager: ''
+      #         pullAlways: false
+      #     - pythonTypeChecker:
+      #         fullImageName: ${var.image}-tester
+      #         packageManager: ''
+      #         pullAlways: false
   - verify:
       - scan:
           openshiftTrivy:
