@@ -84,7 +84,9 @@ def performance(timing_regex, timing_database, append_time):
                         base.root[i].to_list()
                     ):
                         finish_time_string = base.meta_data["finish_time"][-1]
-                        backup = f"{timing_database}_{finish_time_string}"
+                        backup = (
+                            f"{timing_database}_{finish_time_string}"
+                        )
                         logger.info("tree changed, saving backup as: %s", backup)
                         shutil.copy(
                             TREEFILE_TEMPLATE.format(base=f"{timing_database}_{i}"),
