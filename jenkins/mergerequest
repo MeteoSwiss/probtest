@@ -10,7 +10,7 @@ pipeline {
             steps {
                 sh'''
                 source $SCRATCH/project/g110/icon/probtest/conda/miniconda/bin/activate probtest
-                pytest -v tests/*
+                pytest -v test/*
                 '''
             }
         }
