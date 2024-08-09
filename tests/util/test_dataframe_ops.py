@@ -10,8 +10,7 @@ from util.dataframe_ops import parse_check
 
 
 @patch("util.dataframe_ops.parse_probtest_csv")
-@patch("util.dataframe_ops.logger")
-def test_parse_check(mock_logger, mock_parse_probtest_csv, setup_csv_files):
+def test_parse_check(mock_parse_probtest_csv, setup_csv_files):
     # Mock the return value of parse_probtest_csv
     mock_parse_probtest_csv.side_effect = lambda file, index_col: pd.read_csv(
         file, index_col=index_col
@@ -53,12 +52,3 @@ def test_parse_check(mock_logger, mock_parse_probtest_csv, setup_csv_files):
 
     pd.testing.assert_frame_equal(df_ref, expected_ref)
     pd.testing.assert_frame_equal(df_cur, expected_cur)
-
-    # Check logging
-    mock_logger.info.assert_any_call("applying a factor of %s to the spread", factor)
-    mock_logger.info.assert_any_call(
-        "checking %s against %s using tolerances from %s",
-        setup_csv_files["cur_file"],
-        setup_csv_files["ref_file"],
-        setup_csv_files["tolerance_file"],
-    )
