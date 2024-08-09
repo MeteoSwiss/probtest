@@ -4,14 +4,12 @@ including reading log files, loading from JSON, intersection and subtraction of 
 growing trees with new nodes, and adding trees together.
 """
 
-import os
 from datetime import datetime
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from tests.helpers import setup_test_directory
 from util.icon.extract_timings import read_logfile
 from util.tree import TimingTree
 
@@ -29,13 +27,11 @@ JSON_ADD_REFERENCE = "tests/data/add"
 pd.set_option("display.max_colwidth", None)
 pd.set_option("display.max_columns", None)
 
-@pytest.fixture(scope="module")
-def test_path():
-    return setup_test_directory("tests/tmp")
 
-@pytest.fixture
-def timing_tree():
+@pytest.fixture(name="timing_tree")
+def fixture_timing_tree():
     return TimingTree
+
 
 def assert_trees_equal(t1, t2):
     for i in range(t1.meta_data["n_tables"]):
@@ -44,7 +40,10 @@ def assert_trees_equal(t1, t2):
 
         assert t1.meta_data == t2.meta_data, f"meta data does not match for table {i}"
         assert diff_sum < 1e-12, f"data does not match for table {i}"
-        assert t1.root[i].to_ancestry_name_list() == t2.root[i].to_ancestry_name_list(), f"tree does not match for table {i}"
+        assert (
+            t1.root[i].to_ancestry_name_list() == t2.root[i].to_ancestry_name_list()
+        ), f"tree does not match for table {i}"
+
 
 def test_read_timing(timing_tree):
     for timing_file in (TIMING_FILE_1, TIMING_FILE_2, TIMING_FILE_3):
@@ -54,11 +53,13 @@ def test_read_timing(timing_tree):
         assert tt.meta_data is not None, "did not properly initialize meta data"
         assert tt.root is not None, "did not properly initialize tree"
 
+
 def test_json_load(timing_tree):
     tt_json = timing_tree.from_json(JSON_REFERENCE)
     tt = timing_tree.from_logfile(TIMING_FILE_1, read_logfile)
 
     assert_trees_equal(tt_json, tt)
+
 
 def test_intersection(timing_tree):
     tt1 = timing_tree.from_logfile(TIMING_FILE_1, read_logfile)
@@ -120,6 +121,7 @@ def test_intersection(timing_tree):
 
     assert names == ref_names, "set of intersecting nodes does not match reference"
 
+
 def test_sub(timing_tree):
     tt1 = timing_tree.from_logfile(TIMING_FILE_1, read_logfile)
     tt2 = timing_tree.from_logfile(TIMING_FILE_2, read_logfile)
@@ -132,6 +134,7 @@ def test_sub(timing_tree):
 
     assert names == ref_names, "set of differing nodes does not match reference"
 
+
 def test_grow(timing_tree):
     tt1 = timing_tree.from_logfile(TIMING_FILE_1, read_logfile)
     tt2 = timing_tree.from_logfile(TIMING_FILE_2, read_logfile)
@@ -142,7 +145,10 @@ def test_grow(timing_tree):
 
     new_node = tt2.find("nh_solve.edgecomp", -1)
 
-    assert new_node.name == "nh_solve.edgecomp", "did not add (non-present) node nh_solve.edgecomp"
+    assert (
+        new_node.name == "nh_solve.edgecomp"
+    ), "did not add (non-present) node nh_solve.edgecomp"
+
 
 def test_add(timing_tree):
     tt1 = timing_tree.from_logfile(TIMING_FILE_1, read_logfile)
@@ -153,8 +159,11 @@ def test_add(timing_tree):
 
     assert_trees_equal(tt1, tt_added)
 
+
 def test_get_sorted_finish_times(timing_tree):
     tt_json = timing_tree.from_json(JSON_REFERENCE)
 
     dates = tt_json.get_sorted_finish_times()
-    assert dates == [datetime(2022, 6, 26, 20, 11, 23)], "sorted finish time does not match reference"
+    assert dates == [
+        datetime(2022, 6, 26, 20, 11, 23)
+    ], "sorted finish time does not match reference"
