@@ -189,7 +189,6 @@ class TestTimingTree(unittest.TestCase):
         tt_json = TimingTree.from_json(JSON_REFERENCE)
 
         dates = tt_json.get_sorted_finish_times()
-        print(dates)
         self.assertTrue(
             dates == [datetime(2022, 6, 26, 20, 11, 23)],
             msg="sorted finish time does not match reference",
