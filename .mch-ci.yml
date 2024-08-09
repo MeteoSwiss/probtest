@@ -41,12 +41,12 @@ default:
               packageManager: ''
               pullAlways: false
       - lint:
-      #     - script: mkdir -p test_reports
-      #     - pythonLint:
+          - script: mkdir -p test_reports
+          - pythonLint:
       #         fullImageName: ${var.image}-tester
       #         packageManager: ''
       #         pullAlways: false
-      #     - pythonTypeChecker:
+          - pythonTypeChecker:
       #         fullImageName: ${var.image}-tester
       #         packageManager: ''
       #         pullAlways: false
