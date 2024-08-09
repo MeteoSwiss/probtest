@@ -40,7 +40,7 @@ default:
               fullImageName: ${var.image}-tester
               packageManager: ''
               pullAlways: false
-      # - lint:
+      - lint:
       #     - script: mkdir -p test_reports
       #     - pythonLint:
       #         fullImageName: ${var.image}-tester
