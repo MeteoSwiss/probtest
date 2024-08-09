@@ -4,11 +4,12 @@ including reading log files, loading from JSON, intersection and subtraction of 
 growing trees with new nodes, and adding trees together.
 """
 
-import unittest
+import os
 from datetime import datetime
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from tests.helpers import setup_test_directory
 from util.icon.extract_timings import read_logfile
@@ -28,172 +29,132 @@ JSON_ADD_REFERENCE = "tests/data/add"
 pd.set_option("display.max_colwidth", None)
 pd.set_option("display.max_columns", None)
 
+@pytest.fixture(scope="module")
+def test_path():
+    return setup_test_directory("tests/tmp")
 
-class TestTimingTree(unittest.TestCase):
-    """
-    Unit tests for the `TimingTree` class, covering initialization, data
-    manipulation, and tree operations.
+@pytest.fixture
+def timing_tree():
+    return TimingTree
 
-    This class uses the `unittest` framework to verify the correctness of
-    methods and functionality in the `TimingTree` class.
-    It includes tests for reading timing data from log files, loading and
-    comparing timing trees from JSON files, and performing tree operations like
-    intersection, subtractions, growing, and addition.
-    """
+def assert_trees_equal(t1, t2):
+    for i in range(t1.meta_data["n_tables"]):
+        diff = t1.data[i].values - t2.data[i].values
+        diff_sum = np.sum(np.abs(diff))
 
-    @classmethod
-    def setUpClass(cls):
-        cls.test_path = setup_test_directory("tests/tmp")
+        assert t1.meta_data == t2.meta_data, f"meta data does not match for table {i}"
+        assert diff_sum < 1e-12, f"data does not match for table {i}"
+        assert t1.root[i].to_ancestry_name_list() == t2.root[i].to_ancestry_name_list(), f"tree does not match for table {i}"
 
-    def setUp(self):
-        return
+def test_read_timing(timing_tree):
+    for timing_file in (TIMING_FILE_1, TIMING_FILE_2, TIMING_FILE_3):
+        tt = timing_tree.from_logfile(timing_file, read_logfile)
 
-    def tearDown(self):
-        return
+        assert tt.data is not None, "did not properly initialize data"
+        assert tt.meta_data is not None, "did not properly initialize meta data"
+        assert tt.root is not None, "did not properly initialize tree"
 
-    def assert_trees_equal(self, t1, t2):
-        for i in range(t1.meta_data["n_tables"]):
-            diff = t1.data[i].values - t2.data[i].values
-            diff_sum = np.sum(np.abs(diff))
+def test_json_load(timing_tree):
+    tt_json = timing_tree.from_json(JSON_REFERENCE)
+    tt = timing_tree.from_logfile(TIMING_FILE_1, read_logfile)
 
-            self.assertDictEqual(
-                t1.meta_data,
-                t2.meta_data,
-                msg=f"meta data does not match for table {i}",
-            )
-            self.assertLess(diff_sum, 1e-12, msg=f"data does not match for table {i}")
-            self.assertListEqual(
-                t1.root[i].to_ancestry_name_list(),
-                t2.root[i].to_ancestry_name_list(),
-                msg=f"tree does not match for table {i}",
-            )
+    assert_trees_equal(tt_json, tt)
 
-    def test_read_timing(self):
-        for timing_file in (TIMING_FILE_1, TIMING_FILE_2, TIMING_FILE_3):
-            tt = TimingTree.from_logfile(timing_file, read_logfile)
+def test_intersection(timing_tree):
+    tt1 = timing_tree.from_logfile(TIMING_FILE_1, read_logfile)
+    tt2 = timing_tree.from_logfile(TIMING_FILE_2, read_logfile)
 
-            self.assertIsNotNone(tt.data, msg="did not properly initialize data")
-            self.assertIsNotNone(
-                tt.meta_data, msg="did not properly initialize meta data"
-            )
-            self.assertIsNotNone(tt.root, msg="did not properly initialize tree")
+    intersection_nodes = tt1.root[-1].intersection(tt2.root[-1])
 
-    def test_json_load(self):
-        tt_json = TimingTree.from_json(JSON_REFERENCE)
-        tt = TimingTree.from_logfile(TIMING_FILE_1, read_logfile)
+    names = {n.get_ancestry_name() for n in intersection_nodes}
 
-        self.assert_trees_equal(tt_json, tt)
+    ref_names = {
+        "root>total>integrate_nh>nh_solve>nh_solve.cellcomp",
+        "root>upper_atmosphere",
+        "root>total>integrate_nh>physics",
+        "root>total>integrate_nh>physics>nwp_radiation>nwp_ecrad_store_fluxes",
+        "root>exch_data",
+        "root>nh_diagnostics",
+        "root>total>integrate_nh>nh_solve>nh_solve.veltend",
+        "root>total>integrate_nh>physics>nwp_radiation",
+        "root>total>integrate_nh>physics>nwp_turbulence>nwp_turbtrans",
+        "root>total>integrate_nh>physics>rediag_prog_vars",
+        "root>total>integrate_nh>physics>cloud_cover",
+        "root>total>integrate_nh>physics>nwp_turbulence>nwp_turbdiff",
+        "root>total>write_restart",
+        "root>total>integrate_nh>physics>sso",
+        "root>total>integrate_nh>physics>nwp_radiation>nwp_radiation_upscale",
+        "root>total>integrate_nh>nh_hdiff",
+        "root>total>integrate_nh>transport>adv_horiz",
+        "root>total>integrate_nh>transport>adv_horiz>adv_hflx",
+        "root>total>integrate_nh>transport>adv_vert>adv_vflx",
+        "root>total>integrate_nh>nesting>nesting.bdy_interp",
+        "root>total>integrate_nh>physics>phys_acc_sync>global_sum",
+        "root>total>integrate_nh>nh_solve>nh_solve.exch",
+        "root>total>integrate_nh>physics>phys_acc_sync>ordglb_sum",
+        "root>exch_data>exch_data.wait",
+        "root>total>integrate_nh>nh_solve",
+        "root>total>integrate_nh",
+        "root>total>integrate_nh>physics>nwp_radiation>nwp_ecrad_utilities",
+        "root>total",
+        "root>total>integrate_nh>nh_solve>nh_solve.vimpl",
+        "root>total>integrate_nh>physics>nwp_turbulence",
+        "root>total>write_restart>write_restart_communication",
+        "root>total>write_restart>write_restart_io",
+        "root>total>integrate_nh>physics>diagnose_pres_temp",
+        "root>total>integrate_nh>physics>nwp_microphysics",
+        "root>total>integrate_nh>physics>nwp_surface",
+        "root>total>integrate_nh>physics>nwp_convection",
+        "root>total>integrate_nh>physics>nwp_radiation>preradiaton",
+        "root>total>integrate_nh>nh_solve>nh_solve.vnupd",
+        "root>total>integrate_nh>physics>nwp_radiation>nwp_radiation_downscale",
+        "root>total>integrate_nh>nesting",
+        "root>total>integrate_nh>transport>adv_vert",
+        "root>total>integrate_nh>transport",
+        "root>total>integrate_nh>physics>phys_u_v",
+        "root>total>integrate_nh>physics>satad",
+        "root>total>integrate_nh>physics>phys_acc_sync",
+        "root>total>integrate_nh>physics>radheat",
+        "root>total>integrate_nh>physics>nwp_radiation>nwp_ecrad_ecrad",
+    }
 
-    def test_intersection(self):
-        tt1 = TimingTree.from_logfile(TIMING_FILE_1, read_logfile)
-        tt2 = TimingTree.from_logfile(TIMING_FILE_2, read_logfile)
+    assert names == ref_names, "set of intersecting nodes does not match reference"
 
-        intersection_nodes = tt1.root[-1].intersection(tt2.root[-1])
+def test_sub(timing_tree):
+    tt1 = timing_tree.from_logfile(TIMING_FILE_1, read_logfile)
+    tt2 = timing_tree.from_logfile(TIMING_FILE_2, read_logfile)
 
-        names = {n.get_ancestry_name() for n in intersection_nodes}
+    sub_nodes = tt1.root[-1].sub(tt2.root[-1])
 
-        ref_names = {
-            "root>total>integrate_nh>nh_solve>nh_solve.cellcomp",
-            "root>upper_atmosphere",
-            "root>total>integrate_nh>physics",
-            "root>total>integrate_nh>physics>nwp_radiation>nwp_ecrad_store_fluxes",
-            "root>exch_data",
-            "root>nh_diagnostics",
-            "root>total>integrate_nh>nh_solve>nh_solve.veltend",
-            "root>total>integrate_nh>physics>nwp_radiation",
-            "root>total>integrate_nh>physics>nwp_turbulence>nwp_turbtrans",
-            "root>total>integrate_nh>physics>rediag_prog_vars",
-            "root>total>integrate_nh>physics>cloud_cover",
-            "root>total>integrate_nh>physics>nwp_turbulence>nwp_turbdiff",
-            "root>total>write_restart",
-            "root>total>integrate_nh>physics>sso",
-            "root>total>integrate_nh>physics>nwp_radiation>nwp_radiation_upscale",
-            "root>total>integrate_nh>nh_hdiff",
-            "root>total>integrate_nh>transport>adv_horiz",
-            "root>total>integrate_nh>transport>adv_horiz>adv_hflx",
-            "root>total>integrate_nh>transport>adv_vert>adv_vflx",
-            "root>total>integrate_nh>nesting>nesting.bdy_interp",
-            "root>total>integrate_nh>physics>phys_acc_sync>global_sum",
-            "root>total>integrate_nh>nh_solve>nh_solve.exch",
-            "root>total>integrate_nh>physics>phys_acc_sync>ordglb_sum",
-            "root>exch_data>exch_data.wait",
-            "root>total>integrate_nh>nh_solve",
-            "root>total>integrate_nh",
-            "root>total>integrate_nh>physics>nwp_radiation>nwp_ecrad_utilities",
-            "root>total",
-            "root>total>integrate_nh>nh_solve>nh_solve.vimpl",
-            "root>total>integrate_nh>physics>nwp_turbulence",
-            "root>total>write_restart>write_restart_communication",
-            "root>total>write_restart>write_restart_io",
-            "root>total>integrate_nh>physics>diagnose_pres_temp",
-            "root>total>integrate_nh>physics>nwp_microphysics",
-            "root>total>integrate_nh>physics>nwp_surface",
-            "root>total>integrate_nh>physics>nwp_convection",
-            "root>total>integrate_nh>physics>nwp_radiation>preradiaton",
-            "root>total>integrate_nh>nh_solve>nh_solve.vnupd",
-            "root>total>integrate_nh>physics>nwp_radiation>nwp_radiation_downscale",
-            "root>total>integrate_nh>nesting",
-            "root>total>integrate_nh>transport>adv_vert",
-            "root>total>integrate_nh>transport",
-            "root>total>integrate_nh>physics>phys_u_v",
-            "root>total>integrate_nh>physics>satad",
-            "root>total>integrate_nh>physics>phys_acc_sync",
-            "root>total>integrate_nh>physics>radheat",
-            "root>total>integrate_nh>physics>nwp_radiation>nwp_ecrad_ecrad",
-        }
+    names = {n.get_ancestry_name() for n in sub_nodes}
 
-        self.assertTrue(
-            names == ref_names, msg="set of intersecting nodes does not match reference"
-        )
+    ref_names = {"root>total>integrate_nh>nh_solve>nh_solve.edgecomp"}
 
-    def test_sub(self):
-        tt1 = TimingTree.from_logfile(TIMING_FILE_1, read_logfile)
-        tt2 = TimingTree.from_logfile(TIMING_FILE_2, read_logfile)
+    assert names == ref_names, "set of differing nodes does not match reference"
 
-        sub_nodes = tt1.root[-1].sub(tt2.root[-1])
+def test_grow(timing_tree):
+    tt1 = timing_tree.from_logfile(TIMING_FILE_1, read_logfile)
+    tt2 = timing_tree.from_logfile(TIMING_FILE_2, read_logfile)
 
-        names = {n.get_ancestry_name() for n in sub_nodes}
+    diff_nodes = tt1.root[-1].sub(tt2.root[-1])
 
-        ref_names = {"root>total>integrate_nh>nh_solve>nh_solve.edgecomp"}
+    tt2.grow(diff_nodes, -1)
 
-        self.assertTrue(
-            names == ref_names, msg="set of differing nodes does not match reference"
-        )
+    new_node = tt2.find("nh_solve.edgecomp", -1)
 
-    def test_grow(self):
-        tt1 = TimingTree.from_logfile(TIMING_FILE_1, read_logfile)
-        tt2 = TimingTree.from_logfile(TIMING_FILE_2, read_logfile)
+    assert new_node.name == "nh_solve.edgecomp", "did not add (non-present) node nh_solve.edgecomp"
 
-        diff_nodes = tt1.root[-1].sub(tt2.root[-1])
+def test_add(timing_tree):
+    tt1 = timing_tree.from_logfile(TIMING_FILE_1, read_logfile)
+    tt2 = timing_tree.from_logfile(TIMING_FILE_2, read_logfile)
+    tt_added = timing_tree.from_json(JSON_ADD_REFERENCE)
 
-        tt2.grow(diff_nodes, -1)
+    tt1.add(tt2)
 
-        new_node = tt2.find("nh_solve.edgecomp", -1)
+    assert_trees_equal(tt1, tt_added)
 
-        self.assertEqual(
-            new_node.name,
-            "nh_solve.edgecomp",
-            msg="did not add (non-present) node nh_solve.edgecomp",
-        )
+def test_get_sorted_finish_times(timing_tree):
+    tt_json = timing_tree.from_json(JSON_REFERENCE)
 
-    def test_add(self):
-        tt1 = TimingTree.from_logfile(TIMING_FILE_1, read_logfile)
-        tt2 = TimingTree.from_logfile(TIMING_FILE_2, read_logfile)
-        tt_added = TimingTree.from_json(JSON_ADD_REFERENCE)
-
-        tt1.add(tt2)
-
-        self.assert_trees_equal(tt1, tt_added)
-
-    def test_get_sorted_finish_times(self):
-        tt_json = TimingTree.from_json(JSON_REFERENCE)
-
-        dates = tt_json.get_sorted_finish_times()
-        self.assertTrue(
-            dates == [datetime(2022, 6, 26, 20, 11, 23)],
-            msg="sorted finish time does not match reference",
-        )
-
-
-if __name__ == "__main__":
-    unittest.main()
+    dates = tt_json.get_sorted_finish_times()
+    assert dates == [datetime(2022, 6, 26, 20, 11, 23)], "sorted finish time does not match reference"
