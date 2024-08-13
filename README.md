@@ -158,16 +158,16 @@ Our tests are executed using `pytest`, ensuring a consistent and efficient testi
 
 Simply run
 ```console
-pytest -s -v tests/*
+pytest -s -v test/*
 ```
-in order to run all tests.
+in order to run all test.
 
 To run only a subset of test run
 ```console
 pytest -s -v path/to/your/test.py
 ```
 
-Reference data, crucial for validating the outcomes of our tests and detecting any deviations in `probtests` results, is maintained in the [tests/data](tests/data) directory. This approach guarantees that our tests are both comprehensive and reliable, safeguarding the integrity of our codebase.
+Reference data, crucial for validating the outcomes of our tests and detecting any deviations in `probtests` results, is maintained in the [test/data](test/data) directory. This approach guarantees that our tests are both comprehensive and reliable, safeguarding the integrity of our codebase.
 
 ### Code formatting
 

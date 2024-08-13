@@ -48,14 +48,14 @@ repos:
           entry: end-of-file-fixer
           language: system
           types: [text]
-          exclude: tests/data/
+          exclude: test/data/
       -   id: trailing-whitespace
           name: trim trailing whitespace
           description: trims trailing whitespace.
           entry: trailing-whitespace-fixer
           language: system
           types: [text]
-          exclude: tests/data/
+          exclude: test/data/
   -   repo: local
       hooks:
       -   id: forbidden-files-copier-rej
@@ -83,7 +83,7 @@ repos:
           description: Check for spelling errors
           language: system
           entry: codespell
-          exclude: tests/data/
+          exclude: test/data/
           args: ['-L astroid,fof']
   -   repo: local
       hooks:

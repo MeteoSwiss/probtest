@@ -1,0 +1,82 @@
+[[tool.poetry.source]]
+name = "meteoswiss"
+url = "https://service.meteoswiss.ch/nexus/repository/python-all/simple"
+
+[[tool.poetry.source]]
+# only hub entrypoint can be used for publishing libraries (accessible from CI/CD server)
+name = "pypi-mch-publish"
+url = "https://hub.meteoswiss.ch/nexus/repository/python-mch/"
+
+[tool.poetry]
+name = "probtest"
+version = "0.0"
+description = "Python job integrating with MeteoSwiss systems."
+authors = ["ITA <ita@meteoswiss.ch>"]
+readme = "README.rst"
+include = ["HISTORY.rst"]
+
+[tool.poetry.scripts]
+probtest = "probtest.probtest:cli"
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+click = ">=7.1.2"
+Jinja2 = ">=3.0.1"
+matplotlib = ">=3.2.1"
+netCDF4 = ">=1.5.3"
+numpy = ">=1.18.2"
+pathlib = ">=1.0.1"
+pandas = ">=1.0.3"
+regex = ">=2020.11.13"
+scipy = ">=1.4.1"
+xarray = ">=0.16.1"
+
+
+
+[tool.poetry.group.dev.dependencies]
+black= ">=22.8.0"
+mypy = "*"
+pydata-sphinx-theme = "*"
+pylint = "*"
+pytest = ">=6.2.1"
+pytest-cov = "*"
+sphinx = "*"
+sphinx-autoapi = "*"
+yapf = "*"
+
+[tool.yapf]
+based_on_style = "pep8"
+column_limit = "120"
+
+[tool.pylint.master]
+disable = [
+    'C0114', # missing-module-docstring
+    'C0115', # missing-class-docstring
+    'C0116', # missing-function-docstring
+    'W0511', # fix me or to-do comments are already covered by SonarQube
+]
+
+[tool.pylint.basic]
+argument-naming-style = 'any'
+attr-naming-style = 'any'
+
+[tool.pylint.format]
+# Maximum number of lines in a module.
+max-line-length = 120
+
+[tool.pylint.design]
+# Minimum number of public methods for a class (see R0903).
+min-public-methods = 0
+
+[tool.mypy]
+ignore_missing_imports = true
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+# to avoid mypy errors when importing modules from commons
+# aka "module is installed, but missing library stubs or py.typed marker"
+module = ["mchpy.*"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
