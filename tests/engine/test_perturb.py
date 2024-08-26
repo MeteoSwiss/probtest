@@ -60,7 +60,7 @@ def test_perturb_nc(tmp_dir, create_nc_files):
 
     # reopen the files to make sure we get the values from disk
     for i in range(2):
-        data[i] = Dataset(f"dummy{i}.nc", "r")
+        data[i] = Dataset(f"{tmp_dir}/dummy{i}.nc", "r")
     zf = data[0].variables["z"][:]
     zd_perturb = data[1].variables["z"][:]
 
