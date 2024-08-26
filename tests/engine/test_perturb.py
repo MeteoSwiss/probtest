@@ -18,10 +18,10 @@ ARRAY_DIM = 100
 
 
 @pytest.fixture(name="create_nc_files")
-def fixture_create_nc_files():
+def fixture_create_nc_files(tmp_dir):
     data = [None] * 2
     for i, dt in enumerate([np.float32, np.float64]):
-        data[i] = Dataset(f"dummy{i}.nc", "w")
+        data[i] = Dataset(f"{tmp_dir}/dummy{i}.nc", "w")
         data[i].createDimension("x", size=ARRAY_DIM)
         data[i].createDimension("y", size=ARRAY_DIM)
         data[i].createVariable("z", dt, dimensions=("x", "y"))
