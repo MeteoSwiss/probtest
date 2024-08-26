@@ -16,7 +16,7 @@ from matplotlib import pyplot as plt
 
 from util.click_util import cli_help
 from util.constants import compute_statistics
-from util.dataframe_ops import compute_rel_diff_dataframe, parse_probtest_csv
+from util.dataframe_ops import compute_rel_diff_dataframe, parse_check
 from util.log_handler import logger
 
 
@@ -54,19 +54,9 @@ colors = prop_cycle.by_key()["color"]
     help=cli_help["savedir"],
 )
 def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, savedir):
-    df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
 
-    logger.info("applying a factor of %s to the spread", factor)
-    df_tol *= factor
-
-    df_ref = parse_probtest_csv(input_file_ref, index_col=[0, 1, 2])
-    df_cur = parse_probtest_csv(input_file_cur, index_col=[0, 1, 2])
-
-    logger.info(
-        "checking %s against %s using tolerances from %s",
-        input_file_cur,
-        input_file_ref,
-        tolerance_file_name,
+    df_tol, df_ref, df_cur = parse_check(
+        tolerance_file_name, input_file_ref, input_file_cur, factor
     )
 
     # compute relative difference

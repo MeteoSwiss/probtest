@@ -17,7 +17,7 @@ import click
 
 from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
 from util.log_handler import logger
-from util.utils import get_seed_from_member_num
+from util.utils import get_seed_from_member_num, process_member_num
 
 
 def is_float(string):
@@ -231,10 +231,10 @@ def run_ensemble(
         append_job(job, job_list, parallel)
 
     # run the ensemble
-    if len(member_num) == 1:
-        member_num = list(range(1, member_num[0] + 1))
-    for m_num in member_num:
-        m_id = str(m_num)
+    processed_member_num = process_member_num(member_num)
+
+    for m_num, m_id in processed_member_num:
+
         Path(perturbed_run_dir.format(member_id=m_id)).mkdir(
             exist_ok=True, parents=True
         )

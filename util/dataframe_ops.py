@@ -251,9 +251,26 @@ def check_variable(diff_df, df_tol):
     return len(out[selector].index) == 0, diff_df[selector], df_tol[selector]
 
 
-def test_stats_file_with_tolerances(
-    tolerance_file_name, input_file_ref, input_file_cur, factor
-):
+def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
+    """
+    Parses all necessary data to perform a check from tolerance, reference and
+    input files, applying scaling factor to tolerance values.
+
+    Args:
+        tolerance_file_name (str): Path to the CSV file containing tolerance values.
+        input_file_ref (str): Path to the reference input CSV file.
+        input_file_cur (str): Path to the current input CSV file.
+        factor (float): Scaling factor to be applied to the tolerance values.
+
+    Returns:
+        tuple: A tuple containing three DataFrames:
+            - df_tol (pandas.DataFrame): The tolerance DataFrame with values
+                                         scaled by the provided factor.
+            - df_ref (pandas.DataFrame): The reference DataFrame parsed from the
+                                         reference input file.
+            - df_cur (pandas.DataFrame): The current DataFrame parsed from the
+                                         current input file.
+    """
     df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
 
     logger.info("applying a factor of %s to the spread", factor)
@@ -269,10 +286,21 @@ def test_stats_file_with_tolerances(
         tolerance_file_name,
     )
 
+    return df_tol, df_ref, df_cur
+
+
+def test_stats_file_with_tolerances(
+    tolerance_file_name, input_file_ref, input_file_cur, factor
+):
+
+    df_tol, df_ref, df_cur = parse_check(
+        tolerance_file_name, input_file_ref, input_file_cur, factor
+    )
+
     # check if variables are available in reference file
     skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
     if skip_test:  # No intersection
-        logger.info("RESULT: check FAILED")
+        logger.error("RESULT: check FAILED")
         sys.exit(1)
 
     # compute relative difference

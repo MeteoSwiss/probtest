@@ -203,3 +203,40 @@ def stats_file_set(tmp_dir):
     yield files
     if os.path.exists(files["tol"]):
         os.remove(files["tol"])
+
+
+@pytest.fixture(name="setup_csv_files")
+def fixture_setup_csv_files(tmp_path):
+    # Create sample CSV files for testing
+    tolerance_data = pd.DataFrame(
+        {"A": [0.1, 0.2], "B": [0.3, 0.4]},
+        index=pd.MultiIndex.from_tuples(
+            [("a", "b"), ("c", "d")], names=["col1", "col2"]
+        ),
+    )
+    ref_data = pd.DataFrame(
+        {"A": [1, 2], "B": [3, 4]},
+        index=pd.MultiIndex.from_tuples(
+            [("a", "b", "c"), ("d", "e", "f")], names=["col1", "col2", "col3"]
+        ),
+    )
+    cur_data = pd.DataFrame(
+        {"A": [2, 3], "B": [4, 5]},
+        index=pd.MultiIndex.from_tuples(
+            [("a", "b", "c"), ("d", "e", "f")], names=["col1", "col2", "col3"]
+        ),
+    )
+
+    tolerance_file = tmp_path / "tolerance_test.csv"
+    ref_file = tmp_path / "input_ref_test.csv"
+    cur_file = tmp_path / "input_cur_test.csv"
+
+    tolerance_data.to_csv(tolerance_file)
+    ref_data.to_csv(ref_file)
+    cur_data.to_csv(cur_file)
+
+    return {
+        "tolerance_file": tolerance_file,
+        "ref_file": ref_file,
+        "cur_file": cur_file,
+    }
