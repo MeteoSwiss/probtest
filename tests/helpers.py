@@ -27,26 +27,6 @@ from engine.stats import stats
 from engine.tolerance import tolerance
 
 
-def setup_test_directory(directory_path):
-    """
-    Creates a test directory, deleting any existing directory at the same path.
-
-    Args:
-        directory_path (str): The path to the directory to be created or cleaned.
-
-    Returns:
-        str: The absolute path to the created directory.
-    """
-    test_path = os.path.realpath(directory_path)
-
-    if os.path.exists(test_path):
-        shutil.rmtree(test_path)
-
-    os.mkdir(test_path)
-
-    return test_path
-
-
 def load_netcdf(path):
     return xr.load_dataset(path)
 

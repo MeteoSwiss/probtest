@@ -27,8 +27,8 @@ def fixture_create_nc_files():
         data[i].createVariable("z", dt, dimensions=("x", "y"))
         data[i].variables["z"][:] = np.ones((ARRAY_DIM, ARRAY_DIM))
     yield data
-    for i in range(2):
-        data[i].close()
+    for d in data:
+        d.close()
 
 
 def test_perturb_array():
@@ -51,7 +51,7 @@ def test_perturb_array():
     ), "perturbation did not return a copy of input!"
 
 
-def test_perturb_nc(test_path, create_nc_files):
+def test_perturb_nc(tmp_dir, create_nc_files):
 
     data = create_nc_files
     zd = data[1].variables["z"][:]
@@ -79,4 +79,4 @@ def test_perturb_nc(test_path, create_nc_files):
     xx, yy = np.meshgrid(np.linspace(0, 1, ARRAY_DIM), np.linspace(0, 1, ARRAY_DIM))
     cs = ax.contourf(xx, yy, diff)
     fig.colorbar(cs, ax=ax)
-    fig.savefig(f"{test_path}/diff_figure.pdf")
+    fig.savefig(f"{tmp_dir}/diff_figure.pdf")

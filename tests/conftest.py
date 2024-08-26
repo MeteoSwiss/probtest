@@ -17,18 +17,8 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-from tests.helpers import (
-    create_random_stats_file,
-    generate_ensemble,
-    load_pandas,
-    setup_test_directory,
-)
+from tests.helpers import create_random_stats_file, generate_ensemble, load_pandas
 from util.tree import TimingTree
-
-
-@pytest.fixture(scope="module")
-def test_path():
-    return setup_test_directory("tests/tmp")
 
 
 @pytest.fixture(autouse=True, scope="session")
