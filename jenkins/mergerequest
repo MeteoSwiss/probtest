@@ -9,7 +9,7 @@ pipeline {
         stage('Pytest') {
             steps {
                 sh'''
-                source $SCRATCH/project/g110/icon/probtest/conda/miniconda/bin/activate probtest
+                source $SCRATCH/project/icon/probtest/conda/miniconda/bin/activate probtest
                 pytest -v tests/*
                 '''
             }
