@@ -18,6 +18,7 @@ from util.click_util import cli_help
 from util.constants import compute_statistics
 from util.dataframe_ops import compute_rel_diff_dataframe, parse_check
 from util.log_handler import logger
+from util.visualize_util import create_figure
 
 
 def delete_uninitialized_fields(df):
@@ -89,17 +90,7 @@ def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, save
     legend_height = 2  # height in inches
     fig_height = 3.5 * nrows + legend_height
 
-    fig, ax = plt.subplots(
-        ncols=ncols,
-        nrows=nrows,
-        figsize=(5 * ncols, fig_height),
-        sharey=True,
-        sharex=True,
-    )
-    if nrows == 1:
-        ax = np.expand_dims(ax, axis=0)
-    if ncols == 1:
-        ax = np.expand_dims(ax, axis=1)
+    fig, ax = create_figure(ncols, nrows, fig_width=5 * ncols, fig_height=fig_height)
 
     for i, e in enumerate(diff_df.index.values):
         for j, c in enumerate(compute_statistics):
