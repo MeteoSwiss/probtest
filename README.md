@@ -98,7 +98,15 @@ python probtest.py {command} --help
 
 ### Example: Check the output of an experiment
 
-All requirements can be easily installed with conda:
+Objective: Run the mch_opr_r04b07 ICON experiment and check if the output of the run is ok.
+Probtest requires some additional python packages.
+On Balfrin, there is a pre-installed python environment which can be loaded with:
+
+```
+source  $SCRATCH/../jenkins/project/icon/probtest/conda/miniconda/bin/activate probtest
+```
+
+Alternatively, all requirements can be easily installed with conda:
 
 ```
 ./setup_miniconda.sh
