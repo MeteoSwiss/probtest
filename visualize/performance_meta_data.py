@@ -20,6 +20,7 @@ from util.constants import DATETIME_FORMAT
 from util.log_handler import logger
 from util.tree import TimingTree
 from util.utils import unique_elements
+from util.visualize_util import create_figure
 
 
 def plot_meta_data_timer(timer, data, revs, ax, experiment_name, savedir):
@@ -118,17 +119,8 @@ def performance_meta_data(
     # plotting
     ncols = min(len(timing_names), 3)
     nrows = int(np.ceil(len(timing_names) / 3.0))
-    _, ax = plt.subplots(
-        ncols=ncols,
-        nrows=nrows,
-        figsize=(5 * ncols, 3.5 * nrows),
-        sharey=True,
-        sharex=True,
-    )
-    if nrows == 1:
-        ax = np.expand_dims(ax, axis=0)
-    if ncols == 1:
-        ax = np.expand_dims(ax, axis=1)
+
+    _, ax = create_figure(ncols, nrows, fig_width=5 * ncols, fig_height=3.5 * nrows)
 
     for i, t in enumerate(timing_names):
         plot_meta_data_timer(

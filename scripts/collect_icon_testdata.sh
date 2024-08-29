@@ -29,7 +29,3 @@ rsync -azP --include="${EXPNAME}*/" --include="*${EXPNAME}*_atm_3d*.nc" --exclud
 cp $ICON_DIR/run/exp.${EXPNAME}.run icon_data/${EXPNAME} || exit 1
 cp $ICON_DIR/run/LOG.exp.${EXPNAME}.run.*.o icon_data/${EXPNAME}/LOG.exp.${EXPNAME}.run.12345678.o || exit 1
 cp /users/icontest/pool/data/ICON/mch/input/opr_r04b07_lhn_12/ll_2019061512.nc icon_data/${EXPNAME}/initial_condition.nc || exit 1
-
-# copy over the long-running performance benchmark to test visualization
-# mkdir -p icon_data/performance
-# cp /project/g110/icon-performance-benchmark/daint_gpu_pgi/mch_ch_lowres/* icon_data/performance || exit 1
