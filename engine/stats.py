@@ -7,6 +7,7 @@ This command line tool provides functionality for:
 - Generating statistics for both ensemble and reference model runs.
 """
 
+import os
 from multiprocessing import Pool
 from pathlib import Path
 
@@ -135,6 +136,6 @@ def stats(
         create_stats_dataframe(
             model_output_dir,
             file_id,
-            stats_file_name,
+            stats_file_name.format(member_id=os.path.basename(model_output_dir)),
             file_specification,
         )
