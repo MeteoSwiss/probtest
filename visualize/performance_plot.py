@@ -122,6 +122,6 @@ def performance_plot(timing_database, savedir, timing_names, experiment_name, i_
         )
 
         if savedir:
-            path = f"{savedir}/{f"perf_{experiment_name}_{timer}.png"}"
+            path = f"{savedir}/perf_{experiment_name}_{timer}.png"
             logger.info("saving figure to %s", path)
             fig.savefig(path)

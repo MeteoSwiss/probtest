@@ -129,7 +129,7 @@ def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, save
     )  # use an absolute margin for the legend
     if savedir:
         Path(savedir).mkdir(exist_ok=True, parents=True)
-        path = f"{savedir}/{"check_plot.png"}"
+        path = f"{savedir}/check_plot.png"
         logger.info("saving figure to %s", path)
         fig.savefig(path)
     else:
