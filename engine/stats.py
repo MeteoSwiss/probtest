@@ -7,6 +7,7 @@ This command line tool provides functionality for:
 - Generating statistics for both ensemble and reference model runs.
 """
 
+from multiprocessing import Pool
 from pathlib import Path
 
 import click
@@ -29,6 +30,26 @@ def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specificati
     df.to_csv(stats_file_name)
 
     return df
+
+
+def process_member(
+    m_num,
+    member_type,
+    perturbed_model_output_dir,
+    file_id,
+    stats_file_name,
+    file_specification,
+):
+    m_id = str(m_num)
+    if member_type:
+        m_id = member_type + "_" + m_id
+    input_dir = perturbed_model_output_dir.format(member_id=m_id)
+    create_stats_dataframe(
+        input_dir,
+        file_id,
+        stats_file_name.format(member_id=m_id),
+        file_specification,
+    )
 
 
 @click.command()
@@ -91,18 +112,19 @@ def stats(
     if ensemble:
         if len(member_num) == 1:
             member_num = list(range(1, member_num[0] + 1))
-        for m_num in member_num:
-            m_id = str(m_num)
-            if member_type:
-                m_id = member_type + "_" + m_id
-            input_dir = perturbed_model_output_dir.format(member_id=m_id)
-            create_stats_dataframe(
-                input_dir,
-                file_id,
-                stats_file_name.format(member_id=m_id),
-                file_specification,
-            )
-
+        with Pool() as p:
+            args = [
+                (
+                    m_num,
+                    member_type,
+                    perturbed_model_output_dir,
+                    file_id,
+                    stats_file_name,
+                    file_specification,
+                )
+                for m_num in member_num
+            ]
+            p.starmap(process_member, args)
     # compute the stats for the reference.
     # For ensembles, this file is named
     # stats_{member_id} -> stats_ref (used again in "tolerance")
