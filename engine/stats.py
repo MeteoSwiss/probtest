@@ -35,19 +35,23 @@ def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specificati
 def process_member(
     m_num,
     member_type,
+    model_output_dir,
     perturbed_model_output_dir,
     file_id,
     stats_file_name,
     file_specification,
 ):
-    m_id = str(m_num)
-    if member_type:
-        m_id = member_type + "_" + m_id
-    input_dir = perturbed_model_output_dir.format(member_id=m_id)
+    if m_num == "ref":
+        input_dir = model_output_dir
+    else:
+        m_id = str(m_num)
+        if member_type:
+            m_id = member_type + "_" + m_id
+        input_dir = perturbed_model_output_dir.format(member_id=m_id)
     create_stats_dataframe(
         input_dir,
         file_id,
-        stats_file_name.format(member_id=m_id),
+        stats_file_name.format(member_id=m_num),
         file_specification,
     )
 
@@ -108,15 +112,17 @@ def stats(
     file_specification = file_specification[0]  # can't store dicts as defaults in click
     assert isinstance(file_specification, dict), "must be dict"
 
-    # compute stats for the ensemble run
+    # compute stats for the ensemble and the reference run
     if ensemble:
         if len(member_num) == 1:
             member_num = list(range(1, member_num[0] + 1))
+        member_num.append("ref")  # add "ref" to the list
         with Pool() as p:
             args = [
                 (
                     m_num,
                     member_type,
+                    model_output_dir,
                     perturbed_model_output_dir,
                     file_id,
                     stats_file_name,
@@ -125,12 +131,10 @@ def stats(
                 for m_num in member_num
             ]
             p.starmap(process_member, args)
-    # compute the stats for the reference.
-    # For ensembles, this file is named
-    # stats_{member_id} -> stats_ref (used again in "tolerance")
-    create_stats_dataframe(
-        model_output_dir,
-        file_id,
-        stats_file_name.format(member_id="ref"),
-        file_specification,
-    )
+    else:
+        create_stats_dataframe(
+            model_output_dir,
+            file_id,
+            stats_file_name,
+            file_specification,
+        )
