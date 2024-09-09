@@ -44,6 +44,7 @@ def process_member(
 ):
     if m_num == "ref":
         input_dir = model_output_dir
+        m_id = m_num
     else:
         m_id = str(m_num)
         if member_type:
@@ -52,7 +53,7 @@ def process_member(
     create_stats_dataframe(
         input_dir,
         file_id,
-        stats_file_name.format(member_id=m_num),
+        stats_file_name.format(member_id=m_id),
         file_specification,
     )
 
