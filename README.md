@@ -110,7 +110,7 @@ Alternatively, all requirements can be easily installed with conda:
 
 ```
 ./setup_miniconda.sh
-./setup_env.sh -n probtest -d -u
+./setup_env.sh -n probtest -u
 ```
 
 Once set up, probtest can generate the config file according to your needs:
