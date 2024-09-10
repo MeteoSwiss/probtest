@@ -84,7 +84,7 @@ Even though probtest is used exclusively with ICON at the moment, it does not co
 
 This command sets up the configuration file. For more help on the command line arguments for `init`, see
 
-```
+```console
 python probtest.py init --help
 ```
 
@@ -92,7 +92,7 @@ The `--template-name` argument can be used to specify the template from which th
 
 Setting up the configuration file with `init` may not be fitted perfectly to where you want your probtest files to be. In that case, you can manually edit the file after creation. Alternatively, you can add arguments for your probtest commands on the command line which take precedence over the configuration file defaults. For more help on the options on a specific command, see
 
-```
+```console
 python probtest.py {command} --help
 ```
 
@@ -102,20 +102,20 @@ Objective: Run the mch_opr_r04b07 ICON experiment and check if the output of the
 Probtest requires some additional python packages.
 On Balfrin, there is a pre-installed python environment which can be loaded with:
 
-```
+```console
 source  $SCRATCH/../jenkins/project/icon/probtest/conda/miniconda/bin/activate probtest
 ```
 
 Alternatively, all requirements can be easily installed with conda:
 
-```
+```console
 ./setup_miniconda.sh
 ./setup_env.sh -n probtest -d -u
 ```
 
 Once set up, probtest can generate the config file according to your needs:
 
-```
+```console
 python probtest.py init --codebase-install /path/to/the/ICON/Installation/ --experiment-name mch_opr_r04b07 --reference /path/to/icon-test-references/daint_cpu_pgi/ --file-id NetCDF "*atm_3d_ml*" --file-id NetCDF "*atm_3d_hl*"
 ```
 
@@ -123,7 +123,7 @@ This will create a `probtest.json` file in the current directory. This file cont
 
 With everything set up properly, the chain of commands can be invoked to run the CPU reference binary (`run-ensemble`), generate the statistics files used for probtest comparisons (`stats`) and generate tolerances from these files (`tolerance`).
 
-```
+```console
 python probtest.py run-ensemble
 python probtest.py stats --ensemble
 python probtest.py tolerance
@@ -137,7 +137,7 @@ Note the `--ensemble` option which is set to take precedence over the default `F
 
 These can then be used to compare against the output of a test binary (usually a GPU binary). For that, manually run the `exp.mch_opr_r04b07.run` experiment with the test binary to produce the test output. Then use probtest to generate the stats file for this output:
 
-```
+```console
 python probtest.py stats --model-output-dir /path/to/test-icon/experiments/mch_opr_r04b07 --stats-file-name stats_cur.csv
 ```
 
@@ -147,13 +147,13 @@ Note how `--model-output-dir` is set to take precedence over the default which p
 
 Now all files needed to perform a probtest check are available; the reference file `stats_ref.csv`, the test file `stats_cur.csv` as well as the tolerance range `mch_opr_r04b07_tolerance.csv`. Providing these files to `check` will perform the check:
 
-```
+```console
 python probtest.py check --input-file-ref stats_ref.csv --input-file-cur stats_cur.csv
 ```
 
 Note that the reference `--input-file-ref` and test stats files `--input-file-cur` need to be set by command line arguments. This is because the default stored in the `ICON.jinja` template is pointing to two files from the ensemble as a sanity check.
 
-## Developing in probtest
+## Developing probtest
 #### Testing with [pytest](https://docs.pytest.org/en/8.2.x/)
 
 Our tests are executed using `pytest`, ensuring a consistent and efficient testing process. Each test dynamically generates its necessary test data, allowing for flexible and isolated testing scenarios.
@@ -175,13 +175,13 @@ Reference data, crucial for validating the outcomes of our tests and detecting a
 
 Code is formatted using black and isort. Please install the pre-commit hooks (after installing all Python requirements including the `pre-commit` package):
 
-```
+```console
 pre-commit install
 ```
 
 This hook will be executed automatically whenever you commit. It will check your files and format them according to its rules. If files have to be formatted, committing will fail. Just commit again to finalize the commit. You can also run the following command, to trigger the pre-commit action without actually committing:
 
-```
+```console
 pre-commit run --all-files
 ```
 
