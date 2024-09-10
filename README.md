@@ -99,7 +99,8 @@ python probtest.py {command} --help
 ### Example: Check the output of an ICON experiment with an test build compared to a reference build
 
 Objective: Run an `exp_name` ICON experiment with an test build and check if the
-output of the run is ok.
+output of the test is within a perturbed ensemble of the reference build. This
+is in particular used to validate a GPU build against a CPU reference.
 
 All requirements for using probtest can be easily installed with conda using the
 setup scripts:
