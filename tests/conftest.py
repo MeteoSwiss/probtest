@@ -65,7 +65,7 @@ def too_small_ensemble(tmp_dir, nc_with_t_u_v) -> str:
 @pytest.fixture()
 def ds_ref_with_t_u_v(ref_data) -> xr.Dataset:
     data_ref = pd.read_csv(os.path.join(ref_data, "initial_condition.csv")).set_index(
-        ["time", "lon", "lat"]
+        ["time", "lat", "lon"]
     )
     return xr.Dataset.from_dataframe(data_ref)
 
@@ -135,15 +135,15 @@ def fixture_nc_with_t_u_v(tmp_dir) -> str:
         {
             "T": (
                 ("time", "lat", "lon"),
-                np.tile(t[np.newaxis, :, :], (len(time), 1, 1)),
+                np.tile(t[np.newaxis, :, :], (len(time), 1, 1)).astype('float64'),
             ),
             "V": (
                 ("time", "lat", "lon"),
-                np.tile(v[np.newaxis, :, :], (len(time), 1, 1)),
+                np.tile(v[np.newaxis, :, :], (len(time), 1, 1)).astype('float64'),
             ),
             "U": (
                 ("time", "lat", "lon"),
-                np.tile(u[np.newaxis, :, :], (len(time), 1, 1)),
+                np.tile(u[np.newaxis, :, :], (len(time), 1, 1)).astype('float64'),
             ),
         },
         coords={"time": time, "lat": ("lat", lat[:, 0]), "lon": ("lon", lon[0, :])},
@@ -151,7 +151,6 @@ def fixture_nc_with_t_u_v(tmp_dir) -> str:
     # Save to netcdf
     filename = os.path.join(tmp_dir, "initial_condition.nc")
     ds.to_netcdf(filename)
-
     return filename
 
 
