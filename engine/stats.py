@@ -42,9 +42,9 @@ def process_member(
     stats_file_name,
     file_specification,
 ):
-    if m_num == "ref":
+    if m_num == 0:
         input_dir = model_output_dir
-        m_id = m_num
+        m_id = "ref"
     else:
         m_id = str(m_num)
         if member_type:
@@ -118,7 +118,8 @@ def stats(
     if ensemble:
         if len(member_num) == 1:
             member_num = list(range(1, member_num[0] + 1))
-        member_num.append("ref")  # add "ref" to the list
+        # Append a 0 to the list of member numbers to include the reference run
+        member_num.append(0)
         with Pool() as p:
             args = [
                 (
