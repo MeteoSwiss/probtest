@@ -126,7 +126,8 @@ Note that to change this you should modify the second entry of `rhs_new` in
 probtest.json, which should be set to 1e-14 by default.
 
 Note that, it is important that the `file-id` are uniquely describing the data
-with the same structure. Otherwise you might get an error like
+with the same structure.
+Otherwise you might get an error like
 ```console
 packages/pandas/core/indexes/base.py", line 4171, in _validate_can_reindex
     raise ValueError("cannot reindex on an axis with duplicate labels")
@@ -194,8 +195,8 @@ python ../externals/probtest/probtest.py stats --no-ensemble --stats-file-name s
 Note how `--model-output-dir` is set to take precedence over the default which
 points to the reference binary output to now point to the test binary output as
 well as the name of the generated file with `--stats-file-name` to avoid name
-clash with the stats file from the reference. This command will generate the
-following file:
+clash with the stats file from the reference.
+This command will generate the following file:
 
 - `stats_cur.csv`: contains the post-processed output of the test binary model output.
 
