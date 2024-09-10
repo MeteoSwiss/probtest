@@ -147,7 +147,7 @@ To run the perturbed experiments and wait for the submitted jobs to finish:
 python ../externals/probtest/probtest.py run-ensemble
 ```
 FYI: if the experiment does not generate all of the files listed in the
-`file-id`s above, you you receive a message that certain `file-id` patters do
+`file-id`s above, you you receive a message that certain `file-id` patterns do
 not match any file.
 Those files can remove them from `file-id`s.
 
