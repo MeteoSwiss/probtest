@@ -207,10 +207,8 @@ Providing these files to `check` will perform the check:
 python ../externals/probtest/probtest.py check --input-file-ref stats_ref.csv --input-file-cur stats_cur.csv --factor 5
 ```
 
-You can use a factor `1` instead of factor `5` too.
-
 This check can be also visualized by:
-```
+```console
 python ../externals/probtest/probtest.py check-plot --input-file-ref stats_ref.csv --input-file-cur stats_cur.csv --tolerance-file-name exp_name_tolerance.csv --factor 5 --savedir ./plot_dir
 ```
 
