@@ -135,15 +135,15 @@ def fixture_nc_with_t_u_v(tmp_dir) -> str:
         {
             "T": (
                 ("time", "lat", "lon"),
-                np.tile(t[np.newaxis, :, :], (len(time), 1, 1)).astype('float64'),
+                np.tile(t[np.newaxis, :, :], (len(time), 1, 1)).astype("float64"),
             ),
             "V": (
                 ("time", "lat", "lon"),
-                np.tile(v[np.newaxis, :, :], (len(time), 1, 1)).astype('float64'),
+                np.tile(v[np.newaxis, :, :], (len(time), 1, 1)).astype("float64"),
             ),
             "U": (
                 ("time", "lat", "lon"),
-                np.tile(u[np.newaxis, :, :], (len(time), 1, 1)).astype('float64'),
+                np.tile(u[np.newaxis, :, :], (len(time), 1, 1)).astype("float64"),
             ),
         },
         coords={"time": time, "lat": ("lat", lat[:, 0]), "lon": ("lon", lon[0, :])},
