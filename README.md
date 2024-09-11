@@ -250,5 +250,3 @@ This hook will be executed automatically whenever you commit. It will check your
 ```console
 pre-commit run --all-files
 ```
-
-If you are using VSCode with the settings provided by this repository in `.vscode/settings.json` formatting is already enabled on save.
