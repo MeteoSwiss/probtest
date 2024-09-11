@@ -237,9 +237,9 @@ pytest -s -v path/to/your/test.py
 
 Reference data, crucial for validating the outcomes of our tests and detecting any deviations in `probtests` results, is maintained in the [tests/data](tests/data) directory. This approach guarantees that our tests are both comprehensive and reliable, safeguarding the integrity of our codebase.
 
-### Probtest sourcecode formatting
+### Probtest source code formatting
 
-The probtest sourcecode is formatted using multiple formatters.
+The probtest source code is formatted using multiple formatters.
 Please install the pre-commit hooks (after installing all Python requirements
 including the `pre-commit` package):
 
