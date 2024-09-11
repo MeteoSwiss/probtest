@@ -307,8 +307,6 @@ pipeline {
                      -s deploymentEnvironment=${Globals.deployEnv} clean
             """
         }
-        aborted {
-        }
         failure {
             echo 'Sending email'
             sh 'df -h'
