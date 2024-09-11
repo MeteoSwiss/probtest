@@ -247,8 +247,12 @@ including the `pre-commit` package):
 pre-commit install
 ```
 
-This hook will be executed automatically whenever you commit. It will check your files and format them according to its rules. If files have to be formatted, committing will fail. Just commit again to finalize the commit. You can also run the following command, to trigger the pre-commit action without actually committing:
-
+This hook will be executed automatically whenever you commit.
+It will check your files and format them according to its rules.
+If files have to be formatted, committing will fail.
+Just commit again to finalize the commit.
+You can also run the following command, to trigger the pre-commit action without
+actually committing:
 ```console
 pre-commit run --all-files
 ```
