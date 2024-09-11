@@ -190,28 +190,26 @@ sbatch run/exp_name.run
 
 Then create the test statistics with:
 ```console
-python ../externals/probtest/probtest.py stats --no-ensemble --stats-file-name stats_cur.csv --model-output-dir icon-base-dir/test-build/experiments/exp_name
+python ../externals/probtest/probtest.py stats --no-ensemble --model-output-dir icon-base-dir/test-build/experiments/exp_name
 ```
 Note how `--model-output-dir` is set to take precedence over the default which
-points to the reference binary output to now point to the test binary output as
-well as the name of the generated file with `--stats-file-name` to avoid name
-clash with the stats file from the reference.
+points to the reference binary output to now point to the test binary output.
 This command will generate the following file:
 
-- `stats_cur.csv`: contains the post-processed output of the test binary model output.
+- `stats_exp_name.csv`: contains the post-processed output of the test binary model output.
 
 Now all files needed to perform a probtest check are available; the reference
-file `stats_ref.csv`, the test file `stats_cur.csv` as well as the tolerance
+file `stats_ref.csv`, the test file `stats_exp_name.csv` as well as the tolerance
 range `exp_name_tolerance.csv`.
 Providing these files to `check` will perform the check:
 
 ```console
-python ../externals/probtest/probtest.py check --input-file-ref stats_ref.csv --input-file-cur stats_cur.csv --factor 5
+python ../externals/probtest/probtest.py check --input-file-ref stats_ref.csv --input-file-cur stats_exp_name.csv --factor 5
 ```
 
 This check can be also visualized by:
 ```console
-python ../externals/probtest/probtest.py check-plot --input-file-ref stats_ref.csv --input-file-cur stats_cur.csv --tolerance-file-name exp_name_tolerance.csv --factor 5 --savedir ./plot_dir
+python ../externals/probtest/probtest.py check-plot --input-file-ref stats_ref.csv --input-file-cur stats_exp_name.csv --tolerance-file-name exp_name_tolerance.csv --factor 5 --savedir ./plot_dir
 ```
 
 Note that the reference `--input-file-ref` and test stats files
