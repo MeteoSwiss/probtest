@@ -54,7 +54,6 @@ pipeline {
         buildDiscarder(logRotator(artifactDaysToKeepStr: '7', artifactNumToKeepStr: '1', daysToKeepStr: '45', numToKeepStr: '10'))
         // Timeout the pipeline build after 1 hour
         timeout(time: 1, unit: 'HOURS')
-        // gitLabConnection('CollabGitLab')
     }
 
     environment {
@@ -68,7 +67,6 @@ pipeline {
     stages {
         stage('Preflight') {
             steps {
-                // updateGitlabCommitStatus name: 'Build', state: 'running'
 
                 script {
                     echo '---- INSTALL MCHBUILD ----'
@@ -309,28 +307,19 @@ pipeline {
                      -s deploymentEnvironment=${Globals.deployEnv} clean
             """
         }
-        success {
-            githubNotify status: "SUCCESS", credentialsId: "my-credentials-id", account: "my-account", repo: "my-repo"
+        aborted {
         }
         failure {
-            githubNotify status: "FAILURE", credentialsId: "my-credentials-id", account: "my-account", repo: "my-repo"
+            echo 'Sending email'
+            sh 'df -h'
+            emailext(subject: "${currentBuild.fullDisplayName}: ${currentBuild.currentResult}",
+                attachLog: true,
+                attachmentsPattern: 'generatedFile.txt',
+                body: "Job '${env.JOB_NAME} #${env.BUILD_NUMBER}': ${env.BUILD_URL}",
+                recipientProviders: [requestor(), developers()])
         }
-        // aborted {
-        //     // updateGitlabCommitStatus name: 'Build', state: 'canceled'
-        // }
-        // failure {
-        //     // updateGitlabCommitStatus name: 'Build', state: 'failed'
-        //     echo 'Sending email'
-        //     sh 'df -h'
-        //     emailext(subject: "${currentBuild.fullDisplayName}: ${currentBuild.currentResult}",
-        //         attachLog: true,
-        //         attachmentsPattern: 'generatedFile.txt',
-        //         body: "Job '${env.JOB_NAME} #${env.BUILD_NUMBER}': ${env.BUILD_URL}",
-        //         recipientProviders: [requestor(), developers()])
-        // }
-        // success {
-        //     echo 'Build succeeded'
-        //     // tupdateGitlabCommitStatus name: 'Build', state: 'success'
-        // }
+        success {
+            echo 'Build succeeded'
+        }
     }
 }
