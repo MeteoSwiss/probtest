@@ -54,7 +54,7 @@ pipeline {
         buildDiscarder(logRotator(artifactDaysToKeepStr: '7', artifactNumToKeepStr: '1', daysToKeepStr: '45', numToKeepStr: '10'))
         // Timeout the pipeline build after 1 hour
         timeout(time: 1, unit: 'HOURS')
-        gitLabConnection('CollabGitLab')
+        // gitLabConnection('CollabGitLab')
     }
 
     environment {
@@ -68,7 +68,7 @@ pipeline {
     stages {
         stage('Preflight') {
             steps {
-                updateGitlabCommitStatus name: 'Build', state: 'running'
+                // updateGitlabCommitStatus name: 'Build', state: 'running'
 
                 script {
                     echo '---- INSTALL MCHBUILD ----'
@@ -310,10 +310,10 @@ pipeline {
             """
         }
         aborted {
-            updateGitlabCommitStatus name: 'Build', state: 'canceled'
+            // updateGitlabCommitStatus name: 'Build', state: 'canceled'
         }
         failure {
-            updateGitlabCommitStatus name: 'Build', state: 'failed'
+            // updateGitlabCommitStatus name: 'Build', state: 'failed'
             echo 'Sending email'
             sh 'df -h'
             emailext(subject: "${currentBuild.fullDisplayName}: ${currentBuild.currentResult}",
@@ -324,7 +324,7 @@ pipeline {
         }
         success {
             echo 'Build succeeded'
-            updateGitlabCommitStatus name: 'Build', state: 'success'
+            // updateGitlabCommitStatus name: 'Build', state: 'success'
         }
     }
 }
