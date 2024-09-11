@@ -47,7 +47,7 @@ def plot_meta_data_timer(timer, data, revs, ax, experiment_name, savedir):
     plt.tight_layout()
     if savedir:
         Path(savedir).mkdir(exist_ok=True, parents=True)
-        path = f"{savedir}/{f"perf_meta_{experiment_name}_{timer}.png"}"
+        path = f"{savedir}/perf_meta_{experiment_name}_{timer}.png"
         logger.info("saving figure to %s", path)
         fig.savefig(path)
     else:

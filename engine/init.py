@@ -55,6 +55,12 @@ from util.log_handler import logger
     help=cli_help["member_type"],
 )
 @click.option(
+    "--factor",
+    type=float,
+    default=5.0,
+    help=cli_help["factor"],
+)
+@click.option(
     "--perturb-amplitude",
     type=float,
     default=1e-14,
@@ -85,6 +91,7 @@ def init(
     template_name,
     member_num,
     member_type,
+    factor,
     perturb_amplitude,
     timing_current,
     timing_reference,
@@ -112,6 +119,8 @@ def init(
         logger.warning(warn_template, "member_num", member_num)
     if not member_type:
         logger.warning(warn_template, "member_type", member_type)
+    if not factor:
+        logger.warning(warn_template, "factor", factor)
     if not perturb_amplitude:
         logger.warning(warn_template, "perturb_amplitude", perturb_amplitude)
     if not timing_current:
@@ -128,6 +137,7 @@ def init(
     render_dict["reference"] = Path(reference).resolve()
     render_dict["member_num"] = member_num
     render_dict["member_type"] = member_type
+    render_dict["factor"] = factor
     render_dict["perturb_amplitude"] = perturb_amplitude
     render_dict["timing_current"] = timing_current
     render_dict["timing_reference"] = timing_reference
@@ -139,6 +149,7 @@ def init(
     json_dict = json.loads(rendered)
     json_dict["default"]["file_id"] = file_id
     json_dict["default"]["member_num"] = member_num
+    json_dict["default"]["factor"] = factor
     rendered = json.dumps(json_dict, indent=2)
     # print file
     with open(config, "w", encoding="utf-8") as probtest_config:

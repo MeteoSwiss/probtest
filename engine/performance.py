@@ -84,7 +84,7 @@ def performance(timing_regex, timing_database, append_time):
                         base.root[i].to_list()
                     ):
                         backup = (
-                            f"{timing_database}_{base.meta_data["finish_time"][-1]}"
+                            f"{timing_database}_{base.meta_data['finish_time'][-1]}"
                         )
                         logger.info("tree changed, saving backup as: %s", backup)
                         shutil.copy(

@@ -211,13 +211,13 @@ def check_intersection(df_ref, df_cur):
     if missing_in_ref:
         warning_msg = (
             "WARNING: The following variables are in the test case but not in the"
-            f" reference case and therefore not tested: {", ".join(missing_in_ref)}"
+            f" reference case and therefore not tested: {', '.join(missing_in_ref)}"
         )
         warnings.warn(warning_msg, UserWarning)
     if missing_in_cur:
         warning_msg = (
             "WARNING: The following variables are in the reference case but not in the"
-            f" test case and therefore not tested: {", ".join(missing_in_cur)}"
+            f" test case and therefore not tested: {', '.join(missing_in_cur)}"
         )
         warnings.warn(warning_msg, UserWarning)
 
