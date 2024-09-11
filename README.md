@@ -237,18 +237,22 @@ pytest -s -v path/to/your/test.py
 
 Reference data, crucial for validating the outcomes of our tests and detecting any deviations in `probtests` results, is maintained in the [tests/data](tests/data) directory. This approach guarantees that our tests are both comprehensive and reliable, safeguarding the integrity of our codebase.
 
-### Code formatting
+### Formatting probtest source code
 
-Code is formatted using black and isort. Please install the pre-commit hooks (after installing all Python requirements including the `pre-commit` package):
+The probtest source code is formatted using multiple formatters.
+Please install the pre-commit hooks (after installing all Python requirements
+including the `pre-commit` package):
 
 ```console
 pre-commit install
 ```
 
-This hook will be executed automatically whenever you commit. It will check your files and format them according to its rules. If files have to be formatted, committing will fail. Just commit again to finalize the commit. You can also run the following command, to trigger the pre-commit action without actually committing:
-
+This hook will be executed automatically whenever you commit.
+It will check your files and format them according to its rules.
+If files have to be formatted, committing will fail.
+Just stage and commit again to finalize the commit.
+You can also run the following command, to trigger the pre-commit action without
+actually committing:
 ```console
 pre-commit run --all-files
 ```
-
-If you are using VSCode with the settings provided by this repository in `.vscode/settings.json` formatting is already enabled on save.
