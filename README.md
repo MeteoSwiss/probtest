@@ -239,7 +239,9 @@ Reference data, crucial for validating the outcomes of our tests and detecting a
 
 ### Code formatting
 
-Code is formatted using black and isort. Please install the pre-commit hooks (after installing all Python requirements including the `pre-commit` package):
+Code is formatted using multiple formatters.
+Please install the pre-commit hooks (after installing all Python requirements
+including the `pre-commit` package):
 
 ```console
 pre-commit install
