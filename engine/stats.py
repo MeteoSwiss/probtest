@@ -116,10 +116,11 @@ def stats(
 
     # compute stats for the ensemble and the reference run
     if ensemble:
+        # Add 0 to the list of member numbers to include the reference run
         if len(member_num) == 1:
-            member_num = list(range(1, member_num[0] + 1))
-        # Append a 0 to the list of member numbers to include the reference run
-        member_num.append(0)
+            member_num = list(range(member_num[0] + 1))
+        else:
+            member_num.append(0)
         with Pool() as p:
             args = [
                 (
