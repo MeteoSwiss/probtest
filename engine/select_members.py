@@ -24,6 +24,7 @@ from util.log_handler import logger
 
 # finds members and a corresponding tolerance factor validating for all stats files.
 def find_members_and_factor_validating_for_all_stats_files(
+    random_tolerance_file_name,
     stats_file_name,
     member_type,
     min_member_num,
@@ -66,7 +67,7 @@ def find_members_and_factor_validating_for_all_stats_files(
                 context.invoke(
                     tolerance,
                     stats_file_name=stats_file_name,
-                    tolerance_file_name="random_tolerance.csv",
+                    tolerance_file_name=random_tolerance_file_name,
                     member_num=random_members,
                     member_type=member_type,
                 )
@@ -76,7 +77,7 @@ def find_members_and_factor_validating_for_all_stats_files(
                 ]
                 passed, new_vars = test_selection(
                     stats_file_name,
-                    "random_tolerance.csv",
+                    random_tolerance_file_name,
                     validation_members,
                     member_type,
                     f,
@@ -284,8 +285,10 @@ def select_members(
             stats_file_name, tolerance_file_name, total_member_num, member_type, factor
         )
     else:
+        random_tolerance_file_name = f"random_tolerance_{experiment_name}.csv"
         start_time = datetime.now()
         selection, factor = find_members_and_factor_validating_for_all_stats_files(
+            random_tolerance_file_name,
             stats_file_name,
             member_type,
             min_member_num,
@@ -313,4 +316,4 @@ def select_members(
 
         # The last created file was successful
         logger.info("Writing tolerance file to %s", tolerance_file_name)
-        os.rename("random_tolerance.csv", tolerance_file_name)
+        os.rename(random_tolerance_file_name, tolerance_file_name)
