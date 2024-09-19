@@ -109,7 +109,7 @@ def prepare_perturbed_run_script(
 
 
 def append_job(job, job_list, parallel):
-    p = subprocess.Popen(job)
+    p = subprocess.Popen(job) # pylint: disable=consider-using-with
     if not parallel:
         try:
             time.sleep(5)
