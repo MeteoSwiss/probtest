@@ -109,13 +109,16 @@ def prepare_perturbed_run_script(
 
 
 def append_job(job, job_list, parallel):
-    with subprocess.Popen(job) as p:
-        if not parallel:
-            p.communicate()
+    p = subprocess.Popen(job)  # pylint: disable=consider-using-with
+    if not parallel:
+        try:
             time.sleep(5)
+            p.wait()
             test_job_returncode(p)
-        else:
-            job_list.append(p)
+        finally:
+            p.kill()
+    else:
+        job_list.append(p)
 
 
 def finalize_jobs(job_list, dry, parallel):
