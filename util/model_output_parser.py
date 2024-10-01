@@ -112,6 +112,38 @@ def parse_grib(file_id, filename, specification):
 
 
 def get_ds(ds_grib, pid, lev):
+    """
+    Retrieve datasets from a GRIB file based on specified parameters and
+    hierarchical metadata.
+
+    This function attempts to extract data from the GRIB file by selecting
+    fields that match the given `paramId` and `typeOfLevel`.
+    If the initial selection fails due to missing or mismatched metadata, the
+    function will recursively explore other metadata fields such as `stepType`,
+    `numberOfPoints`, `stepUnits`, `dataType`, and `gridType` to find matching
+    datasets.
+
+    Parameters:
+    -----------
+    ds_grib : GRIB object
+        The GRIB file object to extract data from.
+    pid : int
+        The parameter ID (`paramId`) to select in the GRIB file.
+    lev : str
+        The level type (`typeOfLevel`) to select in the GRIB file.
+
+    Returns:
+    --------
+    ds_list : list
+        A list of xarray datasets that match the specified parameter and level,
+        with additional filtering based on hierarchical metadata fields.
+
+    Notes:
+    ------
+    - The function handles `KeyError` exceptions by recursively selecting data
+      with additional metadata fields (e.g., stepType, numberOfPoints, etc.).
+    - If no matching datasets are found, the function prints an error message.
+    """
     ds_list = []
     try:
         ds = ds_grib.sel(paramId=pid, typeOfLevel=lev).to_xarray()
@@ -205,11 +237,12 @@ def get_ds(ds_grib, pid, lev):
                                                 ).to_xarray()
                                                 ds_list.append(ds)
                                             except KeyError:
-                                                print(
-                                                    f"GRIB file of level {lev} and"
-                                                    "paramId {pid} cannot be read."
+                                                logger.warning(
+                                                    "GRIB file of level %s and "
+                                                    "paramId %s cannot be read.",
+                                                    lev,
+                                                    pid,
                                                 )
-
     return ds_list
 
 

@@ -9,6 +9,7 @@ import unittest
 
 import eccodes
 import numpy as np
+import pytest
 from netCDF4 import Dataset  # pylint: disable=no-name-in-module
 
 from engine.stats import create_stats_dataframe
@@ -21,6 +22,9 @@ TIME_DIM_GRIB_SIZE = 1
 STEP_DIM_SIZE = 1
 HEIGHT_DIM_GRIB_SIZE = 1
 HORIZONTAL_DIM_GRIB_SIZE = 6114
+
+GRIB_FILENAME = "test_stats_grib.grib"
+STATS_FILE_NAMES = "test_stats.csv"
 
 
 def initialize_dummy_netcdf_file(name):
@@ -60,12 +64,21 @@ def add_variable_to_grib(filename, dict_data):
             eccodes.codes_release(gid)
 
 
-class TestStatsGrib(unittest.TestCase):
-    grib_filename = "test_stats_grib.grib"
-    stats_file_names = "test_stats.csv"
+@pytest.fixture
+def setup_grib_file():
+    array_t = np.ones(
+        (
+            TIME_DIM_GRIB_SIZE,
+            STEP_DIM_SIZE,
+            HEIGHT_DIM_GRIB_SIZE,
+            HORIZONTAL_DIM_GRIB_SIZE,
+        )
+    )
+    array_t[:, :, :, 0] = 0
+    array_t[:, :, :, -1] = 2
 
-    def setUp(self):
-        array_t = np.ones(
+    array_pres = (
+        np.ones(
             (
                 TIME_DIM_GRIB_SIZE,
                 STEP_DIM_SIZE,
@@ -73,66 +86,47 @@ class TestStatsGrib(unittest.TestCase):
                 HORIZONTAL_DIM_GRIB_SIZE,
             )
         )
-        array_t[:, :, :, 0] = 0
-        array_t[:, :, :, -1] = 2
+        * 3
+    )
+    array_pres[:, :, :, 0] = 2
+    array_pres[:, :, :, -1] = 4
 
-        array_pres = (
-            np.ones(
-                (
-                    TIME_DIM_GRIB_SIZE,
-                    STEP_DIM_SIZE,
-                    HEIGHT_DIM_GRIB_SIZE,
-                    HORIZONTAL_DIM_GRIB_SIZE,
-                )
-            )
-            * 3
-        )
-        array_pres[:, :, :, 0] = 2
-        array_pres[:, :, :, -1] = 4
+    dict_data = {"t": array_pres, "v": array_t}
 
-        dict_data = {"t": array_pres, "v": array_t}
+    # This would be where your grib file is created
+    add_variable_to_grib(GRIB_FILENAME, dict_data)
 
-        add_variable_to_grib(self.grib_filename, dict_data)
 
-    def test_stats(self):
-        file_specification = {
-            "Test data": {
-                "format": "grib",
-                "time_dim": "step",
-                "horizontal_dims": ["values"],
-                "var_excl": [],
-                "fill_value_key": "_FillValue",
-                # This should be the name for fill_value.
-            },
-        }
+@pytest.mark.usefixtures("setup_grib_file")
+def test_stats():
+    file_specification = {
+        "Test data": {
+            "format": "grib",
+            "time_dim": "step",
+            "horizontal_dims": ["values"],
+            "var_excl": [],
+            "fill_value_key": "_FillValue",  # This should be the name for fill_value.
+        },
+    }
 
-        df = create_stats_dataframe(
-            input_dir=".",
-            file_id=[["Test data", self.grib_filename]],
-            stats_file_name=self.stats_file_names,
-            file_specification=file_specification,
-        )
+    df = create_stats_dataframe(
+        input_dir=".",
+        file_id=[["Test data", GRIB_FILENAME]],
+        stats_file_name=STATS_FILE_NAMES,
+        file_specification=file_specification,
+    )
 
-        # check that the mean/max/min are correct
-        expected = np.array(
-            [
-                [
-                    3.0,
-                    4.0,
-                    2.0,
-                ],
-                [
-                    1.0,
-                    2.0,
-                    0.0,
-                ],
-            ]
-        )
+    # check that the mean/max/min are correct
+    expected = np.array(
+        [
+            [3.0, 4.0, 2.0],
+            [1.0, 2.0, 0.0],
+        ]
+    )
 
-        self.assertTrue(
-            np.array_equal(df.values, expected),
-            f"stats dataframe incorrect. Difference:\n{df.values == expected}",
-        )
+    assert np.array_equal(
+        df.values, expected
+    ), f"Stats dataframe incorrect. Difference:\n{df.values == expected}"
 
 
 class TestStatsNetcdf(unittest.TestCase):
