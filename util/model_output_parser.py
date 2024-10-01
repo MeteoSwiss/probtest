@@ -117,11 +117,10 @@ def get_ds(ds_grib, pid, lev):
     hierarchical metadata.
 
     This function attempts to extract data from the GRIB file by selecting
-    fields that match the given `paramId` and `typeOfLevel`.
-    If the initial selection fails due to missing or mismatched metadata, the
-    function will recursively explore other metadata fields such as `stepType`,
-    `numberOfPoints`, `stepUnits`, `dataType`, and `gridType` to find matching
-    datasets.
+    fields that match the given `paramId` and `typeOfLevel`. If the initial
+    selection fails due to missing or mismatched metadata, the function
+    will explore other metadata fields such as `stepType`, `numberOfPoints`,
+    `stepUnits`, `dataType`, and `gridType` to find matching datasets.
 
     Parameters:
     -----------
@@ -137,112 +136,33 @@ def get_ds(ds_grib, pid, lev):
     ds_list : list
         A list of xarray datasets that match the specified parameter and level,
         with additional filtering based on hierarchical metadata fields.
-
-    Notes:
-    ------
-    - The function handles `KeyError` exceptions by recursively selecting data
-      with additional metadata fields (e.g., stepType, numberOfPoints, etc.).
-    - If no matching datasets are found, the function prints an error message.
     """
     ds_list = []
-    try:
-        ds = ds_grib.sel(paramId=pid, typeOfLevel=lev).to_xarray()
-        ds_list.append(ds)
-    except KeyError:
-        step_type = np.unique(
-            ds_grib.sel(paramId=pid, typeOfLevel=lev).metadata("stepType")
-        ).tolist()
-        for steps in step_type:
+    selectors = {"paramId": pid, "typeOfLevel": lev}
+    metadata_keys = ["stepType", "numberOfPoints", "stepUnits", "dataType", "gridType"]
+
+    def recursive_select(selects, depth=0):
+        try:
+            ds = ds_grib.sel(**selects).to_xarray()
+            ds_list.append(ds)
+        except KeyError:
+            if depth == len(metadata_keys):  # No more metadata keys to try
+                return
+            key = metadata_keys[depth]
             try:
-                ds = ds_grib.sel(
-                    paramId=pid, typeOfLevel=lev, stepType=steps
-                ).to_xarray()
-                ds_list.append(ds)
+                values = np.unique(ds_grib.sel(**selects).metadata(key)).tolist()
+                for value in values:
+                    selects[key] = value
+                    recursive_select(selects, depth + 1)  # Recurse to next level
             except KeyError:
-                num_points = np.unique(
-                    ds_grib.sel(paramId=pid, typeOfLevel=lev, stepType=steps).metadata(
-                        "numberOfPoints"
-                    )
-                ).tolist()
-                for points in num_points:
-                    try:
-                        ds = ds_grib.sel(
-                            paramId=pid,
-                            typeOfLevel=lev,
-                            stepType=steps,
-                            numberOfPoints=points,
-                        ).to_xarray()
-                        ds_list.append(ds)
-                    except KeyError:
-                        units = np.unique(
-                            ds_grib.sel(
-                                paramId=pid,
-                                typeOfLevel=lev,
-                                stepType=steps,
-                                numberOfPoints=points,
-                            ).metadata("stepUnits")
-                        ).tolist()
-                        for unit in units:
-                            try:
-                                ds = ds_grib.sel(
-                                    paramId=pid,
-                                    typeOfLevel=lev,
-                                    stepType=steps,
-                                    numberOfPoints=points,
-                                    stepUnits=unit,
-                                ).to_xarray()
-                                ds_list.append(ds)
-                            except KeyError:
-                                data_type = np.unique(
-                                    ds_grib.sel(
-                                        paramId=pid,
-                                        typeOfLevel=lev,
-                                        stepType=steps,
-                                        numberOfPoints=points,
-                                        stepUnits=unit,
-                                    ).metadata("dataType")
-                                ).tolist()
-                                for dtype in data_type:
-                                    try:
-                                        ds = ds_grib.sel(
-                                            paramId=pid,
-                                            typeOfLevel=lev,
-                                            stepType=steps,
-                                            numberOfPoints=points,
-                                            stepUnits=unit,
-                                            dataType=dtype,
-                                        ).to_xarray()
-                                        ds_list.append(ds)
-                                    except KeyError:
-                                        grid_type = np.unique(
-                                            ds_grib.sel(
-                                                paramId=pid,
-                                                typeOfLevel=lev,
-                                                stepType=steps,
-                                                numberOfPoints=points,
-                                                stepUnits=unit,
-                                                dataType=dtype,
-                                            ).metadata("gridType")
-                                        ).tolist()
-                                        for gtype in grid_type:
-                                            try:
-                                                ds = ds_grib.sel(
-                                                    paramId=pid,
-                                                    typeOfLevel=lev,
-                                                    stepType=steps,
-                                                    numberOfPoints=points,
-                                                    stepUnits=unit,
-                                                    dataType=dtype,
-                                                    gridType=gtype,
-                                                ).to_xarray()
-                                                ds_list.append(ds)
-                                            except KeyError:
-                                                logger.warning(
-                                                    "GRIB file of level %s and "
-                                                    "paramId %s cannot be read.",
-                                                    lev,
-                                                    pid,
-                                                )
+                pass
+
+    # Try initial selection
+    recursive_select(selectors)
+
+    if not ds_list:
+        logger.warning("GRIB file of level %s and paramId %s cannot be read.", lev, pid)
+
     return ds_list
 
 

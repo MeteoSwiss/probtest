@@ -49,16 +49,37 @@ def test_get_ds_success(mock_ds_grib):
 
 
 @pytest.mark.parametrize(
-    "to_xarray_return_value",
+    "to_xarray_return_value, expected_result",
     [
-        (KeyError(), "valid_xarray"),
-        (KeyError(), KeyError(), "valid_xarray"),
-        (KeyError(), KeyError(), KeyError(), "valid_xarray"),
-        (KeyError(), KeyError(), KeyError(), KeyError(), "valid_xarray"),
-        (KeyError(), KeyError(), KeyError(), KeyError(), KeyError(), "valid_xarray"),
+        ((KeyError(), "valid_stepType_xarray"), ["valid_stepType_xarray"]),
+        (
+            (KeyError(), KeyError(), "valid_numberOfPoints_xarray"),
+            ["valid_numberOfPoints_xarray"],
+        ),
+        (
+            (KeyError(), KeyError(), KeyError(), "valid_stepUnits_xarray"),
+            ["valid_stepUnits_xarray"],
+        ),
+        (
+            (KeyError(), KeyError(), KeyError(), KeyError(), "valid_dataType_xarray"),
+            ["valid_dataType_xarray"],
+        ),
+        (
+            (
+                KeyError(),
+                KeyError(),
+                KeyError(),
+                KeyError(),
+                KeyError(),
+                "valid_gridType_xarray",
+            ),
+            ["valid_gridType_xarray"],
+        ),
     ],
 )
-def test_get_ds_recursive_selection(mock_ds_grib, to_xarray_return_value):
+def test_get_ds_recursive_selection(
+    mock_ds_grib, to_xarray_return_value, expected_result
+):
     """
     Test case where get_ds recursively selects the dataset by metadata fields.
     """
@@ -73,16 +94,13 @@ def test_get_ds_recursive_selection(mock_ds_grib, to_xarray_return_value):
     assert mock_ds_grib.sel.call_count >= len(to_xarray_return_value)
 
     # The result should contain the mocked xarray dataset
-    assert result == ["valid_xarray"]
+    assert result == expected_result
 
 
 def test_get_ds_keyerror_handling(caplog, mock_ds_grib):
     """
     Test case where get_ds fails to retrieve data and handles multiple KeyErrors.
     """
-    # # Create a mock GRIB object
-    # mock_ds_grib = MagicMock()
-
     pid = 1
     lev = "surface"
 
