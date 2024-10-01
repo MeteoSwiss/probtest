@@ -43,7 +43,7 @@ def initialize_dummy_netcdf_file(name):
 
 def add_variable_to_grib(filename, dict_data):
     with open(filename, "wb") as f_out:
-        for shortName in list(dict_data.keys()):
+        for short_name in list(dict_data.keys()):
             gid = eccodes.codes_grib_new_from_samples(
                 "reduced_rotated_gg_sfc_grib2.tmpl"
             )
@@ -54,8 +54,8 @@ def add_variable_to_grib(filename, dict_data):
             eccodes.codes_set(gid, "stepRange", 0)
             eccodes.codes_set(gid, "typeOfLevel", "surface")
             eccodes.codes_set(gid, "level", 0)
-            eccodes.codes_set(gid, "shortName", shortName)
-            eccodes.codes_set_values(gid, dict_data[shortName])
+            eccodes.codes_set(gid, "shortName", short_name)
+            eccodes.codes_set_values(gid, dict_data[short_name])
             eccodes.codes_write(gid, f_out)
             eccodes.codes_release(gid)
 
@@ -96,13 +96,14 @@ class TestStatsGrib(unittest.TestCase):
 
     def test_stats(self):
         file_specification = {
-            "Test data": dict(
-                format="grib",
-                time_dim="step",
-                horizontal_dims=["values"],
-                var_excl=[],
-                fill_value_key="_FillValue",  # This should be the name for fill_value.
-            ),
+            "Test data": {
+                "format": "grib",
+                "time_dim": "step",
+                "horizontal_dims": ["values"],
+                "var_excl": [],
+                "fill_value_key": "_FillValue",
+                # This should be the name for fill_value.
+            },
         }
 
         df = create_stats_dataframe(
@@ -130,7 +131,7 @@ class TestStatsGrib(unittest.TestCase):
 
         self.assertTrue(
             np.array_equal(df.values, expected),
-            "stats dataframe incorrect. Difference:\n{}".format(df.values == expected),
+            f"stats dataframe incorrect. Difference:\n{df.values == expected}",
         )
 
 

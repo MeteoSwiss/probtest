@@ -65,7 +65,7 @@ def parse_netcdf(file_id, filename, specification):
 
 
 def parse_grib(file_id, filename, specification):
-    logger.debug("parse GRIB file {}".format(filename))
+    logger.debug("parse GRIB file %s", filename)
     time_dim = specification["time_dim"]
     horizontal_dims = specification["horizontal_dims"]
     fill_value_key = specification.get("fill_value_key", None)
@@ -82,10 +82,10 @@ def parse_grib(file_id, filename, specification):
 
     var_dfs = []
     for lev in level_type:
-        paramId = np.unique(
+        param_id = np.unique(
             ds_grib.sel(typeOfLevel=lev, shortName=short_name).metadata("paramId")
         ).tolist()
-        for pid in paramId:
+        for pid in param_id:
             ds_temp_list = get_ds(ds_grib, pid, lev)
             for ds_temp in ds_temp_list:
                 v = list(ds_temp.keys())[0]
@@ -117,10 +117,10 @@ def get_ds(ds_grib, pid, lev):
         ds = ds_grib.sel(paramId=pid, typeOfLevel=lev).to_xarray()
         ds_list.append(ds)
     except KeyError:
-        stepType = np.unique(
+        step_type = np.unique(
             ds_grib.sel(paramId=pid, typeOfLevel=lev).metadata("stepType")
         ).tolist()
-        for steps in stepType:
+        for steps in step_type:
             try:
                 ds = ds_grib.sel(
                     paramId=pid, typeOfLevel=lev, stepType=steps
@@ -161,7 +161,7 @@ def get_ds(ds_grib, pid, lev):
                                 ).to_xarray()
                                 ds_list.append(ds)
                             except KeyError:
-                                dataType = np.unique(
+                                data_type = np.unique(
                                     ds_grib.sel(
                                         paramId=pid,
                                         typeOfLevel=lev,
@@ -170,7 +170,7 @@ def get_ds(ds_grib, pid, lev):
                                         stepUnits=unit,
                                     ).metadata("dataType")
                                 ).tolist()
-                                for dtype in dataType:
+                                for dtype in data_type:
                                     try:
                                         ds = ds_grib.sel(
                                             paramId=pid,
@@ -182,7 +182,7 @@ def get_ds(ds_grib, pid, lev):
                                         ).to_xarray()
                                         ds_list.append(ds)
                                     except KeyError:
-                                        gridType = np.unique(
+                                        grid_type = np.unique(
                                             ds_grib.sel(
                                                 paramId=pid,
                                                 typeOfLevel=lev,
@@ -192,7 +192,7 @@ def get_ds(ds_grib, pid, lev):
                                                 dataType=dtype,
                                             ).metadata("gridType")
                                         ).tolist()
-                                        for gtype in gridType:
+                                        for gtype in grid_type:
                                             try:
                                                 ds = ds_grib.sel(
                                                     paramId=pid,
