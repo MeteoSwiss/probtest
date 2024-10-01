@@ -1,3 +1,9 @@
+"""
+This module contains unittests for verifying the behavior of data frame operations
+related to the PROBTEST suite. It ensures the correctness of relative difference
+calculations and the checking of variable values against specified tolerances.
+"""
+
 import unittest
 
 import numpy as np
@@ -12,6 +18,15 @@ from util.dataframe_ops import (
 
 
 class TestCheck(unittest.TestCase):
+    """
+    Unit tests for the functionality of tolerance checking in dataframes.
+
+    This class uses the `unittest` framework to validate the correctness of
+    functions involved in computing and checking tolerances between dataframes,
+    especially in the context of relative differences between expected and
+    observed data.
+    """
+
     def setUp(self):
         index = pd.MultiIndex.from_arrays(
             [
@@ -51,12 +66,12 @@ class TestCheck(unittest.TestCase):
         self.assertTrue(
             out1,
             "Check with large tolerances did not validate! "
-            + "Here is the DataFrame:\n{}".format(err1),
+            + f"Here is the DataFrame:\n{err1}",
         )
         self.assertFalse(
             out2,
             "Check with small tolerances did validate! "
-            + "Here is the DataFrame:\n{}".format(err2),
+            + f"Here is the DataFrame:\n{err2}",
         )
 
     def test_check(self):
@@ -76,7 +91,7 @@ class TestCheck(unittest.TestCase):
         self.assertFalse(
             out,
             "Check with 0-value reference validated! "
-            + "Here is the DataFrame:\n{}".format(err),
+            + f"Here is the DataFrame:\n{err}",
         )
 
         df2.loc[("NetCDF:*atm_3d*.nc", "var_1", 2), (0, "max")] = CHECK_THRESHOLD / 2
@@ -133,7 +148,7 @@ class TestCheckSwapped(TestCheck):
     """Test that all Checks are symmetrical"""
 
     def check(self, df1, df2):
-        super().check(df2, df1)
+        super().check(df2, df1)  # pylint: disable=arguments-out-of-order
 
 
 if __name__ == "__main__":

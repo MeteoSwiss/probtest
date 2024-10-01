@@ -1,3 +1,10 @@
+"""
+This module contains pytest-based tests for the CDO table CLI functionality in the
+PROBTEST suite. It verifies the correctness of the CDO table generation by comparing
+the output with reference data and checks the behavior under different perturbation
+amplitudes.
+"""
+
 import os
 
 import pytest

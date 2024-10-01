@@ -1,3 +1,10 @@
+"""
+This module contains tests for verifying the correctness of the tolerance CLI
+command.
+The tests compare the output of the tolerance CLI with reference tolerance data
+and check for discrepancies.
+"""
+
 import os
 
 from tests.helpers import (
