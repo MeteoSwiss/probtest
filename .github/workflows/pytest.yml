@@ -26,9 +26,9 @@ jobs:
         channels: conda-forge
         channel-priority: flexible
         show-channel-urls: true
-    - name: Create dev env from unpinned reqs
+    - name: Create dev env from pinned reqs
       run: |
-        conda env create --name dev_env --file requirements/requirements.yml
+        conda env create --name dev_env --file requirements/environment.yml
     - name: Run Pytest
       env:
         TZ: Europe/Zurich
