@@ -111,7 +111,7 @@ def test_stats_grib(tmp_path):
     df = create_stats_dataframe(
         input_dir=str(tmp_path),
         file_id=[["Test data", GRIB_FILENAME]],
-        stats_file_name=STATS_FILE_NAMES,
+        stats_file_name=tmp_path / STATS_FILE_NAMES,
         file_specification=file_specification,
     )
 
@@ -175,7 +175,7 @@ def test_stats_netcdf(setup_netcdf_file, tmp_path):  # pylint: disable=unused-ar
     df = create_stats_dataframe(
         input_dir=str(tmp_path),
         file_id=[["Test data", NC_FILE_GLOB]],
-        stats_file_name=STATS_FILE_NAMES,
+        stats_file_name=tmp_path / STATS_FILE_NAMES,
         file_specification=file_specification,
     )
 
@@ -236,7 +236,7 @@ def test_stats_csv(setup_csv_file, tmp_path):  # pylint: disable=unused-argument
     df = create_stats_dataframe(
         input_dir=str(tmp_path),
         file_id=[["Test data", "test_stats_csv.dat"]],
-        stats_file_name="test_stats_csv.csv",
+        stats_file_name=tmp_path / "test_stats_csv.csv",
         file_specification=file_specification,
     )
 
