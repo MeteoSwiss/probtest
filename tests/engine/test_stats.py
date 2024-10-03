@@ -65,7 +65,7 @@ def add_variable_to_grib(filename, dict_data):
 
 
 @pytest.fixture
-def setup_grib_file():
+def setup_grib_file(tmp_dir):
     array_t = np.ones(
         (
             TIME_DIM_GRIB_SIZE,
@@ -94,11 +94,11 @@ def setup_grib_file():
     dict_data = {"t": array_pres, "v": array_t}
 
     # This would be where your grib file is created
-    add_variable_to_grib(GRIB_FILENAME, dict_data)
+    add_variable_to_grib(os.path.join(tmp_dir, GRIB_FILENAME), dict_data)
 
 
 @pytest.mark.usefixtures("setup_grib_file")
-def test_stats():
+def test_stats_grib(tmp_dir):
     file_specification = {
         "Test data": {
             "format": "grib",
@@ -110,7 +110,7 @@ def test_stats():
     }
 
     df = create_stats_dataframe(
-        input_dir=".",
+        input_dir=tmp_dir,
         file_id=[["Test data", GRIB_FILENAME]],
         stats_file_name=STATS_FILE_NAMES,
         file_specification=file_specification,
@@ -141,7 +141,6 @@ class TestStatsNetcdf(unittest.TestCase):
 
     nc_file_name = "test_stats.nc"
     nc_file_glob = "test_s*.nc"
-    stats_file_names = "test_stats.csv"
 
     def setUp(self):
         data = initialize_dummy_netcdf_file(self.nc_file_name)
@@ -168,7 +167,7 @@ class TestStatsNetcdf(unittest.TestCase):
 
     def tear_down(self):
         os.remove(self.nc_file_name)
-        os.remove(self.stats_file_names)
+        os.remove(STATS_FILE_NAMES)
 
     def test_stats(self):
         file_specification = {
@@ -183,7 +182,7 @@ class TestStatsNetcdf(unittest.TestCase):
         df = create_stats_dataframe(
             input_dir=".",
             file_id=[["Test data", self.nc_file_glob]],
-            stats_file_name=self.stats_file_names,
+            stats_file_name=STATS_FILE_NAMES,
             file_specification=file_specification,
         )
 
