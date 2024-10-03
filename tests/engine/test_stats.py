@@ -4,9 +4,6 @@ the `engine.stats` module. It tests the functionality of creating statistical
 dataframes from both NetCDF and CSV files.
 """
 
-import os
-import unittest
-
 import eccodes
 import numpy as np
 import pytest
@@ -67,7 +64,7 @@ def add_variable_to_grib(filename, dict_data):
 
 
 @pytest.fixture
-def setup_grib_file(tmp_dir):
+def setup_grib_file(tmp_path):
     array_t = np.ones(
         (
             TIME_DIM_GRIB_SIZE,
@@ -96,11 +93,11 @@ def setup_grib_file(tmp_dir):
     dict_data = {"t": array_pres, "v": array_t}
 
     # This would be where your grib file is created
-    add_variable_to_grib(os.path.join(tmp_dir, GRIB_FILENAME), dict_data)
+    add_variable_to_grib(tmp_path / GRIB_FILENAME, dict_data)
 
 
 @pytest.mark.usefixtures("setup_grib_file")
-def test_stats_grib(tmp_dir):
+def test_stats_grib(tmp_path):
     file_specification = {
         "Test data": {
             "format": "grib",
@@ -112,7 +109,7 @@ def test_stats_grib(tmp_dir):
     }
 
     df = create_stats_dataframe(
-        input_dir=tmp_dir,
+        input_dir=str(tmp_path),
         file_id=[["Test data", GRIB_FILENAME]],
         stats_file_name=STATS_FILE_NAMES,
         file_specification=file_specification,
@@ -132,10 +129,10 @@ def test_stats_grib(tmp_dir):
 
 
 @pytest.fixture(name="setup_netcdf_file")
-def fixture_setup_netcdf_file(tmp_dir):
+def fixture_setup_netcdf_file(tmp_path):
     """Fixture to create and initialize a dummy NetCDF file for testing."""
 
-    data = initialize_dummy_netcdf_file(os.path.join(tmp_dir, NC_FILE_NAME))
+    data = initialize_dummy_netcdf_file(tmp_path / NC_FILE_NAME)
 
     # Creating variable "v1" with specified dimensions and setting its values
     data.createVariable("v1", np.float64, dimensions=("t", "z", "x"))
@@ -161,7 +158,7 @@ def fixture_setup_netcdf_file(tmp_dir):
     yield
 
 
-def test_stats_netcdf(setup_netcdf_file, tmp_dir):  # pylint: disable=unused-argument
+def test_stats_netcdf(setup_netcdf_file, tmp_path):  # pylint: disable=unused-argument
     """Test that the statistics generated from the NetCDF file match the
     expected values."""
 
@@ -176,7 +173,7 @@ def test_stats_netcdf(setup_netcdf_file, tmp_dir):  # pylint: disable=unused-arg
 
     # Call the function to generate the statistics dataframe
     df = create_stats_dataframe(
-        input_dir=tmp_dir,
+        input_dir=str(tmp_path),
         file_id=[["Test data", NC_FILE_GLOB]],
         stats_file_name=STATS_FILE_NAMES,
         file_specification=file_specification,
@@ -201,70 +198,60 @@ def test_stats_netcdf(setup_netcdf_file, tmp_dir):  # pylint: disable=unused-arg
     ), f"Stats dataframe incorrect. Difference:\n{df.values == expected}"
 
 
-class TestStatsCsv(unittest.TestCase):
+@pytest.fixture(name="setup_csv_file")
+def fixture_setup_csv_file(tmp_path):
     """
-    Test suite for validating statistical calculations and CSV file handling.
+    Fixture to set up a temporary CSV file.
+    """
+    dat_file_name = tmp_path / "test_stats_csv.dat"
 
-    This class contains unit tests for creating and validating statistics from a
-    CSV file.
-    The primary focus is on ensuring that the statistics calculated from the
-    input data match the expected values.
-    The CSV file used for testing is created and cleaned up during the test
-    lifecycle.
+    # Create the CSV file with the necessary content
+    lines = (
+        "time v1  v2 v3 v4 v5",
+        "10   1.4 15 16 17 18",
+        "20   2.4 25 26 27 28",
+        "30   3.4 35 36 37 38",
+    )
+    with open(dat_file_name, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+
+def test_stats_csv(setup_csv_file, tmp_path):  # pylint: disable=unused-argument
+    """
+    Test that the statistics generated from the CSV file match the expected values.
     """
 
-    dat_file_name = "test_stats_csv.dat"
-    stats_file_name = "test_stats_csv.csv"
-
-    def setUp(self):
-        lines = (
-            "time v1  v2 v3 v4 v5",
-            "10   1.4 15 16 17 18",
-            "20   2.4 25 26 27 28",
-            "30   3.4 35 36 37 38",
-        )
-        with open(self.dat_file_name, "w", encoding="utf-8") as f:
-            f.write("\n".join(lines))
-
-    def tear_down(self):
-        os.remove(self.dat_file_name)
-        os.remove(self.stats_file_name)
-
-    def test_stats(self):
-        file_specification = {
-            "Test data": {
-                "format": "csv",
-                "parser_args": {
-                    "delimiter": "\\s+",
-                    "header": 0,
-                    "index_col": 0,
-                },
+    file_specification = {
+        "Test data": {
+            "format": "csv",
+            "parser_args": {
+                "delimiter": "\\s+",
+                "header": 0,
+                "index_col": 0,
             },
-        }
+        },
+    }
 
-        df = create_stats_dataframe(
-            input_dir=".",
-            file_id=[["Test data", self.dat_file_name]],
-            stats_file_name=self.stats_file_name,
-            file_specification=file_specification,
-        )
+    # Call the function that creates the stats DataFrame
+    df = create_stats_dataframe(
+        input_dir=str(tmp_path),
+        file_id=[["Test data", "test_stats_csv.dat"]],
+        stats_file_name="test_stats_csv.csv",
+        file_specification=file_specification,
+    )
 
-        # check that the mean/max/min are correct (i.e. the same as in CSV)
-        expected = np.array(
-            [
-                [1.4, 1.4, 1.4, 2.4, 2.4, 2.4, 3.4, 3.4, 3.4],
-                [15, 15, 15, 25, 25, 25, 35, 35, 35],
-                [16, 16, 16, 26, 26, 26, 36, 36, 36],
-                [17, 17, 17, 27, 27, 27, 37, 37, 37],
-                [18, 18, 18, 28, 28, 28, 38, 38, 38],
-            ],
-        )
+    # Expected result
+    expected = np.array(
+        [
+            [1.4, 1.4, 1.4, 2.4, 2.4, 2.4, 3.4, 3.4, 3.4],
+            [15, 15, 15, 25, 25, 25, 35, 35, 35],
+            [16, 16, 16, 26, 26, 26, 36, 36, 36],
+            [17, 17, 17, 27, 27, 27, 37, 37, 37],
+            [18, 18, 18, 28, 28, 28, 38, 38, 38],
+        ]
+    )
 
-        self.assertTrue(
-            np.array_equal(df.values, expected),
-            f"stats dataframe incorrect. Difference:\n{df.values == expected}",
-        )
-
-
-if __name__ == "__main__":
-    unittest.main()
+    # Assert the DataFrame matches the expected values
+    assert np.array_equal(
+        df.values, expected
+    ), f"Stats DataFrame incorrect. Difference:\n{df.values != expected}"
