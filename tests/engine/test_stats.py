@@ -25,6 +25,8 @@ HORIZONTAL_DIM_GRIB_SIZE = 6114
 
 GRIB_FILENAME = "test_stats_grib.grib"
 STATS_FILE_NAMES = "test_stats.csv"
+NC_FILE_NAME = "test_stats.nc"
+NC_FILE_GLOB = "test_s*.nc"
 
 
 def initialize_dummy_netcdf_file(name):
@@ -129,80 +131,74 @@ def test_stats_grib(tmp_dir):
     ), f"Stats dataframe incorrect. Difference:\n{df.values == expected}"
 
 
-class TestStatsNetcdf(unittest.TestCase):
-    """
-    Unit test class for validating statistical calculations from NetCDF files.
+@pytest.fixture(name="setup_netcdf_file")
+def fixture_setup_netcdf_file(tmp_dir):
+    """Fixture to create and initialize a dummy NetCDF file for testing."""
 
-    This class tests the accuracy of statistical calculations (mean, max, min)
-    performed on data extracted from NetCDF files.
-    It ensures that the statistics DataFrame produced from the NetCDF data
-    matches expected values.
-    """
+    data = initialize_dummy_netcdf_file(os.path.join(tmp_dir, NC_FILE_NAME))
 
-    nc_file_name = "test_stats.nc"
-    nc_file_glob = "test_s*.nc"
+    # Creating variable "v1" with specified dimensions and setting its values
+    data.createVariable("v1", np.float64, dimensions=("t", "z", "x"))
+    data.variables["v1"][:] = np.ones((TIME_DIM_SIZE, HEIGHT_DIM_SIZE, HOR_DIM_SIZE))
+    data.variables["v1"][:, :, 0] = 0
+    data.variables["v1"][:, :, -1] = 2
 
-    def setUp(self):
-        data = initialize_dummy_netcdf_file(self.nc_file_name)
+    # Creating variable "v2" with fill_value, and setting its values
+    data.createVariable("v2", np.float64, dimensions=("t", "x"), fill_value=42)
+    data.variables["v2"][:] = np.ones((TIME_DIM_SIZE, HOR_DIM_SIZE)) * 2
+    data.variables["v2"][:, 0] = 1
+    data.variables["v2"][:, 1] = 42  # should be ignored in max-statistic
+    data.variables["v2"][:, -1] = 3
 
-        data.createVariable("v1", np.float64, dimensions=("t", "z", "x"))
-        data.variables["v1"][:] = np.ones(
-            (TIME_DIM_SIZE, HEIGHT_DIM_SIZE, HOR_DIM_SIZE)
-        )
-        data.variables["v1"][:, :, 0] = 0
-        data.variables["v1"][:, :, -1] = 2
+    # Creating variable "v3" and setting its values
+    data.createVariable("v3", np.float64, dimensions=("t", "x"))
+    data.variables["v3"][:] = np.ones((TIME_DIM_SIZE, HOR_DIM_SIZE)) * 3
+    data.variables["v3"][:, 0] = 2
+    data.variables["v3"][:, -1] = 4
 
-        data.createVariable("v2", np.float64, dimensions=("t", "x"), fill_value=42)
-        data.variables["v2"][:] = np.ones((TIME_DIM_SIZE, HOR_DIM_SIZE)) * 2
-        data.variables["v2"][:, 0] = 1
-        data.variables["v2"][:, 1] = 42  # shall be ignored in max-statistic
-        data.variables["v2"][:, -1] = 3
+    data.close()
 
-        data.createVariable("v3", np.float64, dimensions=("t", "x"))
-        data.variables["v3"][:] = np.ones((TIME_DIM_SIZE, HOR_DIM_SIZE)) * 3
-        data.variables["v3"][:, 0] = 2
-        data.variables["v3"][:, -1] = 4
+    yield
 
-        data.close()
 
-    def tear_down(self):
-        os.remove(self.nc_file_name)
-        os.remove(STATS_FILE_NAMES)
+def test_stats_netcdf(setup_netcdf_file, tmp_dir):  # pylint: disable=unused-argument
+    """Test that the statistics generated from the NetCDF file match the
+    expected values."""
 
-    def test_stats(self):
-        file_specification = {
-            "Test data": {
-                "format": "netcdf",
-                "time_dim": "t",
-                "horizontal_dims": ["x"],
-                "fill_value_key": "_FillValue",  # should be the name for fill_value
-            },
-        }
+    file_specification = {
+        "Test data": {
+            "format": "netcdf",
+            "time_dim": "t",
+            "horizontal_dims": ["x"],
+            "fill_value_key": "_FillValue",  # should be the name for fill_value
+        },
+    }
 
-        df = create_stats_dataframe(
-            input_dir=".",
-            file_id=[["Test data", self.nc_file_glob]],
-            stats_file_name=STATS_FILE_NAMES,
-            file_specification=file_specification,
-        )
+    # Call the function to generate the statistics dataframe
+    df = create_stats_dataframe(
+        input_dir=tmp_dir,
+        file_id=[["Test data", NC_FILE_GLOB]],
+        stats_file_name=STATS_FILE_NAMES,
+        file_specification=file_specification,
+    )
 
-        # check that the mean/max/min are correct
-        expected = np.array(
-            [
-                [1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0],
-                [1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0],
-                [1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0],
-                [1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0],
-                [1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0],
-                [2.0, 3.0, 1.0, 2.0, 3.0, 1.0, 2.0, 3.0, 1.0],
-                [3.0, 4.0, 2.0, 3.0, 4.0, 2.0, 3.0, 4.0, 2.0],
-            ]
-        )
+    # Define the expected values for comparison
+    expected = np.array(
+        [
+            [1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0],
+            [1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0],
+            [1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0],
+            [1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0],
+            [1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0],
+            [2.0, 3.0, 1.0, 2.0, 3.0, 1.0, 2.0, 3.0, 1.0],
+            [3.0, 4.0, 2.0, 3.0, 4.0, 2.0, 3.0, 4.0, 2.0],
+        ]
+    )
 
-        self.assertTrue(
-            np.array_equal(df.values, expected),
-            f"stats dataframe incorrect. Difference:\n{df.values == expected}",
-        )
+    # Check that the dataframe matches the expected values
+    assert np.array_equal(
+        df.values, expected
+    ), f"Stats dataframe incorrect. Difference:\n{df.values == expected}"
 
 
 class TestStatsCsv(unittest.TestCase):
