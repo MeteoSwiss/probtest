@@ -11,5 +11,6 @@ coverage.xml
 eccodes-cosmo-resources
 miniconda
 
-# output from unittest
+# output from pytest
 random_tolerance.csv
+random_tolerance_None.csv
