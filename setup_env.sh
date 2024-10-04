@@ -81,6 +81,9 @@ DEFINITION_PATH_RESOURCES=${CONDA_LOC}/share/eccodes-cosmo-resources_${DEFINITIO
 git clone -b ${DEFINITION_VERSION} https://github.com/COSMO-ORG/eccodes-cosmo-resources.git ${DEFINITION_PATH_RESOURCES} || exit
 
 ${CONDA} env config vars set ECCODES_DEFINITION_PATH=${DEFINITION_PATH_DEFAULT}/definitions:${DEFINITION_PATH_RESOURCES}/definitions
+${CONDA} env config vars set ECCODES_SAMPLES_PATH=${DEFINITION_PATH_DEFAULT}/samples
+${CONDA} env config vars set GRIB_DEFINITION_PATH=${DEFINITION_PATH_DEFAULT}/definitions:${DEFINITION_PATH_RESOURCES}/definitions
+${CONDA} env config vars set GRIB_SAMPLES_PATH=${DEFINITION_PATH_DEFAULT}/samples
 
 echo "Variables saved to environment: "
 ${CONDA} env config vars list
