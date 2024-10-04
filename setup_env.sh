@@ -74,12 +74,13 @@ fi
 ${CONDA} activate ${ENV_NAME}
 
 CONDA_LOC=${CONDA_PREFIX}
-DEF_PATH_DEFAULT=${CONDA_LOC}/share/eccodes
-DEF_PATH_RESOURCES=${CONDA_LOC}/share/eccodes-cosmo-resources
+DEFINITION_VERSION="v2.25.0.3"
+DEFINITION_PATH_DEFAULT=${CONDA_LOC}/share/eccodes
+DEFINITION_PATH_RESOURCES=${CONDA_LOC}/share/eccodes-cosmo-resources_${DEFINITION_VERSION}
 
-git clone https://github.com/COSMO-ORG/eccodes-cosmo-resources.git ${DEF_PATH_RESOURCES} || exit
+git clone -b ${DEFINITION_VERSION} https://github.com/COSMO-ORG/eccodes-cosmo-resources.git ${DEFINITION_PATH_RESOURCES} || exit
 
-${CONDA} env config vars set ECCODES_DEFINITION_PATH=${DEF_PATH_DEFAULT}/definitions:${DEF_PATH_RESOURCES}/definitions
+${CONDA} env config vars set ECCODES_DEFINITION_PATH=${DEFINITION_PATH_DEFAULT}/definitions:${DEFINITION_PATH_RESOURCES}/definitions
 
 echo "Variables saved to environment: "
 ${CONDA} env config vars list
