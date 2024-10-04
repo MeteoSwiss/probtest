@@ -73,7 +73,7 @@ fi
 # setting ECCODES_DEFINITION_PATH:
 git clone --recursive https://github.com/COSMO-ORG/eccodes-cosmo-resources.git
 
-${CONDA} activate ${DEV_ENV_NAME}
+${CONDA} activate ${ENV_NAME}
 conda_loc=${CONDA_PREFIX}
 base_dir=$(pwd)
 def_path_default=${conda_loc}/share/eccodes/definitions
