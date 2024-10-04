@@ -73,12 +73,13 @@ fi
 # Setting ECCODES_DEFINITION_PATH:
 ${CONDA} activate ${ENV_NAME}
 
-git clone https://github.com/COSMO-ORG/eccodes-cosmo-resources.git
-
 CONDA_LOC=${CONDA_PREFIX}
 BASE_DIR=$(pwd)
-DEF_PATH_DEFAULT=${CONDA_LOC}/share/eccodes/definitions
-DEF_PATH_RESOURCES=${BASE_DIR}/eccodes-cosmo-resources/definitions
+DEF_PATH_DEFAULT=${CONDA_LOC}/share/eccodes
+DEF_PATH_RESOURCES=${BASE_DIR}/eccodes-cosmo-resources
 
-conda env config vars set ECCODES_DEFINITION_PATH=${DEF_PATH_DEFAULT}:${DEF_PATH_RESOURCES}
+git clone https://github.com/COSMO-ORG/eccodes-cosmo-resources.git
+
+conda env config vars set ECCODES_DEFINITION_PATH=${DEF_PATH_DEFAULT}/definitions:${DEF_PATH_RESOURCES}/definitions
+
 ${CONDA} deactivate
