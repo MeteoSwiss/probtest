@@ -74,9 +74,8 @@ fi
 ${CONDA} activate ${ENV_NAME}
 
 CONDA_LOC=${CONDA_PREFIX}
-BASE_DIR=$(pwd)
 DEF_PATH_DEFAULT=${CONDA_LOC}/share/eccodes
-DEF_PATH_RESOURCES=${BASE_DIR}/eccodes-cosmo-resources
+DEF_PATH_RESOURCES=${CONDA_LOC}/share/eccodes-cosmo-resources
 
 git clone https://github.com/COSMO-ORG/eccodes-cosmo-resources.git ${DEF_PATH_RESOURCES} || exit
 
