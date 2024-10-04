@@ -47,9 +47,7 @@ def initialize_dummy_netcdf_file(name):
 def add_variable_to_grib(filename, dict_data):
     with open(filename, "wb") as f_out:
         for short_name in list(dict_data.keys()):
-            gid = eccodes.codes_grib_new_from_samples(
-                "reduced_rotated_gg_sfc_grib2.tmpl"
-            )
+            gid = eccodes.codes_grib_new_from_samples("reduced_rotated_gg_sfc_grib2")
             eccodes.codes_set(gid, "edition", 2)
             eccodes.codes_set(gid, "centre", "lssw")
             eccodes.codes_set(gid, "dataDate", 20230913)
