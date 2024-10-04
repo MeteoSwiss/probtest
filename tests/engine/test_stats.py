@@ -118,8 +118,8 @@ def test_stats_grib(tmp_path):
     # check that the mean/max/min are correct
     expected = np.array(
         [
-            [3.0, 4.0, 2.0],
             [1.0, 2.0, 0.0],
+            [3.0, 4.0, 2.0],
         ]
     )
 
