@@ -80,6 +80,9 @@ DEF_PATH_RESOURCES=${BASE_DIR}/eccodes-cosmo-resources
 
 git clone https://github.com/COSMO-ORG/eccodes-cosmo-resources.git
 
-conda env config vars set ECCODES_DEFINITION_PATH=${DEF_PATH_DEFAULT}/definitions:${DEF_PATH_RESOURCES}/definitions
+conda env config vars set ECCODES_DEFINITION_PATH=${DEF_PATH_DEFAULT}/definitions:${DEF_PATH_RESOURCES}/definitions || exit
+
+echo "Variables saved to environment: "
+${CONDA} env config vars list
 
 ${CONDA} deactivate
