@@ -8,7 +8,6 @@
 *.log
 *.nc
 coverage.xml
-eccodes-cosmo-resources
 miniconda
 
 # output from pytest
