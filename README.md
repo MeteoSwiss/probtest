@@ -96,7 +96,7 @@ source miniconda/bin/activate
 ```
 which requires the source minconda.
 
-The pinned requiremnts can be installed by
+The pinned requirements can be installed by
 ```console
 ./setup_env.sh
 ```
