@@ -13,7 +13,7 @@ DEFAULT_ENV_NAME="probtest"
 
 # Default options
 ENV_NAME="${DEFAULT_ENV_NAME}"
-PYVERSION=3.10
+PYVERSION=3.10.8
 PINNED=true
 EXPORT=false
 CONDA=conda
