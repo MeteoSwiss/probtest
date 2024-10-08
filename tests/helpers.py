@@ -205,7 +205,7 @@ def run_select_members_cli(
     iterations=50,
     max_factor=50.0,
     log=None,
-):
+):  # pylint: disable=too-many-positional-arguments
     args = [
         "--stats-file-name",
         stats_file_name,

@@ -2,7 +2,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python>=3.10
+  - python==3.10.8
   - pip>=22.3
   # runtime
   - click>=7.1.2

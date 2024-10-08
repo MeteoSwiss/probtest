@@ -107,7 +107,7 @@ def __get_variables(data, time_dim, horizontal_dims):
 
 def dataframe_from_ncfile(
     file_id, filename, varname, time_dim, horizontal_dims, xarray_ds, fill_value_key
-):
+):  # pylint: disable=too-many-positional-arguments
     statistics = statistics_over_horizontal_dim(
         xarray_ds[varname],
         horizontal_dims,
