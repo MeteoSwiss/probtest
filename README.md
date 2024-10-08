@@ -80,6 +80,32 @@ Visualize the performance database generated with `performance`.
 
 Even though probtest is used exclusively with ICON at the moment, it does not contain any information about the model or its directory structure. This makes it very flexible and applicable to any circumstance (e.g. usable by Buildbot, Jenkins and human users alike). However, it also requires a lot of information about the model and the data to be processed upon invocation. Since a typical probtest usage involves multiple commands (e.g. run-ensemble -> stats -> tolerance -> check) this leads to a lot of redundancy in the invocation. Therefore, probtest can read commonly used input variables (e.g. the model output directory, the experiment name, the name of the submit script, ...) from a configuration file in json format. To further ease the process, these configuration files can be created from templates using the `init` command. A template for ICON is contained in this repository in the `templates` subdirectory.
 
+### Setup conda
+
+All requirements for using probtest can be easily installed with conda using the
+setup scripts.
+
+For setting up conda you use
+```console
+./setup_miniconda.sh -u
+```
+which will modify your `.bashrc`, or you can use
+```console
+./setup_miniconda.sh
+source miniconda/bin/activate
+```
+which requires the source minconda.
+
+The pinned requiremnts can be installed by
+```console
+./setup_env.sh
+```
+The unpinned requirements and updating the environment can be done by
+```console
+./setup_env.sh -u -e
+```
+
+
 ### The init command
 
 This command sets up the configuration file. For more help on the command line arguments for `init`, see
@@ -102,14 +128,8 @@ Objective: Run an `exp_name` ICON experiment with an test build and check if the
 output of the test is within a perturbed ensemble of the reference build.
 This is in particular used to validate a GPU build against a CPU reference.
 
-All requirements for using probtest can be easily installed with conda using the
-setup scripts:
-
-```console
-./setup_miniconda.sh
-source miniconda/bin/activate
-./setup_env.sh
-```
+You need to have setup a proper environment, for example as described in the
+section [Setup conda](#setup-conda).
 
 #### Initialize probtest
 Once set up, probtest can generate the config file according to your needs.
