@@ -41,7 +41,7 @@ def process_member(
     file_id,
     stats_file_name,
     file_specification,
-):
+):  # pylint: disable=too-many-positional-arguments
     if m_num == 0:
         input_dir = model_output_dir
         m_id = "ref"
@@ -110,7 +110,7 @@ def stats(
     member_type,
     perturbed_model_output_dir,
     file_specification,
-):
+):  # pylint: disable=too-many-positional-arguments
     file_specification = file_specification[0]  # can't store dicts as defaults in click
     assert isinstance(file_specification, dict), "must be dict"
 

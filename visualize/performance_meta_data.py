@@ -23,7 +23,9 @@ from util.utils import unique_elements
 from util.visualize_util import create_figure
 
 
-def plot_meta_data_timer(timer, data, revs, ax, experiment_name, savedir):
+def plot_meta_data_timer(
+    timer, data, revs, ax, experiment_name, savedir
+):  # pylint: disable=too-many-positional-arguments
     fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(10, 6))
 
     # Selecting and plotting the data

@@ -71,7 +71,7 @@ def prepare_perturbed_run_script(
     rhs_new,
     rhs_old,
     seed,
-):
+):  # pylint: disable=too-many-positional-arguments
     with open(runscript, "r", encoding="utf-8") as in_file:
         with open(perturbed_runscript, "w", encoding="utf-8") as out_file:
 
@@ -222,7 +222,7 @@ def run_ensemble(
     lhs,
     rhs_new,
     rhs_old,
-):
+):  # pylint: disable=too-many-positional-arguments
     perturbed_run_dir = perturbed_run_dir if perturbed_run_dir else run_dir
     os.chdir(run_dir)
     job_list = []

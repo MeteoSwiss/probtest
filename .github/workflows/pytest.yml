@@ -19,18 +19,18 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.11.0
+        python-version: 3.10.8
     - uses: conda-incubator/setup-miniconda@v2
       with:
         miniconda-version: "latest"
         channels: conda-forge
         channel-priority: flexible
         show-channel-urls: true
-    - name: Create dev env from unpinned reqs
+    - name: Create env from pinned environment
       run: |
-        conda env create --name dev_env --file requirements/requirements.yml
+        ./setup_env.sh -n probtest
     - name: Run Pytest
       env:
         TZ: Europe/Zurich
       run: |
-        conda run --name dev_env pytest -v -s --cov --cov-report=term tests/
+        conda run --name probtest pytest -v -s --cov --cov-report=term tests/
