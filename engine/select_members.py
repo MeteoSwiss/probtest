@@ -33,7 +33,7 @@ def find_members_and_factor_validating_for_all_stats_files(
     min_factor,
     max_factor,
     iterations,
-):
+):  # pylint: disable=too-many-positional-arguments
 
     members = list(range(1, total_member_num + 1))
 
@@ -263,7 +263,7 @@ def select_members(
     min_factor,
     max_factor,
     iterations,
-):  # pylint: disable=unused-argument
+):  # pylint: disable=unused-argument, too-many-positional-arguments
 
     if min_member_num > max_member_num:
         logger.error(

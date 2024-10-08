@@ -17,7 +17,7 @@ dependencies:
   - aws-c-event-stream=0.4.3
   - aws-c-http=0.8.10
   - aws-c-io=0.14.18
-  - aws-c-mqtt=0.10.6
+  - aws-c-mqtt=0.10.7
   - aws-c-s3=0.6.6
   - aws-c-sdkutils=0.1.19
   - aws-checksums=0.1.20
@@ -178,7 +178,6 @@ dependencies:
   - libuuid=2.38.1
   - libwebp-base=1.4.0
   - libxcb=1.17.0
-  - libxcrypt=4.4.36
   - libxkbcommon=1.7.0
   - libxml2=2.12.7
   - libxslt=1.1.39
@@ -190,7 +189,7 @@ dependencies:
   - lz4-c=1.9.4
   - markdown=3.6
   - markdown-it-py=3.0.0
-  - markupsafe=2.1.5
+  - markupsafe=3.0.0
   - matplotlib=3.9.2
   - matplotlib-base=3.9.2
   - matplotlib-inline=0.1.7

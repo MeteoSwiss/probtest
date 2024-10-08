@@ -45,7 +45,7 @@ def rel_diff_stats(
     horizontal_dims,
     xarray_ds,
     fill_value_key,
-):  # pylint: disable=unused-argument
+):  # pylint: disable=unused-argument, too-many-positional-arguments
     dims = xarray_ds[varname].dims
     dataarray = xarray_ds[varname]
     time = xarray_ds[time_dim].values
@@ -125,7 +125,7 @@ def cdo_table(
     perturbed_model_output_dir,
     cdo_table_file,
     file_specification,
-):
+):  # pylint: disable=too-many-positional-arguments
     # TODO: A single perturbed run provides enough data to make proper statistics.
     #       refactor cdo_table interface to reflect that
     if len(member_num) == 1:
