@@ -12,8 +12,8 @@ from netCDF4 import Dataset  # pylint: disable=no-name-in-module
 
 from engine.perturb import perturb_array
 
-atype = np.float32
-AMPLITUDE = atype(1e-14)
+ATYPE = np.float32
+AMPLITUDE = ATYPE(1e-14)
 ARRAY_DIM = 100
 
 
@@ -33,8 +33,8 @@ def fixture_create_nc_files(tmp_dir):
 
 def test_perturb_array():
     # create two arrays, perturb one.
-    x1 = np.ones((ARRAY_DIM, ARRAY_DIM), dtype=atype)
-    x2 = np.ones((ARRAY_DIM, ARRAY_DIM), dtype=atype)
+    x1 = np.ones((ARRAY_DIM, ARRAY_DIM), dtype=ATYPE)
+    x2 = np.ones((ARRAY_DIM, ARRAY_DIM), dtype=ATYPE)
     x_perturbed = perturb_array(x2, 10, AMPLITUDE)
 
     # compute some stats and do assertions
