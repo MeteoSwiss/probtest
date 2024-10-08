@@ -94,7 +94,7 @@ which will modify your `.bashrc`, or you can use
 ./setup_miniconda.sh
 source miniconda/bin/activate
 ```
-which requires the source minconda.
+which requires to source minconda.
 
 The pinned requirements can be installed by
 ```console
