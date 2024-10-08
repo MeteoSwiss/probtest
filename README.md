@@ -107,7 +107,8 @@ setup scripts:
 
 ```console
 ./setup_miniconda.sh
-./setup_env.sh -n probtest -u
+source miniconda/bin/activate
+./setup_env.sh
 ```
 
 #### Initialize probtest

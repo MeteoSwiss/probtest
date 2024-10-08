@@ -50,7 +50,7 @@ def performance_check(
     measurement_uncertainty,
     tolerance_factor,
     new_reference_threshold,
-):
+):  # pylint: disable=too-many-positional-arguments
     ttcur = TimingTree.from_json(timing_current)
     ttref = TimingTree.from_json(timing_reference)
 

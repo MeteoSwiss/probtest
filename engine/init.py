@@ -96,7 +96,7 @@ def init(
     timing_current,
     timing_reference,
     append_time,
-):
+):  # pylint: disable=too-many-positional-arguments
     template_partition = str(template_name).rpartition("/")
     env = Environment(
         loader=FileSystemLoader(template_partition[0]), undefined=StrictUndefined
