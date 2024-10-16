@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from util.constants import CHECK_THRESHOLD, compute_statistics
-from util.file_system import file_names_from_pattern
+from util.file_system import get_file_names_from_pattern
 from util.log_handler import logger
 from util.model_output_parser import model_output_parser
 
@@ -88,6 +88,13 @@ def read_input_file(label, file_name, specification):
 
 def df_from_file_ids(file_id, input_dir, file_specification):
     """
+    Collect data frames for each combination of file id (fid) and specification
+    (spec).
+    Frames for the same fid and spec represent different timestamps and have to
+    be concatenated along time-axis (axis=1).
+    Time-concatenated frames from different ids and/or specifications will be
+    concatenated along variable-axis (axis=0).
+
     file_id: [[file_type, file_pattern], [file_type, file_pattern], ...]
         List of 2-tuples. The 2-tuple combines two strings. The first sets the
         file_type and must be a key in file_specification. The second string
@@ -111,14 +118,9 @@ def df_from_file_ids(file_id, input_dir, file_specification):
                     separated by ":".
     """
 
-    # Collect data frames for each combination of file id (fid) and
-    # specification (spec). Frames for the same fid and spec represent
-    # different timestamps and have to be concatenated along time-axis (axis=1).
-    # Time-concatenated frames from different ids and/or specifications will be
-    # concatenated along variable-axis (axis=0).
     fid_dfs = []
     for file_type, file_pattern in file_id:
-        input_files, err = file_names_from_pattern(input_dir, file_pattern)
+        input_files, err = get_file_names_from_pattern(input_dir, file_pattern)
         if err > 0:
             logger.info(
                 "Can not find any files for file_pattern %s. Continue.", file_pattern

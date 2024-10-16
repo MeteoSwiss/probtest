@@ -17,7 +17,7 @@ from util import model_output_parser
 from util.click_util import CommaSeperatedInts, cli_help
 from util.constants import cdo_bins
 from util.dataframe_ops import df_from_file_ids
-from util.file_system import file_names_from_pattern
+from util.file_system import get_file_names_from_pattern
 from util.log_handler import logger
 
 
@@ -146,14 +146,14 @@ def cdo_table(
     # step 1: compute rel-diff netcdf files
     with tempfile.TemporaryDirectory() as tmpdir:
         for _, file_pattern in file_id:
-            ref_files, err = file_names_from_pattern(model_output_dir, file_pattern)
+            ref_files, err = get_file_names_from_pattern(model_output_dir, file_pattern)
             if err > 0:
                 logger.info(
                     "did not find any files for pattern %s. Continue.", file_pattern
                 )
                 continue
             ref_files.sort()
-            perturb_files, err = file_names_from_pattern(
+            perturb_files, err = get_file_names_from_pattern(
                 perturbed_model_output_dir.format(member_id=member_id), file_pattern
             )
             if err > 0:

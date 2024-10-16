@@ -82,10 +82,10 @@ def parse_grib(file_id, filename, specification):
 
     var_dfs = []
     for lev in level_types:
-        param_id = np.unique(
+        param_ids = np.unique(
             ds_grib.sel(typeOfLevel=lev, shortName=short_names).metadata("paramId")
         ).tolist()
-        for pid in param_id:
+        for pid in param_ids:
             ds_temp_list = get_dataset(ds_grib, pid, lev)
             for ds_temp in ds_temp_list:
                 v = list(ds_temp.keys())[0]
