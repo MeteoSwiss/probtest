@@ -100,10 +100,13 @@ The pinned requirements can be installed by
 ```console
 ./setup_env.sh
 ```
+which is recommended for users.
+
 The unpinned requirements and updating the environment can be done by
 ```console
 ./setup_env.sh -u -e
 ```
+which is recommended for developers and required for adding new requirements.
 
 
 ### The init command
@@ -138,7 +141,17 @@ here should refer to your experiment script:
 
 ```console
 cd icon-base-dir/reference-build
-python ../externals/probtest/probtest.py init --codebase-install $PWD --experiment-name exp_name --reference $PWD --file-id NetCDF "*atm_3d_ml*.nc" --file-id NetCDF "*atm_3d_il*.nc" --file-id NetCDF "*atm_3d_hl*.nc" --file-id NetCDF "*atm_3d_pl*.nc" --file-id latlon "*atm_2d_ll*.nc" --file-id meteogram "Meteogram*.nc"
+python ../externals/probtest/probtest.py init  \
+            --codebase-install $PWD  \
+            --experiment-name exp_name  \
+            --reference $PWD  \
+            --file-id NetCDF "*atm_3d_ml*.nc"  \
+            --file-id NetCDF "*atm_3d_il*.nc"  \
+            --file-id NetCDF "*atm_3d_hl*.nc"  \
+            --file-id NetCDF "*atm_3d_pl*.nc"  \
+            --file-id latlon "*atm_2d_ll*.nc"  \
+            --file-id meteogram "Meteogram*.nc"  \
+            --file-id GRIB "lfff0*z"
 ```
 You might need to update the used account in the json file.
 The perturbation amplitude may also need to be changed in the json file
