@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from util.model_output_parser import get_ds
+from util.model_output_parser import get_dataset
 
 
 @pytest.fixture(name="mock_ds_grib")
@@ -39,7 +39,7 @@ def test_get_ds_success(mock_ds_grib):
     pid = 1
     lev = "surface"
 
-    result = get_ds(mock_ds_grib, pid, lev)
+    result = get_dataset(mock_ds_grib, pid, lev)
 
     # Ensure the dataset is selected once
     mock_ds_grib.sel.assert_called_once_with(paramId=pid, typeOfLevel=lev)
@@ -88,7 +88,7 @@ def test_get_ds_recursive_selection(
 
     mock_ds_grib.sel.return_value.to_xarray.side_effect = to_xarray_return_value
 
-    result = get_ds(mock_ds_grib, pid, lev)
+    result = get_dataset(mock_ds_grib, pid, lev)
 
     # Ensure the recursive logic is triggered by calling sel multiple times
     assert mock_ds_grib.sel.call_count >= len(to_xarray_return_value)
@@ -107,7 +107,7 @@ def test_get_ds_keyerror_handling(caplog, mock_ds_grib):
     # Simulate KeyErrors for all attempts to select datasets
     mock_ds_grib.sel.return_value.to_xarray.side_effect = KeyError()
 
-    result = get_ds(mock_ds_grib, pid, lev)
+    result = get_dataset(mock_ds_grib, pid, lev)
 
     # Assert that the warning was logged
     assert "GRIB file of level surface and paramId 1 cannot be read." in caplog.text
