@@ -7,7 +7,7 @@ dependencies:
   # runtime
   - click>=7.1.2
   - earthkit-data
-  - eccodes
+  - eccodes==2.33.0
   - Jinja2>=3.0.1
   - matplotlib>=3.2.1
   - netCDF4>=1.5.3
