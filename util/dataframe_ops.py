@@ -178,7 +178,21 @@ def unify_time_index(fid_dfs):
 
         unique_times = list(df.columns.levels[time_multiindex_index])
         unique_times.sort()
-        df = df.reindex(columns=unique_times, level=time_multiindex_index)
+        # workaround needed unitl grib time is read in properly
+        try:
+            df = df.reindex(columns=unique_times, level=time_multiindex_index)
+        except ValueError:
+            logger.warning(
+                (
+                    "cannot reindex on an axis with duplicate labels:"
+                    "unique_times (%s), "
+                    "time_multiindex_index (%s), "
+                    "df.columns (%s)."
+                ),
+                unique_times,
+                time_multiindex_index,
+                df.columns,
+            )
 
         df.columns = df.columns.set_levels(range(ntime), level="time")
 
