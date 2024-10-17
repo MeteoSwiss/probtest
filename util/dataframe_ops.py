@@ -154,7 +154,12 @@ def df_from_file_ids(file_id, input_dir, file_specification):
         logger.error("Could not find any file.")
         sys.exit(2)
 
-    fid_dfs = unify_time_index(fid_dfs)
+    # workaround for not properly set time column
+    try:
+        fid_dfs = unify_time_index(fid_dfs)
+    except ValueError:
+        fid_dfs = adjust_time_index(fid_dfs)
+
     # different file IDs will have different variables but with same timestamps:
     # concatenate along variable axis
     df = pd.concat(fid_dfs, axis=0)
@@ -178,23 +183,61 @@ def unify_time_index(fid_dfs):
 
         unique_times = list(df.columns.levels[time_multiindex_index])
         unique_times.sort()
-        # workaround needed unitl grib time is read in properly
-        try:
-            df = df.reindex(columns=unique_times, level=time_multiindex_index)
-        except ValueError:
-            logger.warning(
-                (
-                    "cannot reindex on an axis with duplicate labels:"
-                    "unique_times (%s), "
-                    "time_multiindex_index (%s), "
-                    "df.columns (%s)."
-                ),
-                unique_times,
-                time_multiindex_index,
-                df.columns,
-            )
+        df = df.reindex(columns=unique_times, level=time_multiindex_index)
 
         df.columns = df.columns.set_levels(range(ntime), level="time")
+
+        fid_dfs_out.append(df)
+
+    return fid_dfs_out
+
+
+def adjust_time_index(fid_dfs):
+    """
+    Adjust the 'time' level of the MultiIndex in DataFrame columns by replacing
+    it with a sequential range based on the number of unique 'statistic' values.
+
+    Parameters:
+    -----------
+    fid_dfs : list of pandas.DataFrame
+        A list of DataFrames with MultiIndex columns containing 'time' and
+        'statistic' levels.
+
+    Returns:
+    --------
+    fid_dfs_out : list of pandas.DataFrame
+        DataFrames with corrected 'time' values in their MultiIndex columns.
+    """
+    fid_dfs_out = []
+    for df in fid_dfs:
+        # Get the existing MultiIndex
+        current_multiindex = df.columns
+
+        # Find the number of unique values in the 'statistic' level
+        unique_statistic_count = current_multiindex.get_level_values(
+            "statistic"
+        ).nunique()
+
+        # Create a sequential integer range for 'time' values (based on the
+        # number of unique statistics)
+        new_time_values = list(
+            range(
+                len(current_multiindex.get_level_values("time"))
+                // unique_statistic_count
+            )
+        )
+
+        # Repeat these integer values to match the length of your columns
+        new_time_repeated = np.repeat(new_time_values, unique_statistic_count)
+
+        # Construct a new MultiIndex with updated 'time' values
+        new_multiindex = pd.MultiIndex.from_arrays(
+            [new_time_repeated, current_multiindex.get_level_values("statistic")],
+            names=["time", "statistic"],
+        )
+
+        # Assign the new MultiIndex to the DataFrame
+        df.columns = new_multiindex
 
         fid_dfs_out.append(df)
 
