@@ -65,6 +65,6 @@ else
     ${CONDA} env update --name ${ENV_NAME} --file requirements/requirements.yml || exit
     if ${EXPORT}; then
         echo "Export pinned prod environment"
-        ${CONDA} env export --name ${ENV_NAME} --no-builds | \grep -v '^prefix:' > requirements/environment.yml || exit
+        ${CONDA} env export --name ${ENV_NAME} | \grep -v '^prefix:' > requirements/environment.yml || exit
     fi
 fi
