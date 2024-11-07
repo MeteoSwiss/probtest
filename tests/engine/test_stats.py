@@ -63,7 +63,7 @@ def add_variable_to_grib(filename, dict_data):
 
 @pytest.fixture
 def setup_grib_file(tmp_path):
-    array_t = np.ones(
+    array_v = np.ones(
         (
             TIME_DIM_GRIB_SIZE,
             STEP_DIM_SIZE,
@@ -71,10 +71,10 @@ def setup_grib_file(tmp_path):
             HORIZONTAL_DIM_GRIB_SIZE,
         )
     )
-    array_t[:, :, :, 0] = 0
-    array_t[:, :, :, -1] = 2
+    array_v[:, :, :, 0] = 0
+    array_v[:, :, :, -1] = 2
 
-    array_pres = (
+    array_t = (
         np.ones(
             (
                 TIME_DIM_GRIB_SIZE,
@@ -85,10 +85,10 @@ def setup_grib_file(tmp_path):
         )
         * 3
     )
-    array_pres[:, :, :, 0] = 2
-    array_pres[:, :, :, -1] = 4
+    array_t[:, :, :, 0] = 2
+    array_t[:, :, :, -1] = 4
 
-    dict_data = {"t": array_pres, "v": array_t}
+    dict_data = {"t": array_t, "v": array_v}
 
     # This would be where your grib file is created
     add_variable_to_grib(tmp_path / GRIB_FILENAME, dict_data)
