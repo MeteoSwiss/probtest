@@ -21,7 +21,7 @@ HEIGHT_DIM_GRIB_SIZE = 1
 HORIZONTAL_DIM_GRIB_SIZE = 6114
 
 GRIB_FILENAME = "test_stats_grib.grib"
-STATS_FILE_NAMES = "test_stats.csv"
+STATS_FILE_NAME = "test_stats.csv"
 NC_FILE_NAME = "test_stats.nc"
 NC_FILE_GLOB = "test_s*.nc"
 
@@ -109,7 +109,7 @@ def test_stats_grib(tmp_path):
     df = create_stats_dataframe(
         input_dir=str(tmp_path),
         file_id=[["Test data", GRIB_FILENAME]],
-        stats_file_name=tmp_path / STATS_FILE_NAMES,
+        stats_file_name=tmp_path / STATS_FILE_NAME,
         file_specification=file_specification,
     )
 
@@ -173,7 +173,7 @@ def test_stats_netcdf(setup_netcdf_file, tmp_path):  # pylint: disable=unused-ar
     df = create_stats_dataframe(
         input_dir=str(tmp_path),
         file_id=[["Test data", NC_FILE_GLOB]],
-        stats_file_name=tmp_path / STATS_FILE_NAMES,
+        stats_file_name=tmp_path / STATS_FILE_NAME,
         file_specification=file_specification,
     )
 
