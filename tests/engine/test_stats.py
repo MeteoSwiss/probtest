@@ -20,7 +20,7 @@ STEP_DIM_SIZE = 1
 HEIGHT_DIM_GRIB_SIZE = 1
 HORIZONTAL_DIM_GRIB_SIZE = 6114
 
-GRIB_FILENAME = "test_stats_grib.grib"
+GRIB_FILE_NAME = "test_stats_grib.grib"
 STATS_FILE_NAME = "test_stats.csv"
 NC_FILE_NAME = "test_stats.nc"
 NC_FILE_GLOB = "test_s*.nc"
@@ -91,7 +91,7 @@ def setup_grib_file(tmp_path):
     dict_data = {"t": array_t, "v": array_v}
 
     # This would be where your grib file is created
-    add_variable_to_grib(tmp_path / GRIB_FILENAME, dict_data)
+    add_variable_to_grib(tmp_path / GRIB_FILE_NAME, dict_data)
 
 
 @pytest.mark.usefixtures("setup_grib_file")
@@ -108,7 +108,7 @@ def test_stats_grib(tmp_path):
 
     df = create_stats_dataframe(
         input_dir=str(tmp_path),
-        file_id=[["Test data", GRIB_FILENAME]],
+        file_id=[["Test data", GRIB_FILE_NAME]],
         stats_file_name=tmp_path / STATS_FILE_NAME,
         file_specification=file_specification,
     )
