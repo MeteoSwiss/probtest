@@ -10,23 +10,22 @@ fi
 
 # Default env names
 DEFAULT_ENV_NAME="probtest"
+CONDA=conda
 
 # Default options
 ENV_NAME="${DEFAULT_ENV_NAME}"
 PYVERSION=3.10.8
 PINNED=true
 EXPORT=false
-CONDA=conda
 HELP=false
 
-help_msg="Usage: $(basename "${0}") [-n NAME] [-p VER] [-u] [-e] [-m] [-h]
+help_msg="Usage: $(basename "${0}") [-n NAME] [-p VER] [-u] [-e] [-h]
 
 Options:
  -n NAME    Env name [default: ${DEFAULT_ENV_NAME}
  -p VER     Python version [default: ${PYVERSION}]
  -u         Use unpinned requirements (minimal version restrictions)
  -e         Export environment files (requires -u)
- -m         Use mamba instead of conda
  -h         Print this help message and exit
 "
 
@@ -37,7 +36,6 @@ while getopts n:p:defhimu flag; do
         p) PYVERSION=${OPTARG};;
         e) EXPORT=true;;
         h) HELP=true;;
-        m) CONDA=mamba;;
         u) PINNED=false;;
         ?) echo -e "\n${help_msg}" >&2; exit 1;;
     esac
