@@ -12,6 +12,8 @@ check has passed or failed.
 import sys
 
 import click
+import numpy as np
+import xarray as xr
 
 from util.click_util import cli_help
 from util.log_handler import logger
@@ -23,68 +25,64 @@ from util.tree import TimingTree
     "--timing-current",
     help=cli_help["timing_current"],
 )
-@click.option(
-    "--timing-reference",
-    help=cli_help["timing_reference"],
-)
-@click.option(
-    "--measurement-uncertainty",
-    help=cli_help["measurement_uncertainty"],
-    type=float,
-    default=2,
-)
-@click.option(
-    "--tolerance-factor", help=cli_help["tolerance_factor"], type=float, default=1.1
-)
-@click.option(
-    "--new-reference-threshold",
-    help=cli_help["new_reference_threshold"],
-    type=float,
-    default=0.95,
-)
 @click.option("--i-table", type=int, help=cli_help["i_table"], default=-1)
-def performance_check(
+def performance_stats(
     timing_current,
-    timing_reference,
     i_table,
-    measurement_uncertainty,
-    tolerance_factor,
-    new_reference_threshold,
 ):  # pylint: disable=too-many-positional-arguments
-    ttcur = TimingTree.from_json(timing_current)
-    ttref = TimingTree.from_json(timing_reference)
 
-    total_time_cur = (
-        ttcur.data[i_table].loc[("total", slice(None)), "total max (s)"].values[0]
+
+
+    timing_tree = TimingTree.from_json(timing_current)
+
+    timer_names = ['model_init', 'total', 'integrate_nh', 'nh_solve', 'nh_hdiff', 'transport', 'physics']
+
+    aggregate_timer_names = {'dycore':('nh_solve', 'nh_hdiff', 'transport')}
+
+    all_timer_names = timer_names + list(aggregate_timer_names.keys())
+
+    dims = ('name', 'metric')
+
+    coords = {'name': all_timer_names, 'metric': ['mean', 'std']}
+
+    print(all_timer_names)
+
+    # Create an empty DataArray with np.nan
+    timer_stats = xr.DataArray(
+        data=np.full((len(coords['name']), len(coords['metric'])), np.nan),  # Fill with NaN
+        coords=coords,
+        dims=dims
     )
-    total_time_ref = (
-        ttref.data[i_table].loc[("total", slice(None)), "total max (s)"].values[0]
-    )
 
-    if measurement_uncertainty < 0:
-        logger.error("measurement_uncertainty needs to be positive")
-    if tolerance_factor < 1:
-        logger.error("tolerance_factor needs to be greater than 1")
-    if new_reference_threshold < 0 or new_reference_threshold > 1:
-        logger.error("new_reference_threshold needs to be between 0 and 1")
 
-    allowed_time = (total_time_ref + measurement_uncertainty) * tolerance_factor
+    for timer_name in timer_names:
+      times = np.asarray(
+          timing_tree.data[i_table].loc[(timer_name, slice(None)), "total max (s)"].values
+      )
+      timer_stats.loc[timer_name, 'mean'] = np.mean(times)
+      timer_stats.loc[timer_name, 'std'] = np.std(times)
 
-    logger.info("Current runtime")
-    logger.info(total_time_cur)
-    logger.info("Allowed runtime")
-    logger.info(allowed_time)
-    logger.info("Reference runtime")
-    logger.info(total_time_ref)
 
-    if total_time_cur <= (allowed_time):
-        logger.info("RESULT: performance_check PASSED!")
-        if total_time_cur < total_time_ref * new_reference_threshold:
-            logger.info(
-                "The current experiment ran a lot faster than the reference. "
-                + "Consider updating the reference."
-            )
-        sys.exit(0)
-    else:
-        logger.info("RESULT: performance_check FAILED")
-        sys.exit(1)
+
+    for aggregated_timer_name in aggregate_timer_names.keys():
+
+      times = np.zeros_like(np.asarray(
+          timing_tree.data[i_table].loc[(aggregate_timer_names[aggregated_timer_name][0], slice(None)), "total max (s)"].values
+      ))
+      for timer_name in aggregate_timer_names[aggregated_timer_name]:
+        times += np.asarray(
+            timing_tree.data[i_table].loc[(timer_name, slice(None)), "total max (s)"].values
+        )
+      timer_stats.loc[aggregated_timer_name, 'mean'] = np.mean(times)
+      timer_stats.loc[aggregated_timer_name, 'std'] = np.std(times)
+
+
+    # Save the dataset to a NetCDF file
+    timer_stats.to_netcdf('timer_stats.nc')
+
+    # Load it back
+    loaded_dataarray = xr.open_dataarray('timer_stats.nc')
+
+    print(timer_stats)
+    print(loaded_dataarray)
+    print(timer_stats-loaded_dataarray)
