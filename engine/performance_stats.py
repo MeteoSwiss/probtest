@@ -63,7 +63,6 @@ def performance_stats(
       timer_stats.loc[timer_name, 'std'] = np.std(times)
 
 
-
     for aggregated_timer_name in aggregate_timer_names.keys():
 
       times = np.zeros_like(np.asarray(
