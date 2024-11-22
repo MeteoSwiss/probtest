@@ -7,7 +7,7 @@ dependencies:
   # runtime
   - array-api-compat
   - click>=7.1.2
-  - earthkit-data
+  - earthkit-data<0.11
   - eccodes>=2.38.0
   - Jinja2>=3.0.1
   - matplotlib>=3.2.1

@@ -63,7 +63,7 @@ dependencies:
   - distributed=2024.11.2
   - docutils=0.21.2
   - double-conversion=3.3.0
-  - earthkit-data=0.11.1
+  - earthkit-data=0.10.11
   - earthkit-geo=0.3.0
   - eccodes=2.38.3
   - entrypoints=0.4
