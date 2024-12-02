@@ -16,16 +16,17 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+from dotenv import load_dotenv
 
 from tests.helpers import create_random_stats_file, generate_ensemble, load_pandas
 from util.tree import TimingTree
 
-from dotenv import load_dotenv
 
 @pytest.fixture(scope="session", autouse=True)
 def load_env():
     """Automatically load .env file for all tests."""
     load_dotenv()  # Optionally specify the path to your .env file
+
 
 @pytest.fixture(autouse=True, scope="session")
 def new_ref() -> str:
