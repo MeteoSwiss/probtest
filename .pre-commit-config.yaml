@@ -83,7 +83,7 @@ repos:
           description: Check for spelling errors
           language: system
           entry: codespell
-          exclude: tests/data/
+          exclude: ^(poetry.lock|tests/data/.*)$
           args: ['-L astroid,fof']
   -   repo: local
       hooks:

@@ -3,10 +3,10 @@ name: Run pre-commit in probtest
 on:
   push:
     branches:
-    - main
+      - main
   pull_request:
     branches:
-    - main
+      - main
 
 jobs:
   probtest-pre-commit:
@@ -14,24 +14,23 @@ jobs:
     defaults:
       run:
         shell: bash -l {0}
+
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.10.8
-    - uses: conda-incubator/setup-miniconda@v2
-      with:
-        miniconda-version: "latest"
-        channels: conda-forge
-        channel-priority: flexible
-        show-channel-urls: true
-    - name: Create env from pinned environment
+        python-version: 3.10  # Adjust Python version if needed
+
+    - name: Install dependencies with Poetry
       run: |
-        conda env create --name dev_env --file requirements/environment.yml
+        poetry install
+
     - name: Install pre-commit hooks
       run: |
-        conda run --name dev_env pre-commit install-hooks
+        poetry run pre-commit install
+
     - name: Run pre-commit hooks
       run: |
-        conda run --name dev_env pre-commit run --all-files
+        poetry run pre-commit run --all-files
