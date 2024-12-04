@@ -6,10 +6,29 @@ pipeline {
     }
 
     stages {
+
+        stage('Install Poetry') {
+            steps {
+                // Install Poetry inside the Docker container
+                sh 'curl -sSL https://install.python-poetry.org | python3 -'
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                // Install dependencies using Poetry inside the Docker container
+                sh 'poetry install'
+            }
+        }
+        stage('Set up environment') {
+            steps {
+                // Run setup_env.py to set up the environment (e.g., .env file)
+                sh 'python3 setup_env.py'
+            }
+        }
+        
         stage('Pytest') {
             steps {
                 sh'''
-                source $SCRATCH/project/icon/probtest/conda/miniconda/bin/activate probtest
                 pytest -v tests/*
                 '''
             }
