@@ -7,12 +7,6 @@ pipeline {
 
     stages {
 
-        stage('Install Poetry') {
-            steps {
-                // Install Poetry inside the Docker container
-                sh 'curl -sSL https://install.python-poetry.org | python3 -'
-            }
-        }
         stage('Install Dependencies') {
             steps {
                 // Install dependencies using Poetry inside the Docker container
