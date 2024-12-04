@@ -21,24 +21,19 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.10  # You can change this version if needed
-
+        python-version: 3.10.8
     - name: Install Poetry
       run: |
         curl -sSL https://install.python-poetry.org | python3 -
-
     - name: Configure Poetry to use the right Python version
       run: |
         poetry env use python3.10  # Adjust the Python version if necessary
-
     - name: Install dependencies with Poetry
       run: |
         poetry install
-
     - name: Run setup_env.py script (if needed)
       run: |
         poetry run python setup_env.py  # If you need to run the setup_env.py script for `.env`
-
     - name: Run Pytest with Poetry
       env:
         TZ: Europe/Zurich
