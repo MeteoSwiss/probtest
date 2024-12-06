@@ -7,17 +7,14 @@ on:
   pull_request:
     branches:
     - main
-
 jobs:
   probtest-pytest:
     runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash -l {0}
-
     steps:
     - uses: actions/checkout@v2
-
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
@@ -27,13 +24,13 @@ jobs:
         curl -sSL https://install.python-poetry.org | python3 -
     - name: Configure Poetry to use the right Python version
       run: |
-        poetry env use python3.10  # Adjust the Python version if necessary
+        poetry env use python3.10
     - name: Install dependencies with Poetry
       run: |
         poetry install
-    - name: Run setup_env.py script (if needed)
+    - name: Run setup_env.py script
       run: |
-        poetry run python setup_env.py  # If you need to run the setup_env.py script for `.env`
+        poetry run python setup_env.py
     - name: Run Pytest with Poetry
       env:
         TZ: Europe/Zurich
