@@ -9,6 +9,7 @@
 *.log
 *.nc
 coverage.xml
+resource
 
 # output from pytest
 random_tolerance.csv

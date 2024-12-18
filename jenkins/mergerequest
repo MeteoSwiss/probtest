@@ -40,6 +40,7 @@ pipeline {
             deactivate || true
             rm -rf venv
             rm -rf .env
+            rm -rf resource
             '''
         }
     }
