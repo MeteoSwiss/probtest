@@ -1,4 +1,5 @@
 .coverage
+.env
 .idea*
 .vscode
 *pycache*
