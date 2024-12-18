@@ -6,13 +6,31 @@ pipeline {
     }
 
     stages {
-        stage('Pytest') {
+        stage('Setup Python Environment') {
             steps {
-                sh'''
-                source $SCRATCH/project/icon/probtest/conda/miniconda/bin/activate probtest
-                pytest -v tests/*
+                sh '''
+                python3 -m venv venv
+                source venv/bin/activate
+                pip install --upgrade pip
+                pip install -r requirements.txt
                 '''
             }
+        }
+        stage('Run Pytest') {
+            steps {
+                sh '''
+                source venv/bin/activate
+                pytest -v -s --cov --cov-report=term tests/
+                '''
+            }
+        }
+    }
+    post {
+        always {
+            sh '''
+            deactivate || true
+            rm -rf venv
+            '''
         }
     }
 }
