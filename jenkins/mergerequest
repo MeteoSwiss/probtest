@@ -9,10 +9,19 @@ pipeline {
         stage('Setup Python Environment') {
             steps {
                 sh '''
+                module load $USER_ENV_ROOT/modules/python/3.10.8
                 python3 -m venv venv
                 source venv/bin/activate
                 pip install --upgrade pip
                 pip install -r requirements.txt
+                '''
+            }
+        }
+        stage('Run setup_env.py Script') {
+            steps {
+                sh '''
+                source venv/bin/activate
+                python setup_env.py
                 '''
             }
         }
@@ -30,6 +39,7 @@ pipeline {
             sh '''
             deactivate || true
             rm -rf venv
+            rm -rf .env
             '''
         }
     }
