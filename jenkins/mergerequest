@@ -9,7 +9,8 @@ pipeline {
         stage('Setup Python Environment') {
             steps {
                 sh '''
-                module load $USER_ENV_ROOT/modules/python/3.10.8
+                module use /mch-environment/v7/modules
+                module load python/3.10.8
                 python3 -m venv venv
                 source venv/bin/activate
                 pip install --upgrade pip
