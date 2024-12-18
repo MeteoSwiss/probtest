@@ -8,7 +8,6 @@
 *.log
 *.nc
 coverage.xml
-miniconda
 
 # output from pytest
 random_tolerance.csv
