@@ -1,8 +1,7 @@
 [run]
 source =
-	engine/
-    visualize/
-    probtest.py
-	util/
+  engine
+  util
+  visualize
 omit =
-	tests/*
+  tests/*

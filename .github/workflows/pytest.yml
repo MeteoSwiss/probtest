@@ -7,27 +7,35 @@ on:
   pull_request:
     branches:
     - main
+
 jobs:
   probtest-pytest:
     runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash -l {0}
+
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: 3.10.8
-    - name: Install dependencies with pip
+    - name: Install Poetry
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Run setup_env.py script
+        curl -sSL https://install.python-poetry.org | python3 -
+    - name: Configure Poetry to use the right Python version
       run: |
-        python setup_env.py
-    - name: Run Pytest
+        poetry env use python3.10
+    - name: Install dependencies with Poetry
+      run: |
+        poetry install
+    - name: Run setup_env for eccodes definition
+      run: |
+        poetry run python setup_env
+    - name: Run Pytest with Poetry
       env:
         TZ: Europe/Zurich
       run: |
-        pytest -v -s --cov --cov-report=term tests/
+        poetry run pytest -v -s --cov --cov-report=term tests/
