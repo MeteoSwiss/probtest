@@ -33,7 +33,7 @@ jobs:
         poetry install
     - name: Run setup_env for eccodes definition
       run: |
-        poetry run python setup_env
+        poetry run python setup_env.py
     - name: Run Pytest with Poetry
       env:
         TZ: Europe/Zurich
