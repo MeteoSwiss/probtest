@@ -85,7 +85,7 @@ Even though probtest is used exclusively with ICON at the moment, it does not co
 All requirements for using probtest can be easily installed with pip or poetry.
 
 #### Setup with pip
-The setup with pip is recomended for users.
+The setup with pip is recommended for users.
 
 For setting up the venv you use
 ```console
@@ -94,26 +94,28 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
-To check that everything is setup correclty (note this requires [eccodes definition](#Setup-the-eccodes-definition)), you can do
+To check that everything is setup correctly (note this requires
+[eccodes definition](#Setup-the-eccodes-definition)), you can do
 ```console
 pytest -v -s --cov --cov-report=term tests/
 ```
 
 #### Setup with poetry
-The setup with poetry is recomended for developers and needed for changing or
+The setup with poetry is recommended for developers and needed for changing or
 adding requirements.
 It is assumed you are having a poetry installation.
 ```console
 poetry env use python3.10
 poetry install
 ```
-To check that everything is setup correclty (note this requires [eccodes definition](#Setup-the-eccodes-definition)), you can do
+To check that everything is setup correctly (note this requires
+[eccodes definition](#Setup-the-eccodes-definition)), you can do
 ```console
 poetry run pytest -v -s --cov --cov-report=term tests/
 ```
 
 #### Setup the eccodes definition
-For setting up the eccode definiton, you can use
+For setting up the eccode definition, you can use
 ```console
 python setup_env.py
 ```
