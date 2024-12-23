@@ -22,7 +22,6 @@ from util.dataframe_ops import test_stats_file_with_tolerances
 from util.log_handler import logger
 
 
-# finds members and a corresponding tolerance factor validating for all stats files.
 def find_members_and_factor_validating_for_all_stats_files(
     random_tolerance_file_name,
     stats_file_name,
@@ -34,88 +33,82 @@ def find_members_and_factor_validating_for_all_stats_files(
     max_factor,
     iterations,
 ):  # pylint: disable=too-many-positional-arguments
+    """
+    fin members and a corresponding tolerance factor validating for all stats files.
+    """
 
-    members = list(range(1, total_member_num + 1))
+    members = set(range(1, total_member_num + 1))
+    members_not_validating = members
+    member_selection = set()
 
-    # Iteratively change likelihood of members being selected
-    # to come to a solution faster
-    weights = np.ones(total_member_num) / total_member_num
+    f = min_factor
+    for iteration in range(max_member_num):
+      member_minmal_fails = -1
+      minimal_fails = set()
+      for mem in members_not_validating:
+        logger.info("Try with %s member.", mem)
 
-    # Use fixed seed to make result reproducible
-    np.random.seed(total_member_num)
+        temp_member_selection = member_selection.union({mem})
 
+        # creating tolerances
+        context = click.Context(tolerance)
+        context.invoke(
+            tolerance,
+            stats_file_name=stats_file_name,
+            tolerance_file_name=random_tolerance_file_name,
+            member_num=temp_member_selection,
+            member_type=member_type,
+        )
+
+        logger.info( "Test %s member", mem )
+
+        # Test selection (exclude random selection)
+        validation_members = [
+            m for m in members_not_validating if m not in temp_member_selection
+        ]
+        failed, _ = test_selection(
+            stats_file_name,
+            random_tolerance_file_name,
+            validation_members,
+            member_type,
+            f,
+        )
+
+        if member_minmal_fails == -1:
+          member_minmal_fails = mem
+          minimal_fails = failed
+        elif len(failed) < len(minimal_fails):
+          member_minmal_fails = mem
+          minimal_fails = failed
+
+      member_selection.add(member_minmal_fails)
+      members_not_validating  = minimal_fails
+
+    # creating tolerances
+    context = click.Context(tolerance)
+    context.invoke(
+        tolerance,
+        stats_file_name=stats_file_name,
+        tolerance_file_name=random_tolerance_file_name,
+        member_num=member_selection,
+        member_type=member_type,
+    )
     for f in range(
         int(min_factor), int(max_factor) + 1, 5
     ):  # Try with bigger factor if max_member_num is not enough
         logger.info("Set factor to %s", f)
-        for mem_num in range(min_member_num, max_member_num + 1):
-            logger.info("Try with %s members.", mem_num)
-            max_passed = 1
-            variables = []
-            for iteration in range(iterations):
-                random_members = np.random.choice(
-                    members, size=mem_num, replace=False, p=weights
-                )
-                logger.info(
-                    "Test %s with %s randomly selected members and factor %s.",
-                    iteration + 1,
-                    mem_num,
-                    f,
-                )
-                # Create tolerances from random members
-                context = click.Context(tolerance)
-                context.invoke(
-                    tolerance,
-                    stats_file_name=stats_file_name,
-                    tolerance_file_name=random_tolerance_file_name,
-                    member_num=random_members,
-                    member_type=member_type,
-                )
-                # Test selection (exclude random selection)
-                validation_members = [
-                    item for item in members if item not in random_members
-                ]
-                passed, new_vars = test_selection(
-                    stats_file_name,
-                    random_tolerance_file_name,
-                    validation_members,
-                    member_type,
-                    f,
-                )
 
-                validation_members_np = np.array(validation_members)
-                indices = [i for i, value in enumerate(passed) if value == 0]
-                failed = validation_members_np[indices]
-                # Increase weights for members which failed
-                weights[failed - 1] += 1 / total_member_num
-                # weights needs to sum up to 1 for np.random.choice
-                weights = weights / sum(weights)
+        # Test selection (exclude random selection)
+        failed, most_common_vars = test_selection(
+            stats_file_name,
+            random_tolerance_file_name,
+            members_not_validating,
+            member_type,
+            f,
+        )
+        if not failed:
+          return sorted(member_selection), f
 
-                variables.extend(new_vars)
-
-                if (mem_num == max_member_num) and (f == max_factor):
-                    duplicates = dict(Counter(variables).items())
-                    sorted_duplicates = dict(
-                        sorted(duplicates.items(), key=lambda x: x[1], reverse=True)
-                    )
-                # The following is to save computing time
-                elif iteration < 32:
-                    max_passed = max(max_passed, sum(passed))
-                    # The more combs were tested
-                    # the higher should the success rate be to continue
-                    tested_stats = len(validation_members)
-                    if max_passed < (iteration + 1) * 0.03 * tested_stats:
-                        break
-
-                if sum(passed) == len(validation_members):
-                    return random_members, f
-        # If factore needs to be increased, test only with max_members
-        min_member_num = max_member_num
-
-    max_count = max(sorted_duplicates.values())
-    most_common_vars = [
-        item for item, count in sorted_duplicates.items() if count == max_count
-    ]
     logger.error(
         "ERROR: Could not find %s random members, which pass for all stat files. "
         + "The most sensitive variable(s) is/are %s, which failed for %s out of %s "
@@ -129,27 +122,25 @@ def find_members_and_factor_validating_for_all_stats_files(
     sys.exit(1)
 
 
-# Tests how may stats files pass the tolerance test for the selected members
-# Returns the number of passed stats files and the variables which failed
 def test_selection(
-    stats_file_name, tolerance_file_name, total_member_num, member_type, factor
+    stats_file_name, tolerance_file_name, members, member_type, factor
 ):
-    if isinstance(total_member_num, int):
-        members = list(range(1, total_member_num + 1))
-    else:
-        members = total_member_num
-        total_member_num = len(members)
+    """
+    Tests how may stats files pass the tolerance test for the selected members
+    Returns the number of passed stats files and the variables which failed 
+    """
+    total_member_num = len(members)
 
-    passed = [0] * total_member_num
+    failed = set()
 
     # Change level to not get whole output from test_stats_file_with_tolerances
     original_level = logging.getLogger().level
     logging.getLogger().setLevel(logging.ERROR)
 
-    variables = []
+    variables = set()
     i = 0
-    for m_num in members:
-        m_id = str(m_num) if not member_type else member_type + "_" + str(m_num)
+    for mem in members:
+        m_id = str(mem) if not member_type else member_type + "_" + str(mem)
 
         out, err, _ = test_stats_file_with_tolerances(
             tolerance_file_name,
@@ -159,14 +150,10 @@ def test_selection(
         )
 
         if not out:
-            var = set(index[1] for index in err[0].index)
-            var = list(var)
-            variables.extend(var)
-        else:
-            passed[i] = 1
-        i = i + 1
-
-    variables = list(set(variables))
+          failed.add(mem)
+          var = set(index[1] for index in err[0].index)
+          variables.update(var)
+    variables = list(variables)
 
     # Reset logger level
     logging.getLogger().setLevel(original_level)
@@ -175,7 +162,7 @@ def test_selection(
         sum(passed),
         total_member_num,
     )
-    return passed, variables
+    return failed, variables
 
 
 @click.command()
