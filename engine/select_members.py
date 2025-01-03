@@ -10,11 +10,9 @@ stats files or test the tolerance of a given selection.
 import logging
 import os
 import sys
-from collections import Counter
 from datetime import datetime
 
 import click
-import numpy as np
 
 from engine.tolerance import tolerance
 from util.click_util import cli_help
@@ -66,7 +64,7 @@ def find_members_and_factor_validating_for_all_stats_files(
             validation_members = [
                 m for m in members_not_validating if m not in temp_member_selection
             ]
-            failed, _ = test_selection(
+            _, failed, _ = test_selection(
                 stats_file_name,
                 random_tolerance_file_name,
                 validation_members,
@@ -99,7 +97,7 @@ def find_members_and_factor_validating_for_all_stats_files(
         logger.info("Set factor to %s", f)
 
         # Test selection (exclude random selection)
-        failed, most_common_vars = test_selection(
+        _, failed, most_common_vars = test_selection(
             stats_file_name,
             random_tolerance_file_name,
             members_not_validating,
@@ -111,24 +109,33 @@ def find_members_and_factor_validating_for_all_stats_files(
 
     logger.error(
         "ERROR: Could not find %s random members, which pass for all stat files. "
-        + "The most sensitive variable(s) is/are %s, which failed for %s out of %s "
+        + "The most sensitive variable(s) is/are %s, which failed after %s "
         + "random selections. Consider removing this/those variable(s) from the "
         + "experiment and run again.",
         max_member_num,
         most_common_vars,
-        max_count,
         iteration + 1,
     )
     sys.exit(1)
 
 
-def test_selection(stats_file_name, tolerance_file_name, members, member_type, factor):
+def test_selection(
+    stats_file_name, tolerance_file_name, total_member_num, member_type, factor
+):
     """
     Tests how may stats files pass the tolerance test for the selected members
     Returns the number of passed stats files and the variables which failed
     """
+
+    if isinstance(total_member_num, int):
+        members = list(range(1, total_member_num + 1))
+    else:
+        members = total_member_num
+        total_member_num = len(members)
+
     total_member_num = len(members)
 
+    passed = set()
     failed = set()
 
     # Change level to not get whole output from test_stats_file_with_tolerances
@@ -136,7 +143,7 @@ def test_selection(stats_file_name, tolerance_file_name, members, member_type, f
     logging.getLogger().setLevel(logging.ERROR)
 
     variables = set()
-    i = 0
+
     for mem in members:
         m_id = str(mem) if not member_type else member_type + "_" + str(mem)
 
@@ -147,20 +154,23 @@ def test_selection(stats_file_name, tolerance_file_name, members, member_type, f
             factor,
         )
 
-        if not out:
+        if out:
             failed.add(mem)
             var = set(index[1] for index in err[0].index)
             variables.update(var)
+        else:
+            passed.add(mem)
+
     variables = list(variables)
 
     # Reset logger level
     logging.getLogger().setLevel(original_level)
     logger.info(
-        "The tolerance test passed for %s out of %s references.",
+        "The tolerance test passed for %s out of %s members.",
         sum(passed),
         total_member_num,
     )
-    return failed, variables
+    return passed, failed, variables
 
 
 @click.command()
