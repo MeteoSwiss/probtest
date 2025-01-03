@@ -35,16 +35,16 @@ def find_members_and_factor_validating_for_all_stats_files(
     find members and a corresponding tolerance factor validating for all stats files.
     """
 
-    members = set(range(1, total_member_num + 1))
-    members_not_validating = members
+    members_not_validating = set(range(1, total_member_num + 1))
     member_selection = set()
 
-    f = min_factor
-    for iteration in range(max_member_num):
-        member_minmal_fails = -1
+    for iteration in iterations:
+
+        member_with_minmal_fails = -1
         minimal_fails = set()
+
         for mem in members_not_validating:
-            logger.info("Try with %s member.", mem)
+            logger.info("Check member selection with additional member %s .", mem)
 
             temp_member_selection = member_selection.union({mem})
 
@@ -58,8 +58,6 @@ def find_members_and_factor_validating_for_all_stats_files(
                 member_type=member_type,
             )
 
-            logger.info("Test %s member", mem)
-
             # Test selection (exclude random selection)
             validation_members = [
                 m for m in members_not_validating if m not in temp_member_selection
@@ -72,49 +70,52 @@ def find_members_and_factor_validating_for_all_stats_files(
                 factor=1.0,
             )
 
-            if member_minmal_fails == -1:
-                member_minmal_fails = mem
+            if member_with_minmal_fails == -1:
+                member_with_minmal_fails = mem
                 minimal_fails = failed
             elif len(failed) < len(minimal_fails):
-                member_minmal_fails = mem
+                member_with_minmal_fails = mem
                 minimal_fails = failed
 
-        member_selection.add(member_minmal_fails)
+        member_selection.add(member_with_minmal_fails)
         members_not_validating = minimal_fails
 
-    # creating tolerances
-    context = click.Context(tolerance)
-    context.invoke(
-        tolerance,
-        stats_file_name=stats_file_name,
-        tolerance_file_name=random_tolerance_file_name,
-        member_num=member_selection,
-        member_type=member_type,
-    )
-    for f in range(
-        int(min_factor), int(max_factor) + 1, 5
-    ):  # Try with bigger factor if max_member_num is not enough
-        logger.info("Set factor to %s", f)
-
-        # Test selection (exclude random selection)
-        _, failed, most_common_vars = test_selection(
-            stats_file_name,
-            random_tolerance_file_name,
-            members_not_validating,
-            member_type,
-            f,
+    if members_not_validating:
+        # re-create tolerances with member selection
+        context = click.Context(tolerance)
+        context.invoke(
+            tolerance,
+            stats_file_name=stats_file_name,
+            tolerance_file_name=random_tolerance_file_name,
+            member_num=member_selection,
+            member_type=member_type,
         )
-        if not failed:
-            return sorted(member_selection), f
+        for f in range(
+            int(min_factor), int(max_factor) + 1, 5
+        ):  # Try with bigger factor if max_member_num is not enough
+            logger.info("Set factor to %s", f)
+
+            # Test selection (exclude random selection)
+            _, failed, most_common_vars = test_selection(
+                stats_file_name,
+                random_tolerance_file_name,
+                members_not_validating,
+                member_type,
+                f,
+            )
+            if not failed:
+                return sorted(member_selection), f
+    else:
+        return sorted(member_selection), min_factor
 
     logger.error(
-        "ERROR: Could not find %s random members, which pass for all stat files. "
-        + "The most sensitive variable(s) is/are %s, which failed after %s "
-        + "random selections. Consider removing this/those variable(s) from the "
+        "ERROR: Could not find %s members, which pass for all stat files. "
+        + "The most sensitive variable(s) is/are %s, which failed with the factor %s"
+        + ". Consider removing this/those variable(s) from the "
         + "experiment and run again.",
         max_member_num,
         most_common_vars,
-        iteration + 1,
+        max_factor,
     )
     sys.exit(1)
 
