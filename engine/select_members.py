@@ -34,7 +34,7 @@ def find_members_and_factor_validating_for_all_stats_files(
     iterations,
 ):  # pylint: disable=too-many-positional-arguments
     """
-    fin members and a corresponding tolerance factor validating for all stats files.
+    find members and a corresponding tolerance factor validating for all stats files.
     """
 
     members = set(range(1, total_member_num + 1))
@@ -43,46 +43,46 @@ def find_members_and_factor_validating_for_all_stats_files(
 
     f = min_factor
     for iteration in range(max_member_num):
-      member_minmal_fails = -1
-      minimal_fails = set()
-      for mem in members_not_validating:
-        logger.info("Try with %s member.", mem)
+        member_minmal_fails = -1
+        minimal_fails = set()
+        for mem in members_not_validating:
+            logger.info("Try with %s member.", mem)
 
-        temp_member_selection = member_selection.union({mem})
+            temp_member_selection = member_selection.union({mem})
 
-        # creating tolerances
-        context = click.Context(tolerance)
-        context.invoke(
-            tolerance,
-            stats_file_name=stats_file_name,
-            tolerance_file_name=random_tolerance_file_name,
-            member_num=temp_member_selection,
-            member_type=member_type,
-        )
+            # creating tolerances
+            context = click.Context(tolerance)
+            context.invoke(
+                tolerance,
+                stats_file_name=stats_file_name,
+                tolerance_file_name=random_tolerance_file_name,
+                member_num=temp_member_selection,
+                member_type=member_type,
+            )
 
-        logger.info( "Test %s member", mem )
+            logger.info("Test %s member", mem)
 
-        # Test selection (exclude random selection)
-        validation_members = [
-            m for m in members_not_validating if m not in temp_member_selection
-        ]
-        failed, _ = test_selection(
-            stats_file_name,
-            random_tolerance_file_name,
-            validation_members,
-            member_type,
-            f,
-        )
+            # Test selection (exclude random selection)
+            validation_members = [
+                m for m in members_not_validating if m not in temp_member_selection
+            ]
+            failed, _ = test_selection(
+                stats_file_name,
+                random_tolerance_file_name,
+                validation_members,
+                member_type,
+                factor=1.0,
+            )
 
-        if member_minmal_fails == -1:
-          member_minmal_fails = mem
-          minimal_fails = failed
-        elif len(failed) < len(minimal_fails):
-          member_minmal_fails = mem
-          minimal_fails = failed
+            if member_minmal_fails == -1:
+                member_minmal_fails = mem
+                minimal_fails = failed
+            elif len(failed) < len(minimal_fails):
+                member_minmal_fails = mem
+                minimal_fails = failed
 
-      member_selection.add(member_minmal_fails)
-      members_not_validating  = minimal_fails
+        member_selection.add(member_minmal_fails)
+        members_not_validating = minimal_fails
 
     # creating tolerances
     context = click.Context(tolerance)
@@ -107,7 +107,7 @@ def find_members_and_factor_validating_for_all_stats_files(
             f,
         )
         if not failed:
-          return sorted(member_selection), f
+            return sorted(member_selection), f
 
     logger.error(
         "ERROR: Could not find %s random members, which pass for all stat files. "
@@ -122,12 +122,10 @@ def find_members_and_factor_validating_for_all_stats_files(
     sys.exit(1)
 
 
-def test_selection(
-    stats_file_name, tolerance_file_name, members, member_type, factor
-):
+def test_selection(stats_file_name, tolerance_file_name, members, member_type, factor):
     """
     Tests how may stats files pass the tolerance test for the selected members
-    Returns the number of passed stats files and the variables which failed 
+    Returns the number of passed stats files and the variables which failed
     """
     total_member_num = len(members)
 
@@ -150,9 +148,9 @@ def test_selection(
         )
 
         if not out:
-          failed.add(mem)
-          var = set(index[1] for index in err[0].index)
-          variables.update(var)
+            failed.add(mem)
+            var = set(index[1] for index in err[0].index)
+            variables.update(var)
     variables = list(variables)
 
     # Reset logger level
