@@ -24,12 +24,10 @@ def find_members_and_factor_validating_for_all_stats_files(
     random_tolerance_file_name,
     stats_file_name,
     member_type,
-    min_member_num,
     max_member_num,
     total_member_num,
     min_factor,
     max_factor,
-    iterations,
 ):  # pylint: disable=too-many-positional-arguments
     """
     find members and a corresponding tolerance factor validating for all stats files.
@@ -38,7 +36,7 @@ def find_members_and_factor_validating_for_all_stats_files(
     members_not_validating = set(range(1, total_member_num + 1))
     member_selection = set()
 
-    for iter in range(iterations):
+    for _ in range(max_member_num):
 
         member_with_minmal_fails = -1
         minimal_fails = set()
@@ -78,10 +76,13 @@ def find_members_and_factor_validating_for_all_stats_files(
                 minimal_fails = failed
 
         if member_with_minmal_fails != -1:
-          member_selection.add(member_with_minmal_fails)
-          members_not_validating = minimal_fails
-        logger.info("Current member selection %s.", member_selection)
-        logger.info("Current failes %s.", minimal_fails)
+            member_selection.add(member_with_minmal_fails)
+            members_not_validating = minimal_fails
+        logger.info(
+            "Current member selection (%s), failing for (%s).",
+            member_selection,
+            minimal_fails,
+        )
 
     if members_not_validating:
         # re-create tolerances with member selection
@@ -207,12 +208,6 @@ def test_selection(
     help=cli_help["member_type"],
 )
 @click.option(
-    "--min-member-num",
-    type=int,
-    default=5,
-    help=cli_help["min_member_num"],
-)
-@click.option(
     "--max-member-num",
     type=int,
     default=15,
@@ -242,12 +237,6 @@ def test_selection(
     default=50.0,
     help=cli_help["max_factor"],
 )
-@click.option(
-    "--iterations",
-    type=int,
-    default=50,
-    help=cli_help["iterations"],
-)
 # Selects members and writes them to a file together with the tolerance factor
 def select_members(
     experiment_name,
@@ -256,24 +245,13 @@ def select_members(
     selected_members_file_name,
     tolerance_file_name,
     member_type,
-    min_member_num,
     max_member_num,
     total_member_num,
     factor,
     min_factor,
     max_factor,
-    iterations,
 ):  # pylint: disable=unused-argument, too-many-positional-arguments
 
-    if min_member_num > max_member_num:
-        logger.error(
-            "ERROR: min_member_num must be equal or smaller than max_member_num"
-        )
-        sys.exit(1)
-
-    if min_factor > max_factor:
-        logger.error("ERROR: min_factor must be equal or smaller than max_factor")
-        sys.exit(1)
 
     if max_member_num >= total_member_num:
         logger.error("ERROR: max_member_num must be smaller than total_member_num")
@@ -291,12 +269,10 @@ def select_members(
             random_tolerance_file_name,
             stats_file_name,
             member_type,
-            min_member_num,
             max_member_num,
             total_member_num,
             min_factor,
             max_factor,
-            iterations,
         )
         end_time = datetime.now()
         elapsed_time = end_time - start_time
