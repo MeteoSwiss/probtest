@@ -38,13 +38,13 @@ def find_members_and_factor_validating_for_all_stats_files(
     members_not_validating = set(range(1, total_member_num + 1))
     member_selection = set()
 
-    for iteration in iterations:
+    for iter in range(iterations):
 
         member_with_minmal_fails = -1
         minimal_fails = set()
 
         for mem in members_not_validating:
-            logger.info("Check member selection with additional member %s .", mem)
+            logger.info("\tCheck member selection with additional member %s.", mem)
 
             temp_member_selection = member_selection.union({mem})
 
@@ -54,7 +54,7 @@ def find_members_and_factor_validating_for_all_stats_files(
                 tolerance,
                 stats_file_name=stats_file_name,
                 tolerance_file_name=random_tolerance_file_name,
-                member_num=temp_member_selection,
+                member_num=list(temp_member_selection),
                 member_type=member_type,
             )
 
@@ -67,7 +67,7 @@ def find_members_and_factor_validating_for_all_stats_files(
                 random_tolerance_file_name,
                 validation_members,
                 member_type,
-                factor=1.0,
+                factor=min_factor,
             )
 
             if member_with_minmal_fails == -1:
@@ -77,8 +77,11 @@ def find_members_and_factor_validating_for_all_stats_files(
                 member_with_minmal_fails = mem
                 minimal_fails = failed
 
-        member_selection.add(member_with_minmal_fails)
-        members_not_validating = minimal_fails
+        if member_with_minmal_fails != -1:
+          member_selection.add(member_with_minmal_fails)
+          members_not_validating = minimal_fails
+        logger.info("Current member selection %s.", member_selection)
+        logger.info("Current failes %s.", minimal_fails)
 
     if members_not_validating:
         # re-create tolerances with member selection
@@ -156,20 +159,21 @@ def test_selection(
         )
 
         if out:
+            passed.add(mem)
+        else:
             failed.add(mem)
             var = set(index[1] for index in err[0].index)
             variables.update(var)
-        else:
-            passed.add(mem)
 
     variables = list(variables)
 
     # Reset logger level
     logging.getLogger().setLevel(original_level)
     logger.info(
-        "The tolerance test passed for %s out of %s members.",
-        sum(passed),
+        "\tThe tolerance test passed for %s out of %s members (%s failed).",
+        len(passed),
         total_member_num,
+        len(failed),
     )
     return passed, failed, variables
 
