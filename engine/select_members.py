@@ -78,11 +78,11 @@ def find_members_and_factor_validating_for_all_stats_files(
         if member_with_minmal_fails != -1:
             member_selection.add(member_with_minmal_fails)
             members_not_validating = minimal_fails
-        logger.info(
-            "Current member selection (%s), failing for (%s).",
-            member_selection,
-            minimal_fails,
-        )
+            logger.info(
+                "Current member selection %s, fails %s members.",
+                member_selection,
+                minimal_fails,
+            )
 
     if members_not_validating:
         # re-create tolerances with member selection
@@ -171,10 +171,9 @@ def test_selection(
     # Reset logger level
     logging.getLogger().setLevel(original_level)
     logger.info(
-        "\tThe tolerance test passed for %s out of %s members (%s failed).",
+        "\tThe tolerance test passed for %s members out of %s members.",
         len(passed),
         total_member_num,
-        len(failed),
     )
     return passed, failed, variables
 
@@ -251,7 +250,6 @@ def select_members(
     min_factor,
     max_factor,
 ):  # pylint: disable=unused-argument, too-many-positional-arguments
-
 
     if max_member_num >= total_member_num:
         logger.error("ERROR: max_member_num must be smaller than total_member_num")
