@@ -121,7 +121,7 @@ def perturb(
             for vn in variable_names:
                 d.variables[vn][:] = perturb_array(
                     d.variables[vn][:],
-                    get_seed_from_member_num(m_num, use_64_bits=False),
+                    get_seed_from_member_num(m_num),
                     perturb_amplitude,
                 )
             d.close()
