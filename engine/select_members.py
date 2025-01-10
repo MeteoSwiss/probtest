@@ -42,7 +42,7 @@ def find_members_and_factor_validating_for_all_stats_files(
         minimal_fails = set()
 
         for mem in members_not_validating:
-            logger.info("\tCheck member selection with additional member %s.", mem)
+            logger.info("checking member selection with additional member %s ...", mem)
 
             temp_member_selection = member_selection.union({mem})
 
@@ -171,7 +171,7 @@ def test_selection(
     # Reset logger level
     logging.getLogger().setLevel(original_level)
     logger.info(
-        "\tThe tolerance test passed for %s members out of %s members.",
+        "... passing for %s members out of %s members.\n",
         len(passed),
         total_member_num,
     )
