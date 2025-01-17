@@ -43,9 +43,6 @@ from util.log_handler import logger
 )
 def tolerance(stats_file_name, tolerance_file_name, member_num, member_type):
 
-    # if isinstance(member_num, int):
-    #     member_num = list(range(1, member_num + 1))
-
     # read in stats files
     dfs = [
         parse_probtest_csv(stats_file_name.format(member_id=m_id), index_col=[0, 1, 2])

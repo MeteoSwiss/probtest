@@ -61,7 +61,9 @@ def test_select_members_failure(stats_file_set, caplog):
 
 
 def test_test_tolerance(stats_file_set, caplog):
-    run_tolerance_cli(stats_file_set["stats"], stats_file_set["tol"], member_num=5)
+    run_tolerance_cli(
+        stats_file_set["stats"], stats_file_set["tol"], member_num='1,2,3,4,5'
+    )
 
     log = run_select_members_cli(
         stats_file_set["stats"],

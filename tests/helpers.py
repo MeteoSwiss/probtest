@@ -91,7 +91,7 @@ def run_performance_cli(timing_regex, timing_database):
 
 
 def run_tolerance_cli(
-    stats_file_name, tolerance_file_name, member_type=None, member_num=10
+    stats_file_name, tolerance_file_name, member_type=None, member_num='1,2,3,4,5,6,7,8,9,10'
 ):
     args = [
         "--stats-file-name",
@@ -99,7 +99,7 @@ def run_tolerance_cli(
         "--tolerance-file-name",
         tolerance_file_name,
         "--member-num",
-        str(member_num),
+        member_num,
     ]
     if member_type is not None:
         args.append("--member-type")

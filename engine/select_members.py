@@ -79,7 +79,7 @@ def find_members_and_factor_validating_for_all_stats_files(
             member_selection.add(member_with_minmal_fails)
             members_not_validating = minimal_fails
             logger.info(
-                "Current member selection size %s, fails %s %%.\n",
+                "Current member selection size %s, fails %s%%.\n",
                 len(member_selection),
                 int(len(minimal_fails) / total_member_num * 100),
             )
