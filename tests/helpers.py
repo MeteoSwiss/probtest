@@ -91,7 +91,10 @@ def run_performance_cli(timing_regex, timing_database):
 
 
 def run_tolerance_cli(
-    stats_file_name, tolerance_file_name, member_type=None, member_num='1,2,3,4,5,6,7,8,9,10'
+    stats_file_name,
+    tolerance_file_name,
+    member_type=None,
+    member_num="1,2,3,4,5,6,7,8,9,10",
 ):
     args = [
         "--stats-file-name",
@@ -202,7 +205,6 @@ def run_select_members_cli(
     tolerance_file_name,
     test_tolerance=False,
     max_member_num=15,
-    iterations=50,
     max_factor=50.0,
     log=None,
 ):  # pylint: disable=too-many-positional-arguments
@@ -215,8 +217,6 @@ def run_select_members_cli(
         tolerance_file_name,
         "--max-member-num",
         str(max_member_num),
-        "--iterations",
-        str(iterations),
         "--max-factor",
         str(max_factor),
     ]

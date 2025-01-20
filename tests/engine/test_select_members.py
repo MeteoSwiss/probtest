@@ -22,7 +22,7 @@ def test_select_members(stats_file_set):
 
     with open(stats_file_set["members"], "r", encoding="utf-8") as file:
         content = file.read().strip()
-    expected_content = "50,21,40,39,16\nexport FACTOR=5"
+    expected_content = "50\nexport FACTOR=5"
     assert content == expected_content, "The member selection failed"
 
 
@@ -32,7 +32,6 @@ def test_select_members_increase_factor(stats_file_set):
         stats_file_set["members"],
         stats_file_set["tol"],
         max_member_num=5,
-        iterations=1,
     )
 
     assert os.path.isfile(
@@ -53,7 +52,6 @@ def test_select_members_failure(stats_file_set, caplog):
         stats_file_set["members"],
         stats_file_set["tol"],
         max_member_num=5,
-        iterations=1,
         max_factor=5,
         log=caplog,
     )
@@ -62,7 +60,7 @@ def test_select_members_failure(stats_file_set, caplog):
 
 def test_test_tolerance(stats_file_set, caplog):
     run_tolerance_cli(
-        stats_file_set["stats"], stats_file_set["tol"], member_num='1,2,3,4,5'
+        stats_file_set["stats"], stats_file_set["tol"], member_num="1,2,3,4,5"
     )
 
     log = run_select_members_cli(
