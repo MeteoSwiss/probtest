@@ -4,6 +4,7 @@ a function to generate seeds based on a member number for probtest.
 """
 
 import re
+from typing import List, Tuple
 
 
 def unique_elements(inlist):
@@ -27,9 +28,11 @@ def numbers(s):
     return int("".join(re.findall(r"\d+", s)))
 
 
-def get_seed_from_member_num(member_num):
-    # Ensure member_num is a valid positive integer
-    if member_num <= 0 or member_num > 120:
+def get_seed_from_member_number(member_number: int) -> int:
+    """
+    Returns the seed corresponding to the given member number.
+    """
+    if member_number <= 0 or member_number > 120:
         raise ValueError(
             "Invalid member number: only values between 1 and 120 are valid."
         )
@@ -157,25 +160,14 @@ def get_seed_from_member_num(member_num):
         11261,
     ]
 
-    seed = seeds[member_num - 1]
+    seed = seeds[member_number - 1]
 
     return seed
 
 
-def process_member_num(member_num):
+def process_member_numbers(member_numbers: List[int]) -> List[Tuple[int, str]]:
     """
-    Processes the member numbers.
-    If a single number is provided, it generates a list of numbers from 1 to
-    that number.
-    It then converts each number to a string.
-
-    Args:
-        member_num (list): A list containing either a single integer or multiple
-                           integers.
-
-    Returns:
-        list: A list of strings representing the processed member numbers.
+    Converts a list of integers to a list of tuples with each integer and its
+    string representation.
     """
-    if len(member_num) == 1:
-        member_num = list(range(1, member_num[0] + 1))
-    return [(m_num, str(m_num)) for m_num in member_num]
+    return [(m_num, str(m_num)) for m_num in member_numbers]

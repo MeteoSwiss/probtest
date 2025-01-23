@@ -83,7 +83,7 @@ def process_member(
 @click.option(
     "--member-num",
     type=CommaSeperatedInts(),
-    default="10",
+    default="1,2,3,4,5,6,7,8,9,10",
     help=cli_help["member_num"],
 )
 @click.option(
@@ -116,11 +116,7 @@ def stats(
 
     # compute stats for the ensemble and the reference run
     if ensemble:
-        # Add 0 to the list of member numbers to include the reference run
-        if len(member_num) == 1:
-            member_num = list(range(member_num[0] + 1))
-        else:
-            member_num.append(0)
+        member_num.append(0)
         with Pool() as p:
             args = [
                 (

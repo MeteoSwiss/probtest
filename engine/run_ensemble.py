@@ -17,7 +17,7 @@ import click
 
 from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
 from util.log_handler import logger
-from util.utils import get_seed_from_member_num, process_member_num
+from util.utils import get_seed_from_member_number, process_member_numbers
 
 
 def is_float(string):
@@ -234,7 +234,7 @@ def run_ensemble(
         append_job(job, job_list, parallel)
 
     # run the ensemble
-    processed_member_num = process_member_num(member_num)
+    processed_member_num = process_member_numbers(member_num)
 
     for m_num, m_id in processed_member_num:
 
@@ -258,7 +258,7 @@ def run_ensemble(
             lhs,
             rhs_new,
             rhs_old,
-            get_seed_from_member_num(m_num),
+            get_seed_from_member_number(m_num),
         )
 
         if not dry:

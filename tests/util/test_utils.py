@@ -2,7 +2,7 @@
 This module contains unit tests for the `utils.py` module.
 """
 
-from util.utils import process_member_num
+from util.utils import process_member_numbers
 
 
 def test_process_member_num_single_element():
@@ -11,8 +11,8 @@ def test_process_member_num_single_element():
     It should generate a list from 1 to that number and convert each to a string.
     """
     input_data = [5]
-    expected_output = [(1, "1"), (2, "2"), (3, "3"), (4, "4"), (5, "5")]
-    assert process_member_num(input_data) == expected_output
+    expected_output = [(5, "5")]
+    assert process_member_numbers(input_data) == expected_output
 
 
 def test_process_member_num_multiple_elements():
@@ -22,7 +22,7 @@ def test_process_member_num_multiple_elements():
     """
     input_data = [2, 3, 4]
     expected_output = [(2, "2"), (3, "3"), (4, "4")]
-    assert process_member_num(input_data) == expected_output
+    assert process_member_numbers(input_data) == expected_output
 
 
 def test_process_member_num_empty_list():
@@ -32,7 +32,7 @@ def test_process_member_num_empty_list():
     """
     input_data = []
     expected_output = []
-    assert process_member_num(input_data) == expected_output
+    assert process_member_numbers(input_data) == expected_output
 
 
 def test_process_member_num_single_element_zero():
@@ -41,5 +41,5 @@ def test_process_member_num_single_element_zero():
     It should return an empty list.
     """
     input_data = [0]
-    expected_output = []
-    assert process_member_num(input_data) == expected_output
+    expected_output = [(0, "0")]
+    assert process_member_numbers(input_data) == expected_output
