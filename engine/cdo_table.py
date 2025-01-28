@@ -17,7 +17,7 @@ from util import model_output_parser
 from util.click_util import CommaSeperatedInts, cli_help
 from util.constants import cdo_bins
 from util.dataframe_ops import df_from_file_ids
-from util.file_system import file_names_from_pattern
+from util.file_system import get_file_names_from_pattern
 from util.log_handler import logger
 
 
@@ -139,21 +139,21 @@ def cdo_table(
     assert isinstance(file_specification, dict), "must be dict"
 
     # save original method and restore at the end of this module
-    dataframe_from_ncfile_orig = model_output_parser.dataframe_from_ncfile
+    dataframe_from_ncfile_orig = model_output_parser.create_statistics_dataframe
     # modify netcdf parse method:
-    model_output_parser.dataframe_from_ncfile = rel_diff_stats
+    model_output_parser.create_statistics_dataframe = rel_diff_stats
 
     # step 1: compute rel-diff netcdf files
     with tempfile.TemporaryDirectory() as tmpdir:
         for _, file_pattern in file_id:
-            ref_files, err = file_names_from_pattern(model_output_dir, file_pattern)
+            ref_files, err = get_file_names_from_pattern(model_output_dir, file_pattern)
             if err > 0:
                 logger.info(
                     "did not find any files for pattern %s. Continue.", file_pattern
                 )
                 continue
             ref_files.sort()
-            perturb_files, err = file_names_from_pattern(
+            perturb_files, err = get_file_names_from_pattern(
                 perturbed_model_output_dir.format(member_id=member_id), file_pattern
             )
             if err > 0:
@@ -202,4 +202,4 @@ def cdo_table(
 
         Path(cdo_table_file).parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(cdo_table_file)
-        model_output_parser.dataframe_from_ncfile = dataframe_from_ncfile_orig
+        model_output_parser.create_statistics_dataframe = dataframe_from_ncfile_orig

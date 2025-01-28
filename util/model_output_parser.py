@@ -26,6 +26,7 @@ Each parser returns a list of Pandas DataFrame:
 import sys
 from collections.abc import Iterable
 
+import earthkit.data
 import numpy as np
 import pandas as pd
 import xarray
@@ -48,7 +49,7 @@ def parse_netcdf(file_id, filename, specification):
     var_dfs = []
 
     for v in var_tmp:
-        sub_df = dataframe_from_ncfile(
+        sub_df = create_statistics_dataframe(
             file_id=file_id,
             filename=filename,
             varname=v,
@@ -61,6 +62,108 @@ def parse_netcdf(file_id, filename, specification):
 
     ds.close()
     return var_dfs
+
+
+def parse_grib(file_id, filename, specification):
+    logger.debug("parse GRIB file %s", filename)
+    time_dim = specification["time_dim"]
+    horizontal_dims = specification["horizontal_dims"]
+    fill_value_key = specification.get("fill_value_key", None)
+
+    ds_grib = earthkit.data.from_source("file", filename)
+    short_name_excl = specification["var_excl"]
+
+    short_names = np.unique(ds_grib.metadata("shortName"))
+    short_names = short_names[
+        np.isin(short_names, short_name_excl, invert=True, assume_unique=True)
+    ].tolist()
+
+    level_types = np.unique(ds_grib.metadata("typeOfLevel")).tolist()
+
+    var_dfs = []
+    for lev in level_types:
+        param_ids = np.unique(
+            ds_grib.sel(typeOfLevel=lev, shortName=short_names).metadata("paramId")
+        ).tolist()
+        for pid in param_ids:
+            ds_temp_list = get_dataset(ds_grib, pid, lev)
+            for ds_temp in ds_temp_list:
+                v = list(ds_temp.keys())[0]
+
+                dim_to_squeeze = [
+                    dim
+                    for dim, size in zip(ds_temp[v].dims, ds_temp[v].shape)
+                    if size == 1 and dim != time_dim
+                ]
+                ds = ds_temp.squeeze(dim=dim_to_squeeze)
+
+                sub_df = create_statistics_dataframe(
+                    file_id=file_id,
+                    filename=filename,
+                    varname=v,
+                    time_dim=time_dim,
+                    horizontal_dims=horizontal_dims,
+                    xarray_ds=ds,
+                    fill_value_key=fill_value_key,
+                )
+                var_dfs.append(sub_df)
+
+    return var_dfs
+
+
+def get_dataset(ds_grib, pid, lev):
+    """
+    Retrieve datasets from a GRIB file based on specified parameters and
+    hierarchical metadata.
+
+    This function attempts to extract data from the GRIB file by selecting
+    fields that match the given `paramId` and `typeOfLevel`. If the initial
+    selection fails due to missing or mismatched metadata, the function
+    will explore other metadata fields such as `stepType`, `numberOfPoints`,
+    `stepUnits`, `dataType`, and `gridType` to find matching datasets.
+
+    Parameters:
+    -----------
+    ds_grib : GRIB object
+        The GRIB file object to extract data from.
+    pid : int
+        The parameter ID (`paramId`) to select in the GRIB file.
+    lev : str
+        The level type (`typeOfLevel`) to select in the GRIB file.
+
+    Returns:
+    --------
+    ds_list : list
+        A list of xarray datasets that match the specified parameter and level,
+        with additional filtering based on hierarchical metadata fields.
+    """
+    ds_list = []
+    selectors = {"paramId": pid, "typeOfLevel": lev}
+    metadata_keys = ["stepType", "numberOfPoints", "stepUnits", "dataType", "gridType"]
+
+    def recursive_select(selects, depth=0):
+        try:
+            ds = ds_grib.sel(**selects).to_xarray()
+            ds_list.append(ds)
+        except KeyError:
+            if depth == len(metadata_keys):  # No more metadata keys to try
+                return
+            key = metadata_keys[depth]
+            try:
+                values = np.unique(ds_grib.sel(**selects).metadata(key)).tolist()
+                for value in values:
+                    selects[key] = value
+                    recursive_select(selects, depth + 1)  # Recurse to next level
+            except KeyError:
+                pass
+
+    # Try initial selection
+    recursive_select(selectors)
+
+    if not ds_list:
+        logger.warning("GRIB file of level %s and paramId %s cannot be read.", lev, pid)
+
+    return ds_list
 
 
 def __get_variables(data, time_dim, horizontal_dims):
@@ -105,9 +208,41 @@ def __get_variables(data, time_dim, horizontal_dims):
     return variables
 
 
-def dataframe_from_ncfile(
+def create_statistics_dataframe(
     file_id, filename, varname, time_dim, horizontal_dims, xarray_ds, fill_value_key
 ):  # pylint: disable=too-many-positional-arguments
+    """
+    Create a DataFrame of statistical values for a given variable from an xarray
+    dataset.
+
+    This function computes statistics (mean, max, min, etc.) over horizontal
+    dimensions and organizes them into a pandas DataFrame, indexed by file ID,
+    variable name, and height (if applicable).
+    The columns represent time and the computed statistics.
+
+    Parameters:
+    -----------
+    file_id : str
+        Identifier for the file.
+    filename : str
+        Name of the input file.
+    varname : str
+        Name of the variable to process.
+    time_dim : str
+        Name of the time dimension.
+    horizontal_dims : list
+        List of dimensions to compute statistics over.
+    xarray_ds : xarray.Dataset
+        The xarray dataset containing the data.
+    fill_value_key : str
+        Key for the fill value in the dataset.
+
+    Returns:
+    --------
+    pd.DataFrame
+        DataFrame with the computed statistics indexed by file ID, variable, and
+        height.
+    """
     statistics = statistics_over_horizontal_dim(
         xarray_ds[varname],
         horizontal_dims,
@@ -232,4 +367,5 @@ def parse_csv(file_id, filename, specification):
 model_output_parser = {  # global lookup dict
     "netcdf": parse_netcdf,
     "csv": parse_csv,
+    "grib": parse_grib,
 }

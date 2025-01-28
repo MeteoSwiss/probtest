@@ -1,0 +1,56 @@
+[tool.poetry]
+name = "probtest"
+version = "v0.2"
+description = "Probtest is a suite of python scripts to test various aspects of weather and climate models. Even though it is mainly developed for the ICON model, it does not contain ICON-specific definitions in the source code but allows to model specifics in a configuration script."
+authors = ["SENC <senc@meteoswiss.ch>"]
+license = "BSD 3"
+readme = "README.md"
+
+[tool.poetry.scripts]
+probtest = "probtest:main"
+setup-env = "setup_env:main"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+array-api-compat = ">=1.9.1"
+click = ">=8.1.7"
+earthkit-data = "^0.10"
+eccodes = ">=2.38.0"
+Jinja2 = ">=3.1.4"
+matplotlib = ">=3.9.2"
+netCDF4 = ">=1.7.2"
+numpy = ">=1.23"
+pathlib = ">=1.0.1"
+pandas = ">=2.2.3"
+regex = ">=2024.11.6"
+scipy = ">=1.14.1"
+xarray = ">=2024.11.0"
+python-dotenv = "^1.0.1"
+
+[tool.poetry.group.dev.dependencies]
+black = ">=24.10.0"
+codespell = ">=2.3.0"
+flake8 = ">=7.1.1"
+ipdb = ">=0.13.13"
+ipython = ">=8.30.0"
+isort = ">=5.13.2"
+mypy = ">=1.13.0"
+pre-commit = ">=4.0.1"
+pre-commit-hooks = ">=5.0.0"
+pydocstyle = ">=6.3.0"
+pylint = ">=3.3.1"
+rope = ">=1.13.0"
+rstcheck = ">=6.2.4"
+Flake8-pyproject = ">=1.2.3"
+pytest = ">=8.3.3"
+pytest-cov = ">=6.0.0"
+coverage = ">=7.6.9"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry-auto-export]
+output = "requirements.txt"
+without_hashes = false
+with = ["dev"]

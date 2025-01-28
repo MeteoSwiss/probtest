@@ -6,6 +6,7 @@
 | Marek Jacob             | DWD                                                 |
 | Jonas Jucker            | C2SM                                                |
 | Annika Lauber           | C2SM                                                |
+| Andrea Leuthard         | MeteoSwiss                                          |
 | Giacomo Serafini        | MeteoSwiss                                          |
 | Mikael Stellio          | C2SM                                                |
 | Ben Weber               | MeteoSwiss                                          |

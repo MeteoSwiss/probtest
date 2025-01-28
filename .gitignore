@@ -1,3 +1,5 @@
+.coverage
+.env
 .idea*
 .vscode
 *pycache*
@@ -6,12 +8,9 @@
 *.png
 *.log
 *.nc
-.coverage
 coverage.xml
-miniconda
+resource
 
-# output from unittest
-test_stats.csv
-test_stats_csv.csv
-test_stats_csv.dat
+# output from pytest
 random_tolerance.csv
+random_tolerance_None.csv

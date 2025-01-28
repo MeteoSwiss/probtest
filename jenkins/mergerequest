@@ -6,13 +6,43 @@ pipeline {
     }
 
     stages {
-        stage('Pytest') {
+        stage('Setup Python Environment') {
             steps {
-                sh'''
-                source $SCRATCH/project/icon/probtest/conda/miniconda/bin/activate probtest
-                pytest -v tests/*
+                sh '''
+                module use /mch-environment/v7/modules
+                module load python/3.10.4
+                python3.10 -m venv venv
+                source venv/bin/activate
+                pip install --upgrade pip
+                pip install -r requirements.txt
                 '''
             }
+        }
+        stage('Run setup_env.py Script') {
+            steps {
+                sh '''
+                source venv/bin/activate
+                python setup_env.py
+                '''
+            }
+        }
+        stage('Run Pytest') {
+            steps {
+                sh '''
+                source venv/bin/activate
+                pytest -v -s --cov --cov-report=term tests/
+                '''
+            }
+        }
+    }
+    post {
+        always {
+            sh '''
+            deactivate || true
+            rm -rf venv
+            rm -rf .env
+            rm -rf resource
+            '''
         }
     }
 }
