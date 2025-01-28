@@ -84,7 +84,7 @@ def process_member(
     "--member-num",
     type=CommaSeperatedInts(),
     default="1,2,3,4,5,6,7,8,9,10",
-    help=cli_help["member_num"],
+    help=cli_help["member_numbers"],
 )
 @click.option(
     "--member-type",

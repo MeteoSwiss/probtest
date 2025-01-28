@@ -174,7 +174,7 @@ def test_job_returncode(job):
     "--member-num",
     default="10",
     type=CommaSeperatedInts(),
-    help=cli_help["member_num"],
+    help=cli_help["member_numbers"],
 )
 @click.option(
     "--member-type",

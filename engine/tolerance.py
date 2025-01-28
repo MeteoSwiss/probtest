@@ -33,7 +33,7 @@ from util.log_handler import logger
     "--member-num",
     type=CommaSeperatedInts(),
     default="10",
-    help=cli_help["member_num"],
+    help=cli_help["member_number"],
 )
 @click.option(
     "--member-type",

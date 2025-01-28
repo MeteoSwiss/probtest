@@ -2,7 +2,9 @@
 This module contains unit tests for the `utils.py` module.
 """
 
-from util.utils import process_member_numbers
+import pytest
+
+from util.utils import get_seed_from_member_number, process_member_numbers
 
 
 def test_process_member_num_single_element():
@@ -43,3 +45,34 @@ def test_process_member_num_single_element_zero():
     input_data = [0]
     expected_output = [(0, "0")]
     assert process_member_numbers(input_data) == expected_output
+
+
+def test_get_seed_from_member_number_invalid():
+    """
+    Test that the function raises a ValueError for invalid member numbers.
+    """
+    with pytest.raises(
+        ValueError,
+        match="Invalid member number",
+    ):
+        get_seed_from_member_number(0)
+
+    with pytest.raises(
+        ValueError,
+        match="Invalid member number",
+    ):
+        get_seed_from_member_number(121)
+
+    with pytest.raises(
+        ValueError,
+        match="Invalid member number",
+    ):
+        get_seed_from_member_number(-5)
+
+
+def test_get_seed_from_member_number_unique_seeds():
+    """
+    Test that all returned seeds are unique.
+    """
+    seeds = [get_seed_from_member_number(i) for i in range(1, 121)]
+    assert len(seeds) == len(set(seeds)), "Seeds are not unique!"
