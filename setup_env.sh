@@ -10,23 +10,22 @@ fi
 
 # Default env names
 DEFAULT_ENV_NAME="probtest"
+CONDA=conda
 
 # Default options
 ENV_NAME="${DEFAULT_ENV_NAME}"
 PYVERSION=3.10.8
 PINNED=true
 EXPORT=false
-CONDA=conda
 HELP=false
 
-help_msg="Usage: $(basename "${0}") [-n NAME] [-p VER] [-u] [-e] [-m] [-h]
+help_msg="Usage: $(basename "${0}") [-n NAME] [-p VER] [-u] [-e] [-h]
 
 Options:
  -n NAME    Env name [default: ${DEFAULT_ENV_NAME}
  -p VER     Python version [default: ${PYVERSION}]
  -u         Use unpinned requirements (minimal version restrictions)
  -e         Export environment files (requires -u)
- -m         Use mamba instead of conda
  -h         Print this help message and exit
 "
 
@@ -37,7 +36,6 @@ while getopts n:p:defhimu flag; do
         p) PYVERSION=${OPTARG};;
         e) EXPORT=true;;
         h) HELP=true;;
-        m) CONDA=mamba;;
         u) PINNED=false;;
         ?) echo -e "\n${help_msg}" >&2; exit 1;;
     esac
@@ -68,3 +66,24 @@ else
         ${CONDA} env export --name ${ENV_NAME} --no-builds | \grep -v '^prefix:' > requirements/environment.yml || exit
     fi
 fi
+
+
+# Setting ECCODES_DEFINITION_PATH:
+${CONDA} activate ${ENV_NAME}
+
+CONDA_LOC=${CONDA_PREFIX}
+DEFINITION_VERSION="v2.36.0.2"
+DEFINITION_PATH_DEFAULT=${CONDA_LOC}/share/eccodes
+DEFINITION_PATH_RESOURCES=${CONDA_LOC}/share/eccodes-cosmo-resources_${DEFINITION_VERSION}
+
+git clone -b ${DEFINITION_VERSION} https://github.com/COSMO-ORG/eccodes-cosmo-resources.git ${DEFINITION_PATH_RESOURCES} || exit
+
+${CONDA} env config vars set ECCODES_DEFINITION_PATH=${DEFINITION_PATH_DEFAULT}/definitions:${DEFINITION_PATH_RESOURCES}/definitions
+${CONDA} env config vars set ECCODES_SAMPLES_PATH=${DEFINITION_PATH_DEFAULT}/samples
+${CONDA} env config vars set GRIB_DEFINITION_PATH=${DEFINITION_PATH_DEFAULT}/definitions:${DEFINITION_PATH_RESOURCES}/definitions
+${CONDA} env config vars set GRIB_SAMPLES_PATH=${DEFINITION_PATH_DEFAULT}/samples
+
+echo "Variables saved to environment: "
+${CONDA} env config vars list
+
+${CONDA} deactivate

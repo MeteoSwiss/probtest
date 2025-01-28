@@ -15,7 +15,7 @@ from pathlib import Path
 import click
 
 from util.click_util import cli_help
-from util.file_system import file_names_from_pattern
+from util.file_system import get_file_names_from_pattern
 from util.icon.extract_timings import read_logfile
 from util.log_handler import logger
 from util.tree import TREEFILE_TEMPLATE, TimingTree
@@ -36,7 +36,9 @@ def performance(timing_regex, timing_database, append_time):
     if timing_file_name_base == "":
         timing_file_name_base = "."
 
-    timing_file_name, err = file_names_from_pattern(timing_file_name_base, timing_regex)
+    timing_file_name, err = get_file_names_from_pattern(
+        timing_file_name_base, timing_regex
+    )
     if err > 0:
         logger.info("Did not find any files for regex %s", timing_regex)
         sys.exit(1)

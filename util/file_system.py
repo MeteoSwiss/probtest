@@ -7,7 +7,7 @@ from pathlib import Path
 from util.log_handler import logger
 
 
-def file_names_from_pattern(dir_name, file_pattern):
+def get_file_names_from_pattern(dir_name, file_pattern):
     """
     Search for all file patching file_pattern in directory dir_name
 
@@ -38,5 +38,6 @@ def file_names_from_pattern(dir_name, file_pattern):
         for f in Path(dir_name).glob("*"):
             logger.debug(f.name)
         err = 1
+    file_names = sorted(file_names)
 
     return file_names, err
