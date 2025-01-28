@@ -17,7 +17,7 @@ import click
 
 from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
 from util.log_handler import logger
-from util.utils import get_seed_from_member_num, process_member_num
+from util.utils import get_seed_from_member_number, process_member_num
 
 
 def is_float(string):
@@ -258,7 +258,7 @@ def run_ensemble(
             lhs,
             rhs_new,
             rhs_old,
-            get_seed_from_member_num(m_num),
+            get_seed_from_member_number(m_num),
         )
 
         if not dry:

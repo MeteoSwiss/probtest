@@ -85,14 +85,14 @@ def df_ref_stats(ref_data) -> pd.DataFrame:
 @pytest.fixture()
 def df_ref_tolerance(ref_data) -> pd.DataFrame:
     return load_pandas(
-        os.path.join(ref_data, "ref_tolerance.csv"), index_col=[0, 1], header=[0, 1]
+        os.path.join(ref_data, "tolerance.csv"), index_col=[0, 1], header=[0, 1]
     )
 
 
 @pytest.fixture()
 def df_ref_cdo_table(ref_data) -> pd.DataFrame:
     return load_pandas(
-        os.path.join(ref_data, "ref_cdo_table.csv"), index_col=[0, 1], header=[0, 1]
+        os.path.join(ref_data, "cdo_table.csv"), index_col=[0, 1], header=[0, 1]
     )
 
 
