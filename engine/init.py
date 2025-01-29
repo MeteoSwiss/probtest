@@ -45,8 +45,8 @@ from util.log_handler import logger
 @click.option(
     "--member-num",
     type=CommaSeperatedInts(),
-    default="10",
-    help=cli_help["member_num"],
+    default="1,2,3,4,5,6,7,8,9,10",
+    help=cli_help["member_numbers"],
 )
 @click.option(
     "--member-type",
@@ -89,7 +89,7 @@ def init(
     reference,
     config,
     template_name,
-    member_num,
+    member_numbers,
     member_type,
     factor,
     perturb_amplitude,
@@ -97,6 +97,7 @@ def init(
     timing_reference,
     append_time,
 ):  # pylint: disable=too-many-positional-arguments
+
     template_partition = str(template_name).rpartition("/")
     env = Environment(
         loader=FileSystemLoader(template_partition[0]), undefined=StrictUndefined
@@ -115,8 +116,8 @@ def init(
         logger.warning(warn_template, "file_id", "")
     if not reference:
         logger.warning(warn_template, "reference", "")
-    if not member_num:
-        logger.warning(warn_template, "member_num", member_num)
+    if not member_numbers:
+        logger.warning(warn_template, "member_numbers", member_numbers)
     if not member_type:
         logger.warning(warn_template, "member_type", member_type)
     if not factor:
@@ -135,7 +136,7 @@ def init(
     render_dict["experiment_name"] = experiment_name
     render_dict["codebase_install"] = Path(codebase_install).resolve()
     render_dict["reference"] = Path(reference).resolve()
-    render_dict["member_num"] = member_num
+    render_dict["member_numbers"] = member_numbers
     render_dict["member_type"] = member_type
     render_dict["factor"] = factor
     render_dict["perturb_amplitude"] = perturb_amplitude
@@ -148,7 +149,7 @@ def init(
     # append file_id via json
     json_dict = json.loads(rendered)
     json_dict["default"]["file_id"] = file_id
-    json_dict["default"]["member_num"] = member_num
+    json_dict["default"]["member_numbers"] = member_numbers
     json_dict["default"]["factor"] = factor
     rendered = json.dumps(json_dict, indent=2)
     # print file
