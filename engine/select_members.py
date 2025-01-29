@@ -171,7 +171,7 @@ def test_selection(
     # Reset logger level
     logging.getLogger().setLevel(original_level)
     logger.info(
-        "... passing for %s members out of %s members.\n",
+        "... passing for %s out of %s members.\n",
         len(passed),
         total_member_num,
     )

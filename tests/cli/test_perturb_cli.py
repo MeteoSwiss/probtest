@@ -34,7 +34,9 @@ def test_perturb_cli_amplitude_0_0(nc_with_t_u_v, ds_ref_with_t_u_v):
     initial_condition = os.path.basename(nc_with_t_u_v)
     tmp_path = os.path.dirname(nc_with_t_u_v)
 
-    run_perturb_cli(tmp_path, initial_condition, member_numbers=[1], perturb_amplitude=0.0)
+    run_perturb_cli(
+        tmp_path, initial_condition, member_numbers=[1], perturb_amplitude=0.0
+    )
 
     data_test = load_netcdf(
         os.path.join(tmp_path, "experiments/dp_1/initial_condition.nc")
@@ -52,7 +54,9 @@ def test_perturb_cli_amplitude_0_2(nc_with_t_u_v, ds_ref_with_t_u_v):
     initial_condition = os.path.basename(nc_with_t_u_v)
     tmp_path = os.path.dirname(nc_with_t_u_v)
 
-    run_perturb_cli(tmp_path, initial_condition, member_numbers=[1], perturb_amplitude=0.2)
+    run_perturb_cli(
+        tmp_path, initial_condition, member_numbers=[1], perturb_amplitude=0.2
+    )
 
     data_test = load_netcdf(
         os.path.join(tmp_path, "experiments/dp_1/initial_condition.nc")

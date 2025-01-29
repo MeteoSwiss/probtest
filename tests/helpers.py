@@ -114,7 +114,9 @@ def generate_ensemble(tmp_path, filename, perturb_amplitude):
     return run_perturb_cli(tmp_path, filename, perturb_amplitude)
 
 
-def run_perturb_cli(model_input_dir, files, perturb_amplitude, member_numbers=range(1,11)):
+def run_perturb_cli(
+    model_input_dir, files, perturb_amplitude, member_numbers=range(1, 11)
+):
     perturbed_model_input_dir = f"{model_input_dir}/experiments/{{member_id}}"
     args = [
         "--model-input-dir",
@@ -124,7 +126,7 @@ def run_perturb_cli(model_input_dir, files, perturb_amplitude, member_numbers=ra
         "--files",
         files,
         "--member-numbers",
-         ",".join(map(str, member_numbers)),
+        ",".join(map(str, member_numbers)),
         "--member-type",
         "dp",
         "--variable-names",
@@ -205,6 +207,7 @@ def run_select_members_cli(
     tolerance_file_name,
     test_tolerance=False,
     max_member_num=15,
+    min_factor=5.0,
     max_factor=50.0,
     log=None,
 ):  # pylint: disable=too-many-positional-arguments
@@ -217,6 +220,8 @@ def run_select_members_cli(
         tolerance_file_name,
         "--max-member-num",
         str(max_member_num),
+        "--min-factor",
+        str(min_factor),
         "--max-factor",
         str(max_factor),
     ]

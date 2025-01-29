@@ -40,7 +40,7 @@ def test_select_members_increase_factor(stats_file_set):
 
     with open(stats_file_set["members"], "r", encoding="utf-8") as file:
         content = file.read().strip()
-    expected_content = "50,21,40,39,16\nexport FACTOR=10"
+    expected_content = "50\nexport FACTOR=5"
     assert (
         content == expected_content
     ), "Increasing the factor within the member selection failed"
@@ -51,8 +51,9 @@ def test_select_members_failure(stats_file_set, caplog):
         stats_file_set["stats"],
         stats_file_set["members"],
         stats_file_set["tol"],
-        max_member_num=5,
-        max_factor=5,
+        max_member_num=1,
+        min_factor=0.1,
+        max_factor=1,
         log=caplog,
     )
     assert "ERROR" in log, "The member selection did not fail, although it should have."
@@ -71,7 +72,7 @@ def test_test_tolerance(stats_file_set, caplog):
         log=caplog,
     )
 
-    match = re.search(r"passed for (\d+) out of 50", log)
+    match = re.search(r".*for (\d+) out of 50.*", log)
     passed_count = match.group(1) if match else "0"
     error_message = (
         f"The test-tolerance output is incorrect. It should pass for "
