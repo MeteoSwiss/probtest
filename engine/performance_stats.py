@@ -23,15 +23,20 @@ from util.tree import TimingTree
 @click.command()
 @click.option(
     "--timing-current",
+    default="database",
     help=cli_help["timing_current"],
+)
+@click.option(
+    "--timing-stats",
+    default='timer_stats.nc',
+    help='name of the timing stats file',
 )
 @click.option("--i-table", type=int, help=cli_help["i_table"], default=-1)
 def performance_stats(
     timing_current,
+    timing_stats,
     i_table,
 ):  # pylint: disable=too-many-positional-arguments
-
-
 
     timing_tree = TimingTree.from_json(timing_current)
 
@@ -77,11 +82,4 @@ def performance_stats(
 
 
     # Save the dataset to a NetCDF file
-    timer_stats.to_netcdf('timer_stats.nc')
-
-    # Load it back
-    loaded_dataarray = xr.open_dataarray('timer_stats.nc')
-
-    print(timer_stats)
-    print(loaded_dataarray)
-    print(timer_stats-loaded_dataarray)
+    timer_stats.to_netcdf(timing_stats)
