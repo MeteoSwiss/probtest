@@ -26,7 +26,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          push: false
+          push: true
           tags: c2sm/probtest:latest
           outputs: type=docker,dest=probtest_image.tar
 
