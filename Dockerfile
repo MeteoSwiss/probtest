@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
 
 
 COPY . /probtest
-RUN cd /probtest && ./setup_miniconda.sh -p /opt/conda 
+RUN cd /probtest && ./setup_miniconda.sh -p /opt/conda
 # Add conda to PATH
 ENV PATH=/opt/conda/miniconda/bin:$PATH
 
