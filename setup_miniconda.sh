@@ -35,6 +35,7 @@ if [[ -f $CONDA_EXE ]]; then
     echo "Found a conda executable at: ${CONDA_EXE}"
 else
     echo "No conda executable available, fetching Miniconda install script"
+    mkdir -p ${INSTALL_PREFIX}
     wget -O ${INSTALL_PREFIX}/miniconda.sh ${MINICONDA_URL}
     echo "${SHA256}  ${INSTALL_PREFIX}/miniconda.sh" | sha256sum --check || exit 1
     bash ${INSTALL_PREFIX}/miniconda.sh -b -p ${INSTALL_PREFIX}/miniconda

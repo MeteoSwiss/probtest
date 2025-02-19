@@ -16,18 +16,20 @@ RUN apt-get update && apt-get install -y \
     tzdata \
     && apt-get clean
 
-# Install Miniforge (a minimal conda installer that supports multiple architectures)
-RUN wget --quiet https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh -O /tmp/miniforge.sh && \
-    /bin/bash /tmp/miniforge.sh -b -p /opt/conda && \
-    rm /tmp/miniforge.sh
 
-# Add conda to PATH
-ENV PATH=/opt/conda/bin:$PATH
-
-# Create the environment from the environment file
 COPY . /probtest
-RUN cd /probtest && chmod +x /probtest/setup_env.sh && \
-    ./setup_env.sh -n probtest
+RUN cd /probtest && ./setup_miniconda.sh -p /opt/conda 
+# Add conda to PATH
+ENV PATH=/opt/conda/miniconda/bin:$PATH
+
+# only unpinned env works on aarch64
+RUN ARCH=$(uname -m) && \
+    cd /probtest && chmod +x /probtest/setup_env.sh && \
+    if [ "$ARCH" = "aarch64" ]; then \
+        ./setup_env.sh -u -n probtest; \
+    else \
+        ./setup_env.sh -n probtest; \
+    fi
 
 # Test probtest
 RUN cd /probtest && conda run --name probtest pytest -v -s --cov --cov-report=term tests/
