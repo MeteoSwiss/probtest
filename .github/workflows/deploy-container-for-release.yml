@@ -32,7 +32,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: c2sm/probtest:${{ github.ref_name }}
-          outputs: type=docker,dest=probtest_image.tar
+          platforms: linux/amd64,linux/arm64
+          outputs: type=oci,dest=probtest_image.tar
 
       - name: Upload Docker image as artifact
         uses: actions/upload-artifact@v4

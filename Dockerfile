@@ -37,5 +37,5 @@ RUN cd /probtest && conda run --name probtest pytest -v -s --cov --cov-report=te
 # Set the working directory
 WORKDIR /probtest
 
-# Activate the conda environment and set the entrypoint
-ENTRYPOINT ["conda", "run", "--name", "probtest"]
+SHELL ["/bin/bash", "-c"]
+ENTRYPOINT ["conda", "run", "--name", "probtest", "/bin/bash", "-c"]
