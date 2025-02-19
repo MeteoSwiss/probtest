@@ -32,7 +32,7 @@ jobs:
           push: true
           tags: c2sm/probtest:latest
           platforms: linux/amd64,linux/arm64
-          outputs: type=docker,dest=probtest_image.tar
+          outputs: type=oci,dest=probtest_image.tar
 
       - name: Upload Docker image as artifact
         uses: actions/upload-artifact@v4
