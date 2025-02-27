@@ -1,5 +1,5 @@
 # Use the official Ubuntu base image
-FROM ubuntu:latest
+FROM debian:bookworm-slim
 
 # Set environment variables
 ENV TZ=Europe/Zurich
