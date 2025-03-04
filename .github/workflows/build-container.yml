@@ -32,7 +32,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          push: true
+          push: false
           tags: c2sm/probtest:latest
           platforms: linux/amd64,linux/arm64
           outputs: type=oci,dest=probtest_image.tar
