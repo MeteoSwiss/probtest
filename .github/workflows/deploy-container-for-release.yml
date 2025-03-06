@@ -33,27 +33,3 @@ jobs:
           push: true
           tags: c2sm/probtest:${{ github.ref_name }}
           platforms: linux/amd64,linux/arm64
-          outputs: type=oci,dest=probtest_image.tar
-
-      - name: Upload Docker image as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: probtest_image.tar
-          path: probtest_image.tar
-
-      - name: Get release
-        id: get_release
-        uses: bruceadams/get-release@v1.3.2
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: probtest_image.tar
-          asset_name: probtest_image.tar
-          asset_content_type: application/x-tar
