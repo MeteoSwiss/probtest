@@ -33,7 +33,7 @@ from util.log_handler import logger
     "--member-num",
     type=CommaSeperatedInts(),
     default="10",
-    help=cli_help["member_num"],
+    help=cli_help["member_number"],
 )
 @click.option(
     "--member-type",
@@ -42,8 +42,7 @@ from util.log_handler import logger
     help=cli_help["member_type"],
 )
 def tolerance(stats_file_name, tolerance_file_name, member_num, member_type):
-    if len(member_num) == 1:
-        member_num = list(range(1, member_num[0] + 1))
+
     # read in stats files
     dfs = [
         parse_probtest_csv(stats_file_name.format(member_id=m_id), index_col=[0, 1, 2])

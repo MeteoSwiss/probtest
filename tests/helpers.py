@@ -91,7 +91,10 @@ def run_performance_cli(timing_regex, timing_database):
 
 
 def run_tolerance_cli(
-    stats_file_name, tolerance_file_name, member_type=None, member_num=10
+    stats_file_name,
+    tolerance_file_name,
+    member_type=None,
+    member_num="1,2,3,4,5,6,7,8,9,10",
 ):
     args = [
         "--stats-file-name",
@@ -99,7 +102,7 @@ def run_tolerance_cli(
         "--tolerance-file-name",
         tolerance_file_name,
         "--member-num",
-        str(member_num),
+        member_num,
     ]
     if member_type is not None:
         args.append("--member-type")
@@ -111,7 +114,9 @@ def generate_ensemble(tmp_path, filename, perturb_amplitude):
     return run_perturb_cli(tmp_path, filename, perturb_amplitude)
 
 
-def run_perturb_cli(model_input_dir, files, perturb_amplitude, member_num=10):
+def run_perturb_cli(
+    model_input_dir, files, perturb_amplitude, member_numbers=range(1, 11)
+):
     perturbed_model_input_dir = f"{model_input_dir}/experiments/{{member_id}}"
     args = [
         "--model-input-dir",
@@ -120,8 +125,8 @@ def run_perturb_cli(model_input_dir, files, perturb_amplitude, member_num=10):
         perturbed_model_input_dir,
         "--files",
         files,
-        "--member-num",
-        str(member_num),
+        "--member-numbers",
+        ",".join(map(str, member_numbers)),
         "--member-type",
         "dp",
         "--variable-names",
@@ -202,7 +207,7 @@ def run_select_members_cli(
     tolerance_file_name,
     test_tolerance=False,
     max_member_num=15,
-    iterations=50,
+    min_factor=5.0,
     max_factor=50.0,
     log=None,
 ):  # pylint: disable=too-many-positional-arguments
@@ -215,8 +220,8 @@ def run_select_members_cli(
         tolerance_file_name,
         "--max-member-num",
         str(max_member_num),
-        "--iterations",
-        str(iterations),
+        "--min-factor",
+        str(min_factor),
         "--max-factor",
         str(max_factor),
     ]
