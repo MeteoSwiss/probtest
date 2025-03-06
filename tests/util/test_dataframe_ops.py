@@ -4,9 +4,40 @@ This module contains unit tests for the `dataframe_ops.py` module.
 
 from unittest.mock import patch
 
+import numpy as np
 import pandas as pd
 
-from util.dataframe_ops import parse_check
+from util.dataframe_ops import adjust_time_index, parse_check
+
+
+def test_adjust_time_index():
+    # Create a sample DataFrame with MultiIndex for 'time' and 'statistic'
+    index = pd.MultiIndex.from_product(
+        [["0 days 00:00:00", "0 days 00:01:00"], ["mean", "max", "min"]],
+        names=["time", "statistic"],
+    )
+    data = np.random.random((5, 6))  # Sample data
+    df = pd.DataFrame(data, columns=index)
+
+    # Apply the function to a list of DataFrames (in this case, just one DataFrame)
+    result = adjust_time_index([df])[0]
+
+    # Create the expected new time index based on unique statistics
+    expected_time_values = np.repeat(
+        range(2), 3
+    )  # Two unique time points, three statistics per time
+    expected_index = pd.MultiIndex.from_arrays(
+        [expected_time_values, ["mean", "max", "min"] * 2],
+        names=["time", "statistic"],
+    )
+
+    # Verify that the new MultiIndex matches the expected index
+    assert result.columns.equals(
+        expected_index
+    ), "The time index was not adjusted correctly."
+
+    # Verify that the data remains unchanged
+    pd.testing.assert_frame_equal(df, result, check_like=True)
 
 
 @patch("util.dataframe_ops.parse_probtest_csv")

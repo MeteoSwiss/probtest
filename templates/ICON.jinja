@@ -11,6 +11,7 @@
             "member_type": "{{member_type}}",
             "factor": 5,
             "file_specification": [{
+                "GRIB": {"format": "GRIB", "time_dim": "step", "horizontal_dims": ["values"], "var_excl": ["tlon", "tlat", "vlon", "vlat", "ulon", "ulat", "h", "slor", "anor", "isor", "sdor"], "fill_value_key": "_FillValue"},
                 "latlon": { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["lat:lon"] },
                 "meteogram": { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["max_nlevs:nstations", "nstations"] },
                 "dace":{ "format": "netcdf", "time_dim": null, "horizontal_dims": ["d_body"]},
