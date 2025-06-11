@@ -114,9 +114,7 @@ def generate_ensemble(tmp_path, filename, perturb_amplitude):
     return run_perturb_cli(tmp_path, filename, perturb_amplitude)
 
 
-def run_perturb_cli(
-    model_input_dir, files, perturb_amplitude, member_ids=range(1, 11)
-):
+def run_perturb_cli(model_input_dir, files, perturb_amplitude, member_ids=range(1, 11)):
     perturbed_model_input_dir = f"{model_input_dir}/experiments/{{member_id}}"
     args = [
         "--model-input-dir",
