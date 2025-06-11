@@ -52,7 +52,7 @@ def find_members_and_factor_validating_for_all_stats_files(
                 tolerance,
                 stats_file_name=stats_file_name,
                 tolerance_file_name=random_tolerance_file_name,
-                member_num=list(temp_member_selection),
+                member_ids=list(temp_member_selection),
                 member_type=member_type,
             )
 
@@ -91,7 +91,7 @@ def find_members_and_factor_validating_for_all_stats_files(
             tolerance,
             stats_file_name=stats_file_name,
             tolerance_file_name=random_tolerance_file_name,
-            member_num=member_selection,
+            member_ids=member_selection,
             member_type=member_type,
         )
         for f in range(

@@ -165,9 +165,9 @@ def get_seed_from_member_number(member_number: int) -> int:
     return seed
 
 
-def process_member_numbers(member_numbers: List[int]) -> List[Tuple[int, str]]:
+def process_member_ids(member_ids: List[int]) -> List[Tuple[int, str]]:
     """
     Converts a list of integers to a list of tuples with each integer and its
     string representation.
     """
-    return [(m_num, str(m_num)) for m_num in member_numbers]
+    return [(m_num, str(m_num)) for m_num in member_ids]

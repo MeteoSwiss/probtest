@@ -4,7 +4,7 @@ This module contains unit tests for the `utils.py` module.
 
 import pytest
 
-from util.utils import get_seed_from_member_number, process_member_numbers
+from util.utils import get_seed_from_member_number, process_member_ids
 
 
 def test_process_member_num_single_element():
@@ -14,7 +14,7 @@ def test_process_member_num_single_element():
     """
     input_data = [5]
     expected_output = [(5, "5")]
-    assert process_member_numbers(input_data) == expected_output
+    assert process_member_ids(input_data) == expected_output
 
 
 def test_process_member_num_multiple_elements():
@@ -24,7 +24,7 @@ def test_process_member_num_multiple_elements():
     """
     input_data = [2, 3, 4]
     expected_output = [(2, "2"), (3, "3"), (4, "4")]
-    assert process_member_numbers(input_data) == expected_output
+    assert process_member_ids(input_data) == expected_output
 
 
 def test_process_member_num_empty_list():
@@ -34,7 +34,7 @@ def test_process_member_num_empty_list():
     """
     input_data = []
     expected_output = []
-    assert process_member_numbers(input_data) == expected_output
+    assert process_member_ids(input_data) == expected_output
 
 
 def test_process_member_num_single_element_zero():
@@ -44,7 +44,7 @@ def test_process_member_num_single_element_zero():
     """
     input_data = [0]
     expected_output = [(0, "0")]
-    assert process_member_numbers(input_data) == expected_output
+    assert process_member_ids(input_data) == expected_output
 
 
 def test_get_seed_from_member_number_invalid():

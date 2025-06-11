@@ -17,7 +17,7 @@ import numpy as np
 from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
 from util.log_handler import logger
 from util.netcdf_io import nc4_get_copy
-from util.utils import get_seed_from_member_number, process_member_numbers
+from util.utils import get_seed_from_member_number, process_member_ids
 
 
 def create_perturb_files(in_path, in_files, out_path, copy_all_files=False):
@@ -64,10 +64,10 @@ def perturb_array(array, s, a):
     help=cli_help["files"],
 )
 @click.option(
-    "--member-numbers",
+    "--member-ids",
     type=CommaSeperatedInts(),
     default="1,2,3,4,5,6,7,8,9,10",
-    help=cli_help["member_numbers"],
+    help=cli_help["member_ids"],
 )
 @click.option(
     "--member-type",
@@ -95,16 +95,16 @@ def perturb(
     model_input_dir,
     perturbed_model_input_dir,
     files,
-    member_numbers,
+    member_ids,
     member_type,
     variable_names,
     perturb_amplitude,
     copy_all_files,
 ):  # pylint: disable=unused-argument, too-many-positional-arguments
 
-    processed_member_numbers = process_member_numbers(member_numbers)
+    processed_member_ids = process_member_ids(member_ids)
 
-    for m_num, m_id in processed_member_numbers:
+    for m_num, m_id in processed_member_ids:
 
         if member_type:
             m_id = member_type + "_" + m_id

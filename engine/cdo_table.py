@@ -93,10 +93,10 @@ def rel_diff_stats(
     help=cli_help["file_id"],
 )
 @click.option(
-    "--member-num",
+    "--member-id",
     type=int,
     default=10,
-    help=cli_help["member_number"],
+    help=cli_help["member_id"],
 )
 @click.option(
     "--member-type",
@@ -120,7 +120,7 @@ def rel_diff_stats(
 def cdo_table(
     model_output_dir,
     file_id,
-    member_num: int,
+    member_id: int,
     member_type,
     perturbed_model_output_dir,
     cdo_table_file,
@@ -128,9 +128,9 @@ def cdo_table(
 ):  # pylint: disable=too-many-positional-arguments
 
     if member_type:
-        member_id = member_type + "_" + str(member_num)
+        member_id_str = member_type + "_" + str(member_id)
     else:
-        member_id = str(member_num)
+        member_id_str = str(member_id)
 
     file_specification = file_specification[0]  # can't store dicts as defaults in click
     assert isinstance(file_specification, dict), "must be dict"
@@ -151,7 +151,7 @@ def cdo_table(
                 continue
             ref_files.sort()
             perturb_files, err = file_names_from_pattern(
-                perturbed_model_output_dir.format(member_id=member_id), file_pattern
+                perturbed_model_output_dir.format(member_id=member_id_str), file_pattern
             )
             if err > 0:
                 logger.info(
@@ -165,7 +165,7 @@ def cdo_table(
                     continue
                 ref_data = xr.open_dataset(f"{model_output_dir}/{rf}")
                 perturb_data = xr.open_dataset(
-                    f"{perturbed_model_output_dir.format(member_id=member_id)}/{pf}"
+                    f"{perturbed_model_output_dir.format(member_id=member_id_str)}/{pf}"
                 )
                 diff_data = ref_data.copy()
                 varnames = [

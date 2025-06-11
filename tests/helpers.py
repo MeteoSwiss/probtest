@@ -94,15 +94,15 @@ def run_tolerance_cli(
     stats_file_name,
     tolerance_file_name,
     member_type=None,
-    member_num="1,2,3,4,5,6,7,8,9,10",
+    member_ids="1,2,3,4,5,6,7,8,9,10",
 ):
     args = [
         "--stats-file-name",
         stats_file_name,
         "--tolerance-file-name",
         tolerance_file_name,
-        "--member-num",
-        member_num,
+        "--member-ids",
+        member_ids,
     ]
     if member_type is not None:
         args.append("--member-type")
@@ -115,7 +115,7 @@ def generate_ensemble(tmp_path, filename, perturb_amplitude):
 
 
 def run_perturb_cli(
-    model_input_dir, files, perturb_amplitude, member_numbers=range(1, 11)
+    model_input_dir, files, perturb_amplitude, member_ids=range(1, 11)
 ):
     perturbed_model_input_dir = f"{model_input_dir}/experiments/{{member_id}}"
     args = [
@@ -125,8 +125,8 @@ def run_perturb_cli(
         perturbed_model_input_dir,
         "--files",
         files,
-        "--member-numbers",
-        ",".join(map(str, member_numbers)),
+        "--member-ids",
+        ",".join(map(str, member_ids)),
         "--member-type",
         "dp",
         "--variable-names",

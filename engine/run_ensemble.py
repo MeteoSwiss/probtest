@@ -17,7 +17,7 @@ import click
 
 from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
 from util.log_handler import logger
-from util.utils import get_seed_from_member_number, process_member_numbers
+from util.utils import get_seed_from_member_number, process_member_ids
 
 
 def is_float(string):
@@ -171,10 +171,10 @@ def test_job_returncode(job):
     help=cli_help["submit_command"],
 )
 @click.option(
-    "--member-num",
+    "--member-ids",
     default="10",
     type=CommaSeperatedInts(),
-    help=cli_help["member_numbers"],
+    help=cli_help["member_ids"],
 )
 @click.option(
     "--member-type",
@@ -215,7 +215,7 @@ def run_ensemble(
     experiment_name,
     perturbed_experiment_name,
     submit_command,
-    member_num,
+    member_ids,
     member_type,
     parallel,
     dry,
@@ -234,7 +234,7 @@ def run_ensemble(
         append_job(job, job_list, parallel)
 
     # run the ensemble
-    processed_member_num = process_member_numbers(member_num)
+    processed_member_num = process_member_ids(member_ids)
 
     for m_num, m_id in processed_member_num:
 

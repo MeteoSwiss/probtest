@@ -81,10 +81,10 @@ def process_member(
     help=cli_help["file_id"],
 )
 @click.option(
-    "--member-num",
+    "--member-ids",
     type=CommaSeperatedInts(),
     default="1,2,3,4,5,6,7,8,9,10",
-    help=cli_help["member_numbers"],
+    help=cli_help["member_ids"],
 )
 @click.option(
     "--member-type",
@@ -106,7 +106,7 @@ def stats(
     stats_file_name,
     model_output_dir,
     file_id,
-    member_num,
+    member_ids,
     member_type,
     perturbed_model_output_dir,
     file_specification,
@@ -116,7 +116,7 @@ def stats(
 
     # compute stats for the ensemble and the reference run
     if ensemble:
-        member_num.append(0)
+        member_ids.append(0)
         with Pool() as p:
             args = [
                 (
@@ -128,7 +128,7 @@ def stats(
                     stats_file_name,
                     file_specification,
                 )
-                for m_num in member_num
+                for m_num in member_ids
             ]
             p.starmap(process_member, args)
     else:
