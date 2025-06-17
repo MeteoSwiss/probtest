@@ -28,11 +28,11 @@ def numbers(s):
     return int("".join(re.findall(r"\d+", s)))
 
 
-def get_seed_from_member_number(member_number: int) -> int:
+def get_seed_from_member_id(member_id: int) -> int:
     """
     Returns the seed corresponding to the given member number.
     """
-    if member_number <= 0 or member_number > 120:
+    if member_id <= 0 or member_id > 120:
         raise ValueError(
             "Invalid member number: only values between 1 and 120 are valid."
         )
@@ -160,7 +160,7 @@ def get_seed_from_member_number(member_number: int) -> int:
         11261,
     ]
 
-    seed = seeds[member_number - 1]
+    seed = seeds[member_id - 1]
 
     return seed
 

@@ -17,7 +17,7 @@ import numpy as np
 from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
 from util.log_handler import logger
 from util.netcdf_io import nc4_get_copy
-from util.utils import get_seed_from_member_number, process_member_ids
+from util.utils import get_seed_from_member_id, process_member_ids
 
 
 def create_perturb_files(in_path, in_files, out_path, copy_all_files=False):
@@ -121,7 +121,7 @@ def perturb(
             for vn in variable_names:
                 d.variables[vn][:] = perturb_array(
                     d.variables[vn][:],
-                    get_seed_from_member_number(m_num),
+                    get_seed_from_member_id(m_num),
                     perturb_amplitude,
                 )
             d.close()

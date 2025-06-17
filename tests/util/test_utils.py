@@ -4,7 +4,7 @@ This module contains unit tests for the `utils.py` module.
 
 import pytest
 
-from util.utils import get_seed_from_member_number, process_member_ids
+from util.utils import get_seed_from_member_id, process_member_ids
 
 
 def test_process_member_num_single_element():
@@ -47,7 +47,7 @@ def test_process_member_num_single_element_zero():
     assert process_member_ids(input_data) == expected_output
 
 
-def test_get_seed_from_member_number_invalid():
+def test_get_seed_from_member_id_invalid():
     """
     Test that the function raises a ValueError for invalid member numbers.
     """
@@ -55,24 +55,24 @@ def test_get_seed_from_member_number_invalid():
         ValueError,
         match="Invalid member number",
     ):
-        get_seed_from_member_number(0)
+        get_seed_from_member_id(0)
 
     with pytest.raises(
         ValueError,
         match="Invalid member number",
     ):
-        get_seed_from_member_number(121)
+        get_seed_from_member_id(121)
 
     with pytest.raises(
         ValueError,
         match="Invalid member number",
     ):
-        get_seed_from_member_number(-5)
+        get_seed_from_member_id(-5)
 
 
-def test_get_seed_from_member_number_unique_seeds():
+def test_get_seed_from_member_id_unique_seeds():
     """
     Test that all returned seeds are unique.
     """
-    seeds = [get_seed_from_member_number(i) for i in range(1, 121)]
+    seeds = [get_seed_from_member_id(i) for i in range(1, 121)]
     assert len(seeds) == len(set(seeds)), "Seeds are not unique!"
