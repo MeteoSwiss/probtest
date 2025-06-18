@@ -38,7 +38,7 @@ def find_members_and_factor_validating_for_all_stats_files(
     Starting with each ensemble member individually, the algorithm checks how
     many of the remaining ensemble members fall within the defined tolerances
     when compared to the current member.
-    The ensemble member that results in the largest number of other members 
+    The ensemble member that results in the largest number of other members
     satisfying the tolerances is selected as the reference.
 
     This step is repeated, progressively validating additional members, until
