@@ -30,8 +30,8 @@ def find_members_and_factor_validating_for_all_stats_files(
     max_factor,
 ):  # pylint: disable=too-many-positional-arguments
     """
-    Find ensemble members and a corresponding tolerance factor that validate all
-    statistics files.
+    Find a minimal subset of ensemble members and a tolerance factor such that
+    all statistics files are validated.
 
     Given a set of ensemble members, the algorithm attempts to identify a subset
     that satisfies specified tolerances.
@@ -45,8 +45,6 @@ def find_members_and_factor_validating_for_all_stats_files(
     all ensemble members are validated or a predefined maximum number of
     iterations is reached. If the latter occurs, the tolerance factor is
     increased and the process restarts.
-    The goal is to find a minimal subset of ensemble members and a tolerance
-    factor such that all statistics files are validated.
     """
 
     members_not_validating = set(range(1, total_member_count + 1))
