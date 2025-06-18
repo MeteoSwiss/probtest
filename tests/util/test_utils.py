@@ -7,7 +7,7 @@ import pytest
 from util.utils import get_seed_from_member_id, process_member_ids
 
 
-def test_process_member_num_single_element():
+def test_process_member_ids_single_element():
     """
     Test case for a single element in the input list.
     It should generate a list from 1 to that number and convert each to a string.
@@ -17,7 +17,7 @@ def test_process_member_num_single_element():
     assert process_member_ids(input_data) == expected_output
 
 
-def test_process_member_num_multiple_elements():
+def test_process_member_ids_multiple_elements():
     """
     Test case for multiple elements in the input list.
     It should convert each number to a string.
@@ -27,7 +27,7 @@ def test_process_member_num_multiple_elements():
     assert process_member_ids(input_data) == expected_output
 
 
-def test_process_member_num_empty_list():
+def test_process_member_ids_empty_list():
     """
     Test case for an empty input list.
     It should return an empty list.
@@ -37,7 +37,7 @@ def test_process_member_num_empty_list():
     assert process_member_ids(input_data) == expected_output
 
 
-def test_process_member_num_single_element_zero():
+def test_process_member_ids_single_element_zero():
     """
     Test case for a single element in the input list being zero.
     It should return an empty list.

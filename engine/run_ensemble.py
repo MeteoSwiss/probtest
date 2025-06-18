@@ -234,9 +234,9 @@ def run_ensemble(
         append_job(job, job_list, parallel)
 
     # run the ensemble
-    processed_member_num = process_member_ids(member_ids)
+    processed_member_ids = process_member_ids(member_ids)
 
-    for m_num, m_id in processed_member_num:
+    for m_num, m_id in processed_member_ids:
 
         Path(perturbed_run_dir.format(member_id=m_id)).mkdir(
             exist_ok=True, parents=True

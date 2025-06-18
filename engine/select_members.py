@@ -24,8 +24,8 @@ def find_members_and_factor_validating_for_all_stats_files(
     random_tolerance_file_name,
     stats_file_name,
     member_type,
-    max_member_num,
-    total_member_num,
+    max_member_count,
+    total_member_count,
     min_factor,
     max_factor,
 ):  # pylint: disable=too-many-positional-arguments
@@ -33,10 +33,10 @@ def find_members_and_factor_validating_for_all_stats_files(
     find members and a corresponding tolerance factor validating for all stats files.
     """
 
-    members_not_validating = set(range(1, total_member_num + 1))
+    members_not_validating = set(range(1, total_member_count + 1))
     member_selection = set()
 
-    for _ in range(max_member_num):
+    for _ in range(max_member_count):
 
         member_with_minmal_fails = -1
         minimal_fails = set()
@@ -81,7 +81,7 @@ def find_members_and_factor_validating_for_all_stats_files(
             logger.info(
                 "Current member selection size %s, fails %s%%.\n",
                 len(member_selection),
-                int(len(minimal_fails) / total_member_num * 100),
+                int(len(minimal_fails) / total_member_count * 100),
             )
 
     if members_not_validating:
@@ -96,7 +96,7 @@ def find_members_and_factor_validating_for_all_stats_files(
         )
         for f in range(
             int(min_factor), int(max_factor) + 1, 5
-        ):  # Try with bigger factor if max_member_num is not enough
+        ):  # Try with bigger factor if max_member_count is not enough
             logger.info("Set factor to %s", f)
 
             # Test selection (exclude random selection)
@@ -117,7 +117,7 @@ def find_members_and_factor_validating_for_all_stats_files(
         + "The most sensitive variable(s) is/are %s, which failed with the factor %s"
         + ". Consider removing this/those variable(s) from the "
         + "experiment and run again.",
-        max_member_num,
+        max_member_count,
         most_common_vars,
         max_factor,
     )
@@ -125,20 +125,20 @@ def find_members_and_factor_validating_for_all_stats_files(
 
 
 def test_selection(
-    stats_file_name, tolerance_file_name, total_member_num, member_type, factor
+    stats_file_name, tolerance_file_name, total_member_count, member_type, factor
 ):
     """
     Tests how may stats files pass the tolerance test for the selected members
     Returns the number of passed stats files and the variables which failed
     """
 
-    if isinstance(total_member_num, int):
-        members = list(range(1, total_member_num + 1))
+    if isinstance(total_member_count, int):
+        members = list(range(1, total_member_count + 1))
     else:
-        members = total_member_num
-        total_member_num = len(members)
+        members = total_member_count
+        total_member_count = len(members)
 
-    total_member_num = len(members)
+    total_member_count = len(members)
 
     passed = set()
     failed = set()
@@ -173,7 +173,7 @@ def test_selection(
     logger.info(
         "... passing for %s out of %s members.\n",
         len(passed),
-        total_member_num,
+        total_member_count,
     )
     return passed, failed, variables
 
@@ -207,16 +207,16 @@ def test_selection(
     help=cli_help["member_type"],
 )
 @click.option(
-    "--max-member-num",
+    "--max-member-count",
     type=int,
     default=15,
-    help=cli_help["max_member_num"],
+    help=cli_help["max_member_count"],
 )
 @click.option(
-    "--total-member-num",
+    "--total-member-count",
     type=int,
     default=50,
-    help=cli_help["total_member_num"],
+    help=cli_help["total_member_count"],
 )
 @click.option(
     "--factor",
@@ -244,21 +244,25 @@ def select_members(
     selected_members_file_name,
     tolerance_file_name,
     member_type,
-    max_member_num,
-    total_member_num,
+    max_member_count,
+    total_member_count,
     factor,
     min_factor,
     max_factor,
 ):  # pylint: disable=unused-argument, too-many-positional-arguments
 
-    if max_member_num >= total_member_num:
-        logger.error("ERROR: max_member_num must be smaller than total_member_num")
+    if max_member_count >= total_member_count:
+        logger.error("ERROR: max_member_count must be smaller than total_member_count")
         sys.exit(1)
 
     if test_tolerance:
         # Test selection
         test_selection(
-            stats_file_name, tolerance_file_name, total_member_num, member_type, factor
+            stats_file_name,
+            tolerance_file_name,
+            total_member_count,
+            member_type,
+            factor,
         )
     else:
         random_tolerance_file_name = f"random_tolerance_{experiment_name}.csv"
@@ -267,8 +271,8 @@ def select_members(
             random_tolerance_file_name,
             stats_file_name,
             member_type,
-            max_member_num,
-            total_member_num,
+            max_member_count,
+            total_member_count,
             min_factor,
             max_factor,
         )

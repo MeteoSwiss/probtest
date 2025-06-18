@@ -111,7 +111,7 @@ cli_help = {
     "member_ids": r"comma separated list of member ids" + r'(e.g. "1,3,14")',
     "member_type": r"precision of experiment (e.g. double or mixed). "
     + r"The type is part of the created member_id, which is equal to "
-    + r"(member_type+'_'+str(member_num))",
+    + r"(member_type+'_'+str(member_id))",
     "perturb_amplitude": r"the amplitude of the relative perturbation",
     "files": r"the files that need to be perturbed (comma separated list)",
     "variable_names": r"the variables that are perturbed (comma separated list)",
@@ -123,11 +123,12 @@ cli_help = {
     + r"avoid early glob expansion by the calling shell.",
     "ensemble": r"For ensemble stats: the sub-directory where the ensemble outputs are",
     "test_tolerance": r"Test with how many stats files out "
-    + r"of x (x=total_member_num) the probtest passes given a specific tolerance file.",
-    "total_member_num": r"Number of ensemble members used "
-    + r"to select the x members from (min_member_num<=x<=max_member_num).",
-    "min_member_num": r"Minimum number of members to select.",
-    "max_member_num": r"Maximum number of members to select.",
+    + r"of x (x=total_member_count) the probtest passes given a specific"
+    + "tolerance file.",
+    "total_member_count": r"Number of ensemble members used "
+    + r"to select the x members from (min_member_count<=x<=max_member_count).",
+    "min_member_count": r"Minimum number of members to select.",
+    "max_member_count": r"Maximum number of members to select.",
     "min_factor": r"Minimum tolerance factor used to select members with.",
     "max_factor": r"Maximum tolerance factor used to select members with.",
     "iterations": r"Maximum number of iterations to select a random sample per "
