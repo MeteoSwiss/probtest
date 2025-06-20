@@ -17,7 +17,7 @@ import numpy as np
 from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
 from util.log_handler import logger
 from util.netcdf_io import nc4_get_copy
-from util.utils import get_seed_from_member_id, process_member_ids
+from util.utils import get_seed_from_member_id
 
 
 def create_perturb_files(in_path, in_files, out_path, copy_all_files=False):
@@ -102,26 +102,29 @@ def perturb(
     copy_all_files,
 ):  # pylint: disable=unused-argument, too-many-positional-arguments
 
-    processed_member_ids = process_member_ids(member_ids)
-
-    for m_num, m_id in processed_member_ids:
+    for m_id in member_ids:
 
         if member_type:
-            m_id = member_type + "_" + m_id
+            m_id_str = member_type + "_" + str(m_id)
+        else:
+            m_id_str = str(m_id)
+
         perturbed_model_input_dir_member_id = perturbed_model_input_dir.format(
-            member_id=m_id
+            member_id=m_id_str
         )
+
         data = create_perturb_files(
             model_input_dir,
             files,
             perturbed_model_input_dir_member_id,
             copy_all_files,
         )
+
         for d in data:
             for vn in variable_names:
                 d.variables[vn][:] = perturb_array(
                     d.variables[vn][:],
-                    get_seed_from_member_id(m_num),
+                    get_seed_from_member_id(m_id),
                     perturb_amplitude,
                 )
             d.close()

@@ -4,7 +4,6 @@ a function to generate seeds based on a member number for probtest.
 """
 
 import re
-from typing import List, Tuple
 
 
 def unique_elements(inlist):
@@ -163,11 +162,3 @@ def get_seed_from_member_id(member_id: int) -> int:
     seed = seeds[member_id - 1]
 
     return seed
-
-
-def process_member_ids(member_ids: List[int]) -> List[Tuple[int, str]]:
-    """
-    Converts a list of integers to a list of tuples with each integer and its
-    string representation.
-    """
-    return [(m_num, str(m_num)) for m_num in member_ids]

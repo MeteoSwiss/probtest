@@ -34,7 +34,7 @@ def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specificati
 
 
 def process_member(
-    m_num,
+    member_id,
     member_type,
     model_output_dir,
     perturbed_model_output_dir,
@@ -42,18 +42,18 @@ def process_member(
     stats_file_name,
     file_specification,
 ):  # pylint: disable=too-many-positional-arguments
-    if m_num == 0:
+    if member_id == 0:
         input_dir = model_output_dir
-        m_id = "ref"
+        m_id_str = "ref"
     else:
-        m_id = str(m_num)
+        m_id_str = str(member_id)
         if member_type:
-            m_id = member_type + "_" + m_id
-        input_dir = perturbed_model_output_dir.format(member_id=m_id)
+            m_id_str = member_type + "_" + m_id_str
+        input_dir = perturbed_model_output_dir.format(member_id=m_id_str)
     create_stats_dataframe(
         input_dir,
         file_id,
-        stats_file_name.format(member_id=m_id),
+        stats_file_name.format(member_id=m_id_str),
         file_specification,
     )
 
@@ -120,7 +120,7 @@ def stats(
         with Pool() as p:
             args = [
                 (
-                    m_num,
+                    m_id,
                     member_type,
                     model_output_dir,
                     perturbed_model_output_dir,
@@ -128,7 +128,7 @@ def stats(
                     stats_file_name,
                     file_specification,
                 )
-                for m_num in member_ids
+                for m_id in member_ids
             ]
             p.starmap(process_member, args)
     else:

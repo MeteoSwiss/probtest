@@ -47,8 +47,8 @@ def tolerance(stats_file_name, tolerance_file_name, member_ids, member_type):
     dfs = [
         parse_probtest_csv(stats_file_name.format(member_id=m_id), index_col=[0, 1, 2])
         for m_id in (
-            (str(m_num) if not member_type else member_type + "_" + str(m_num))
-            for m_num in member_ids
+            (str(m_id) if not member_type else member_type + "_" + str(m_id))
+            for m_id in member_ids
         )
     ]
     df_ref = parse_probtest_csv(

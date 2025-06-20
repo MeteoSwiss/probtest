@@ -95,7 +95,7 @@ def rel_diff_stats(
 @click.option(
     "--member-id",
     type=int,
-    default=10,
+    default=1,
     help=cli_help["member_id"],
 )
 @click.option(

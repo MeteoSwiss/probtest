@@ -17,7 +17,7 @@ import click
 
 from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
 from util.log_handler import logger
-from util.utils import get_seed_from_member_id, process_member_ids
+from util.utils import get_seed_from_member_id
 
 
 def is_float(string):
@@ -172,7 +172,7 @@ def test_job_returncode(job):
 )
 @click.option(
     "--member-ids",
-    default="10",
+    default="1,2,3,4,5,6,7,8,9,10",
     type=CommaSeperatedInts(),
     help=cli_help["member_ids"],
 )
@@ -234,31 +234,33 @@ def run_ensemble(
         append_job(job, job_list, parallel)
 
     # run the ensemble
-    processed_member_ids = process_member_ids(member_ids)
+    for m_id in member_ids:
 
-    for m_num, m_id in processed_member_ids:
-
-        Path(perturbed_run_dir.format(member_id=m_id)).mkdir(
+        Path(perturbed_run_dir.format(member_id=str(m_id))).mkdir(
             exist_ok=True, parents=True
         )
-        os.chdir(perturbed_run_dir.format(member_id=m_id))
+        os.chdir(perturbed_run_dir.format(member_id=str(m_id)))
+
         if member_type:
-            m_id = member_type + "_" + m_id
+            m_id_str = member_type + "_" + str(m_id)
+        else:
+            m_id_str = str(m_id)
+
         runscript = f"{run_dir}/{run_script_name}"
 
-        perturbed_run_dir_path = perturbed_run_dir.format(member_id=m_id)
-        perturbed_run_script_path = perturbed_run_script_name.format(member_id=m_id)
+        perturbed_run_dir_path = perturbed_run_dir.format(member_id=m_id_str)
+        perturbed_run_script_path = perturbed_run_script_name.format(member_id=m_id_str)
         perturbed_runscript = f"{perturbed_run_dir_path}/{perturbed_run_script_path}"
 
         prepare_perturbed_run_script(
             runscript,
             perturbed_runscript,
             experiment_name,
-            perturbed_experiment_name.format(member_id=m_id),
+            perturbed_experiment_name.format(member_id=m_id_str),
             lhs,
             rhs_new,
             rhs_old,
-            get_seed_from_member_id(m_num),
+            get_seed_from_member_id(m_id),
         )
 
         if not dry:
