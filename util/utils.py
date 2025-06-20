@@ -1,4 +1,4 @@
-""""
+"""
 This module provides utility functions for list and string operations, as well as
 a function to generate seeds based on a member number for probtest.
 """
