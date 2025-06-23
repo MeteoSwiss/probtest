@@ -186,13 +186,13 @@ def stats_file_set(tmp_dir):
     create_random_stats_file(
         stats_pattern.format(member_id="ref"), configurations, seed - 1, 0.0
     )
-    for i in range(1, 50):
+    for i in range(1, 51):
+        amp = 1.0e-3
+        if i in {16, 21, 39, 40, 50}:
+            amp = 1.0e2
         create_random_stats_file(
-            stats_pattern.format(member_id=i), configurations, seed + i, 1e-3
+            stats_pattern.format(member_id=i), configurations, seed + i, amp
         )
-    create_random_stats_file(
-        stats_pattern.format(member_id=50), configurations, seed + 50, 1e2
-    )
     files = {}
     files["stats"] = stats_pattern
     files["members"] = os.path.join(tmp_dir, "selected_members.csv")

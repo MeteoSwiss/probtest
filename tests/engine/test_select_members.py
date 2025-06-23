@@ -22,7 +22,7 @@ def test_select_members(stats_file_set):
 
     with open(stats_file_set["members"], "r", encoding="utf-8") as file:
         content = file.read().strip()
-    expected_content = "50\nexport FACTOR=5"
+    expected_content = "39\nexport FACTOR=5"
     assert content == expected_content, "The member selection failed"
 
 
@@ -40,7 +40,7 @@ def test_select_members_increase_factor(stats_file_set):
 
     with open(stats_file_set["members"], "r", encoding="utf-8") as file:
         content = file.read().strip()
-    expected_content = "50\nexport FACTOR=5"
+    expected_content = "39\nexport FACTOR=5"
     assert (
         content == expected_content
     ), "Increasing the factor within the member selection failed"
@@ -76,7 +76,7 @@ def test_test_tolerance(stats_file_set, caplog):
     passed_count = match.group(1) if match else "0"
     error_message = (
         f"The test-tolerance output is incorrect. It should pass for "
-        f"49 out of 50 but it passed for {passed_count} out of 50."
+        f"45 out of 50 but it passed for {passed_count} out of 50."
     )
 
-    assert "49 out of 50" in log, error_message
+    assert "45 out of 50" in log, error_message
