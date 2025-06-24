@@ -13,6 +13,7 @@ import logging
 import os
 import random
 import shutil
+from math import sin
 
 import numpy as np
 import pandas as pd
@@ -222,6 +223,8 @@ def run_select_members_cli(
         str(min_factor),
         "--max-factor",
         str(max_factor),
+        "--total-member-count",
+        str(20),
     ]
     if test_tolerance:
         args.append("--test-tolerance")
@@ -268,10 +271,16 @@ def create_random_stats_file(filename, configurations, seed, perturbation):
         for h in range(height_dim):
             row = f"{file_format},{variable},{h}.0"
             for t in range(time_dim):
-                base_mean = round(random.uniform(0, 5), 5)
-                mean = base_mean + round(random.uniform(-perturbation, perturbation), 5)
-                max_val = mean + round(random.uniform(0, perturbation), 5)
-                min_val = mean - round(random.uniform(0, perturbation), 5)
+                base_mean = round((h - 2.0) * sin(t), 5)
+                mean = base_mean + (t + 1.0) * ((seed % 2) == 0) * round(
+                    random.uniform(-perturbation, perturbation), 5
+                )
+                max_val = 2.0 * abs(base_mean) + (t + 1.0) * ((seed % 3) == 0) * round(
+                    random.uniform(-perturbation, perturbation), 5
+                )
+                min_val = -2.0 * abs(base_mean) + (t + 1.0) * ((seed % 5) == 0) * round(
+                    random.uniform(-perturbation, perturbation), 5
+                )
                 row += f",{max_val},{mean},{min_val}"
             for _ in range(time_dim, max_time_dim):
                 row += ",,,"
