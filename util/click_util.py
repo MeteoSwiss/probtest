@@ -131,7 +131,6 @@ cli_help = {
     "max_member_count": r"Maximum number of members to select.",
     "min_factor": r"Minimum tolerance factor used to select members with.",
     "max_factor": r"Maximum tolerance factor used to select members with.",
-    "iterations": r"Maximum number of iterations to select a random sample per "
     + r"number of members.",
     "selected_members_file_name": r"The name of the file in which the selected "
     + r"members and the used factor will be written.",
