@@ -57,7 +57,9 @@ def find_members_and_factor_validating_for_all_stats_files(
         minimal_fails = set()
 
         for mem in members_not_validating:
-            logger.info("checking member selection with additional member %s ...", mem)
+            logger.info(
+                "checking member selection with (additional) member id %s ...", mem
+            )
 
             temp_member_selection = member_selection.union({mem})
 
@@ -94,9 +96,9 @@ def find_members_and_factor_validating_for_all_stats_files(
             member_selection.add(member_with_minmal_fails)
             members_not_validating = minimal_fails
             logger.info(
-                "Current member selection size %s, fails %s%%.\n",
+                "Current member selection size %s, passes %s%% of all members.\n",
                 len(member_selection),
-                int(len(minimal_fails) / total_member_count * 100),
+                (1.0 - int(len(minimal_fails) / total_member_count) * 100),
             )
 
     if members_not_validating:
