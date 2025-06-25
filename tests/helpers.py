@@ -204,7 +204,7 @@ def run_select_members_cli(
     stats_file_name,
     selected_members_file_name,
     tolerance_file_name,
-    check_tolerance=False,
+    enable_check_only=False,
     max_member_count=15,
     min_factor=5.0,
     max_factor=50.0,
@@ -226,7 +226,7 @@ def run_select_members_cli(
         "--total-member-count",
         str(20),
     ]
-    if check_tolerance:
+    if enable_check_only:
         args.append("--test-tolerance")
     return run_cli(select_members, args, log)
 

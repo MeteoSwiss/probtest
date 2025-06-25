@@ -199,9 +199,9 @@ def check_selection(
     help=cli_help["experiment_name"],
 )
 @click.option(
-    "--test-tolerance/--no-test-tolerance",
+    "--enable_check_only/--disable_check_only",
     is_flag=True,
-    help=cli_help["test_tolerance"],
+    help=cli_help["enable_check_only"],
 )
 @click.option(
     "--stats-file-name",
@@ -254,7 +254,7 @@ def check_selection(
 # Selects members and writes them to a file together with the tolerance factor
 def select_members(
     experiment_name,
-    check_tolerance,
+    enable_check_only,
     stats_file_name,
     selected_members_file_name,
     tolerance_file_name,
@@ -270,7 +270,7 @@ def select_members(
         logger.error("ERROR: max_member_count must be smaller than total_member_count")
         sys.exit(1)
 
-    if check_tolerance:
+    if enable_check_only:
         # Test selection
         check_selection(
             stats_file_name,

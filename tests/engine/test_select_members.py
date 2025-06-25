@@ -69,7 +69,7 @@ def check_test_tolerance(stats_file_set, caplog):
         stats_file_set["stats"],
         stats_file_set["members"],
         stats_file_set["tol"],
-        check_tolerance=True,
+        enable_check_only=True,
         log=caplog,
     )
 

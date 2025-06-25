@@ -122,7 +122,7 @@ cli_help = {
     + r'"*" and will be expanded internally by glob. Put FILE_PATTERN in quotes to '
     + r"avoid early glob expansion by the calling shell.",
     "ensemble": r"For ensemble stats: the sub-directory where the ensemble outputs are",
-    "test_tolerance": r"Test with how many stats files out "
+    "enable_check_only": r"Check with how many stats files out "
     + r"of x (x=total_member_count) the probtest passes given a specific"
     + "tolerance file.",
     "total_member_count": r"Number of ensemble members used "
