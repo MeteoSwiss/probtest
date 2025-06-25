@@ -243,7 +243,6 @@ def check_selection_by_ids(
     default=50.0,
     help=cli_help["max_factor"],
 )
-# Selects members and writes them to a file together with the tolerance factor
 def select_members(
     experiment_name,
     enable_check_only,
@@ -257,6 +256,9 @@ def select_members(
     min_factor,
     max_factor,
 ):  # pylint: disable=unused-argument, too-many-positional-arguments
+    """
+    Selects members and writes them to a file together with the tolerance factor
+    """
 
     if max_member_count >= total_member_count:
         logger.error("ERROR: max_member_count must be smaller than total_member_count")
