@@ -16,7 +16,7 @@ import click
 
 from engine.tolerance import tolerance
 from util.click_util import cli_help
-from util.dataframe_ops import test_stats_file_with_tolerances
+from util.dataframe_ops import check_stats_file_with_tolerances
 from util.log_handler import logger
 
 
@@ -75,7 +75,7 @@ def find_members_and_factor_validating_for_all_stats_files(
             validation_members = [
                 m for m in members_not_validating if m not in temp_member_selection
             ]
-            _, failed, _ = test_selection(
+            _, failed, _ = check_selection(
                 stats_file_name,
                 random_tolerance_file_name,
                 validation_members,
@@ -115,7 +115,7 @@ def find_members_and_factor_validating_for_all_stats_files(
             logger.info("Set factor to %s", f)
 
             # Test selection (exclude random selection)
-            _, failed, most_common_vars = test_selection(
+            _, failed, most_common_vars = check_selection(
                 stats_file_name,
                 random_tolerance_file_name,
                 members_not_validating,
@@ -139,7 +139,7 @@ def find_members_and_factor_validating_for_all_stats_files(
     sys.exit(1)
 
 
-def test_selection(
+def check_selection(
     stats_file_name, tolerance_file_name, total_member_count, member_type, factor
 ):
     """
@@ -158,7 +158,7 @@ def test_selection(
     passed = set()
     failed = set()
 
-    # Change level to not get whole output from test_stats_file_with_tolerances
+    # Change level to not get whole output from check_stats_file_with_tolerances
     original_level = logging.getLogger().level
     logging.getLogger().setLevel(logging.ERROR)
 
@@ -167,7 +167,7 @@ def test_selection(
     for mem in members:
         m_id = str(mem) if not member_type else member_type + "_" + str(mem)
 
-        out, err, _ = test_stats_file_with_tolerances(
+        out, err, _ = check_stats_file_with_tolerances(
             tolerance_file_name,
             stats_file_name.format(member_id="ref"),
             stats_file_name.format(member_id=m_id),
@@ -254,7 +254,7 @@ def test_selection(
 # Selects members and writes them to a file together with the tolerance factor
 def select_members(
     experiment_name,
-    test_tolerance,
+    check_tolerance,
     stats_file_name,
     selected_members_file_name,
     tolerance_file_name,
@@ -270,9 +270,9 @@ def select_members(
         logger.error("ERROR: max_member_count must be smaller than total_member_count")
         sys.exit(1)
 
-    if test_tolerance:
+    if check_tolerance:
         # Test selection
-        test_selection(
+        check_selection(
             stats_file_name,
             tolerance_file_name,
             total_member_count,

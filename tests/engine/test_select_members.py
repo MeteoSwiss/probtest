@@ -9,7 +9,7 @@ import re
 from tests.helpers import run_select_members_cli, run_tolerance_cli
 
 
-def test_select_members(stats_file_set):
+def check_select_members(stats_file_set):
     run_select_members_cli(
         stats_file_set["stats"],
         stats_file_set["members"],
@@ -26,7 +26,7 @@ def test_select_members(stats_file_set):
     assert content == expected_content, "The member selection failed"
 
 
-def test_select_members_increase_factor(stats_file_set):
+def check_select_members_increase_factor(stats_file_set):
     run_select_members_cli(
         stats_file_set["stats"],
         stats_file_set["members"],
@@ -47,7 +47,7 @@ def test_select_members_increase_factor(stats_file_set):
     ), "Increasing the factor within the member selection failed"
 
 
-def test_select_members_failure(stats_file_set, caplog):
+def check_select_members_failure(stats_file_set, caplog):
     log = run_select_members_cli(
         stats_file_set["stats"],
         stats_file_set["members"],
@@ -60,7 +60,7 @@ def test_select_members_failure(stats_file_set, caplog):
     assert "ERROR" in log, "The member selection did not fail, although it should have."
 
 
-def test_test_tolerance(stats_file_set, caplog):
+def check_test_tolerance(stats_file_set, caplog):
     run_tolerance_cli(
         stats_file_set["stats"], stats_file_set["tol"], member_ids="1,2,3,4,5"
     )
@@ -69,7 +69,7 @@ def test_test_tolerance(stats_file_set, caplog):
         stats_file_set["stats"],
         stats_file_set["members"],
         stats_file_set["tol"],
-        test_tolerance=True,
+        check_tolerance=True,
         log=caplog,
     )
 

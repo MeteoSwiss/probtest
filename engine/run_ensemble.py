@@ -114,7 +114,7 @@ def append_job(job, job_list, parallel):
         try:
             time.sleep(5)
             p.wait()
-            test_job_returncode(p)
+            check_job_returncode(p)
         finally:
             p.kill()
     else:
@@ -127,7 +127,7 @@ def finalize_jobs(job_list, dry, parallel):
         for job in job_list:
             job.communicate()
             try:
-                test_job_returncode(job)
+                check_job_returncode(job)
             except subprocess.CalledProcessError as e:
                 logger.error(e)
                 last_exception = e
@@ -135,7 +135,7 @@ def finalize_jobs(job_list, dry, parallel):
             raise last_exception
 
 
-def test_job_returncode(job):
+def check_job_returncode(job):
     """Test job return code."""
     if job.returncode != 0:
         raise subprocess.CalledProcessError(returncode=job.returncode, cmd=job.args)
