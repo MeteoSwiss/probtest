@@ -76,10 +76,10 @@ def find_members_and_factor_validating_for_all_stats_files(
                 m for m in members_not_validating if m not in temp_member_selection
             ]
             _, failed, _ = check_selection_by_ids(
-                stats_file_name,
-                random_tolerance_file_name,
-                validation_members,
-                member_type,
+                stats_file_name=stats_file_name,
+                tolerance_file_name=random_tolerance_file_name,
+                member_ids=validation_members,
+                member_type=member_type,
                 factor=min_factor,
             )
 
@@ -116,11 +116,11 @@ def find_members_and_factor_validating_for_all_stats_files(
 
             # Test selection (exclude random selection)
             _, failed, most_common_vars = check_selection_by_ids(
-                stats_file_name,
-                random_tolerance_file_name,
-                members_not_validating,
-                member_type,
-                f,
+                stats_file_name=stats_file_name,
+                tolerance_file_name=random_tolerance_file_name,
+                member_ids=members_not_validating,
+                member_type=member_type,
+                factor=f,
             )
             if not failed:
                 return sorted(member_selection), f
@@ -140,20 +140,12 @@ def find_members_and_factor_validating_for_all_stats_files(
 
 
 def check_selection_by_ids(
-    stats_file_name, tolerance_file_name, total_member_count, member_type, factor
+    stats_file_name, tolerance_file_name, member_ids, member_type, factor
 ):
     """
     Tests how many stats files pass the tolerance test for the selected members
     Returns the number of passed stats files and the variables which failed
     """
-
-    if isinstance(total_member_count, int):
-        members = list(range(1, total_member_count + 1))
-    else:
-        members = total_member_count
-        total_member_count = len(members)
-
-    total_member_count = len(members)
 
     passed = set()
     failed = set()
@@ -164,7 +156,7 @@ def check_selection_by_ids(
 
     variables = set()
 
-    for mem in members:
+    for mem in member_ids:
         m_id = str(mem) if not member_type else member_type + "_" + str(mem)
 
         out, err, _ = check_stats_file_with_tolerances(
@@ -188,7 +180,7 @@ def check_selection_by_ids(
     logger.info(
         "... passing for %s out of %s members.\n",
         len(passed),
-        total_member_count,
+        len(member_ids),
     )
     return passed, failed, variables
 
@@ -271,13 +263,12 @@ def select_members(
         sys.exit(1)
 
     if enable_check_only:
-        # Test selection
         check_selection_by_ids(
-            stats_file_name,
-            tolerance_file_name,
-            total_member_count,
-            member_type,
-            factor,
+            stats_file_name=stats_file_name,
+            tolerance_file_name=tolerance_file_name,
+            member_ids=list(range(1, total_member_count + 1)),
+            member_type=member_type,
+            factor=factor,
         )
     else:
         random_tolerance_file_name = f"random_tolerance_{experiment_name}.csv"
