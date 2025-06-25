@@ -21,7 +21,7 @@ from util.log_handler import logger
 
 
 def find_members_and_factor_validating_for_all_stats_files(
-    random_tolerance_file_name,
+    tolerance_file_name,
     stats_file_name,
     member_type,
     max_member_count,
@@ -68,18 +68,18 @@ def find_members_and_factor_validating_for_all_stats_files(
             context.invoke(
                 tolerance,
                 stats_file_name=stats_file_name,
-                tolerance_file_name=random_tolerance_file_name,
+                tolerance_file_name=tolerance_file_name,
                 member_ids=list(temp_member_selection),
                 member_type=member_type,
             )
 
-            # Test selection (exclude random selection)
+            # Test selection (exclude current temporary selection)
             validation_members = [
                 m for m in members_not_validating if m not in temp_member_selection
             ]
             _, failed, _ = check_selection_by_ids(
                 stats_file_name=stats_file_name,
-                tolerance_file_name=random_tolerance_file_name,
+                tolerance_file_name=tolerance_file_name,
                 member_ids=validation_members,
                 member_type=member_type,
                 factor=min_factor,
@@ -107,7 +107,7 @@ def find_members_and_factor_validating_for_all_stats_files(
         context.invoke(
             tolerance,
             stats_file_name=stats_file_name,
-            tolerance_file_name=random_tolerance_file_name,
+            tolerance_file_name=tolerance_file_name,
             member_ids=member_selection,
             member_type=member_type,
         )
@@ -116,10 +116,10 @@ def find_members_and_factor_validating_for_all_stats_files(
         ):  # Try with bigger factor if max_member_count is not enough
             logger.info("Set factor to %s", f)
 
-            # Test selection (exclude random selection)
+            # Test selection (exclude current temporary selection)
             _, failed, most_common_vars = check_selection_by_ids(
                 stats_file_name=stats_file_name,
-                tolerance_file_name=random_tolerance_file_name,
+                tolerance_file_name=tolerance_file_name,
                 member_ids=members_not_validating,
                 member_type=member_type,
                 factor=f,
@@ -275,10 +275,10 @@ def select_members(
             factor=factor,
         )
     else:
-        random_tolerance_file_name = f"random_tolerance_{experiment_name}.csv"
+        tolerance_file_name = f"tolerance_{experiment_name}.csv"
         start_time = datetime.now()
         selection, factor = find_members_and_factor_validating_for_all_stats_files(
-            random_tolerance_file_name,
+            tolerance_file_name,
             stats_file_name,
             member_type,
             max_member_count,
@@ -304,4 +304,4 @@ def select_members(
 
         # The last created file was successful
         logger.info("Writing tolerance file to %s", tolerance_file_name)
-        os.rename(random_tolerance_file_name, tolerance_file_name)
+        os.rename(tolerance_file_name, tolerance_file_name)
