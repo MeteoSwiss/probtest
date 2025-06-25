@@ -142,7 +142,7 @@ def test_selection(
     stats_file_name, tolerance_file_name, total_member_count, member_type, factor
 ):
     """
-    Tests how may stats files pass the tolerance test for the selected members
+    Tests how many stats files pass the tolerance test for the selected members
     Returns the number of passed stats files and the variables which failed
     """
 
