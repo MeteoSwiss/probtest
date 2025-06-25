@@ -200,7 +200,7 @@ def check_selection(
 )
 @click.option(
     "--enable_check_only/--disable_check_only",
-    is_flag=True,
+    is_flag=False,
     help=cli_help["enable_check_only"],
 )
 @click.option(
