@@ -43,8 +43,9 @@ def find_members_and_factor_validating_for_all_stats_files(
 
     This step is repeated, progressively validating additional members, until
     all ensemble members are validated or a predefined maximum number of
-    iterations is reached. If the latter occurs, the tolerance factor is
-    increased and the process restarts.
+    ensemble members is reached.
+    If the latter occurs, the tolerance factor is increased in case not all
+    members haven been validated yet.
     """
 
     members_not_validating = set(range(1, total_member_count + 1))
