@@ -227,7 +227,7 @@ def run_select_members_cli(
         str(20),
     ]
     if enable_check_only:
-        args.append("--test-tolerance")
+        args.append("--enable-check-only")
     return run_cli(select_members, args, log)
 
 

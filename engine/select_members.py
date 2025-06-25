@@ -75,7 +75,7 @@ def find_members_and_factor_validating_for_all_stats_files(
             validation_members = [
                 m for m in members_not_validating if m not in temp_member_selection
             ]
-            _, failed, _ = check_selection(
+            _, failed, _ = check_selection_by_ids(
                 stats_file_name,
                 random_tolerance_file_name,
                 validation_members,
@@ -115,7 +115,7 @@ def find_members_and_factor_validating_for_all_stats_files(
             logger.info("Set factor to %s", f)
 
             # Test selection (exclude random selection)
-            _, failed, most_common_vars = check_selection(
+            _, failed, most_common_vars = check_selection_by_ids(
                 stats_file_name,
                 random_tolerance_file_name,
                 members_not_validating,
@@ -139,7 +139,7 @@ def find_members_and_factor_validating_for_all_stats_files(
     sys.exit(1)
 
 
-def check_selection(
+def check_selection_by_ids(
     stats_file_name, tolerance_file_name, total_member_count, member_type, factor
 ):
     """
@@ -199,8 +199,8 @@ def check_selection(
     help=cli_help["experiment_name"],
 )
 @click.option(
-    "--enable_check_only/--disable_check_only",
-    is_flag=False,
+    "--enable-check-only/--disable-check-only",
+    is_flag=True,
     help=cli_help["enable_check_only"],
 )
 @click.option(
@@ -272,7 +272,7 @@ def select_members(
 
     if enable_check_only:
         # Test selection
-        check_selection(
+        check_selection_by_ids(
             stats_file_name,
             tolerance_file_name,
             total_member_count,
