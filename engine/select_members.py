@@ -275,10 +275,10 @@ def select_members(
             factor=factor,
         )
     else:
-        tolerance_file_name = f"tolerance_{experiment_name}.csv"
+        tmp_tolerance_file_name = f"tmp_tolerance_{experiment_name}.csv"
         start_time = datetime.now()
         selection, factor = find_members_and_factor_validating_for_all_stats_files(
-            tolerance_file_name,
+            tmp_tolerance_file_name,
             stats_file_name,
             member_type,
             max_member_count,
@@ -304,4 +304,4 @@ def select_members(
 
         # The last created file was successful
         logger.info("Writing tolerance file to %s", tolerance_file_name)
-        os.rename(tolerance_file_name, tolerance_file_name)
+        os.rename(tmp_tolerance_file_name, tolerance_file_name)
