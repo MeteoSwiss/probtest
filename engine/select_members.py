@@ -96,9 +96,10 @@ def find_members_and_factor_validating_for_all_stats_files(
             member_selection.add(member_with_minmal_fails)
             members_not_validating = minimal_fails
             logger.info(
-                "Current member selection size %s, passes %s%% of all members.\n",
+                "%s%% of all members pass with the current member selection "
+                "of size %s.\n",
                 len(member_selection),
-                int(1.0 - len(minimal_fails) / total_member_count) * 100,
+                int((1.0 - len(minimal_fails) / total_member_count) * 100),
             )
 
     if members_not_validating:
@@ -180,7 +181,7 @@ def check_selection_by_ids(
     # Reset logger level
     logging.getLogger().setLevel(original_level)
     logger.info(
-        "... passing for %s out of %s members.\n",
+        "... %s out of %s members pass.\n",
         len(passed),
         len(member_ids),
     )
