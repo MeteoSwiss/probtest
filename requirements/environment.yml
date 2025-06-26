@@ -167,7 +167,7 @@ dependencies:
   - pydantic-core=2.33.2
   - pydocstyle=6.3.0
   - pyflakes=3.3.2
-  - pygments=2.19.1
+  - pygments=2.19.2
   - pylint=3.3.7
   - pyparsing=3.2.3
   - pyside6=6.9.1
@@ -185,8 +185,8 @@ dependencies:
   - regex=2024.11.6
   - rich=14.0.0
   - rope=1.13.0
-  - rstcheck=6.2.4
-  - rstcheck-core=1.2.1
+  - rstcheck=6.2.5
+  - rstcheck-core=1.2.2
   - ruamel.yaml=0.18.14
   - ruamel.yaml.clib=0.2.8
   - scipy=1.15.2
