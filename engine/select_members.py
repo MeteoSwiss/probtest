@@ -98,7 +98,7 @@ def find_members_and_factor_validating_for_all_stats_files(
             logger.info(
                 "Current member selection size %s, passes %s%% of all members.\n",
                 len(member_selection),
-                (1.0 - int(len(minimal_fails) / total_member_count) * 100),
+                int(1.0 - len(minimal_fails) / total_member_count) * 100,
             )
 
     if members_not_validating:
