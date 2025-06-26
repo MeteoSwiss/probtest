@@ -181,7 +181,7 @@ def check_selection_by_ids(
     # Reset logger level
     logging.getLogger().setLevel(original_level)
     logger.info(
-        "... %s out of %s members pass.\n",
+        "... %s members out of %s pass.\n",
         len(passed),
         len(member_ids),
     )
