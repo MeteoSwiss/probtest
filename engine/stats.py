@@ -34,7 +34,7 @@ def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specificati
 
 
 def process_member(
-    m_num,
+    member_id,
     member_type,
     model_output_dir,
     perturbed_model_output_dir,
@@ -42,18 +42,18 @@ def process_member(
     stats_file_name,
     file_specification,
 ):  # pylint: disable=too-many-positional-arguments
-    if m_num == 0:
+    if member_id == 0:
         input_dir = model_output_dir
-        m_id = "ref"
+        m_id_str = "ref"
     else:
-        m_id = str(m_num)
+        m_id_str = str(member_id)
         if member_type:
-            m_id = member_type + "_" + m_id
-        input_dir = perturbed_model_output_dir.format(member_id=m_id)
+            m_id_str = member_type + "_" + m_id_str
+        input_dir = perturbed_model_output_dir.format(member_id=m_id_str)
     create_stats_dataframe(
         input_dir,
         file_id,
-        stats_file_name.format(member_id=m_id),
+        stats_file_name.format(member_id=m_id_str),
         file_specification,
     )
 
@@ -81,10 +81,10 @@ def process_member(
     help=cli_help["file_id"],
 )
 @click.option(
-    "--member-num",
+    "--member-ids",
     type=CommaSeperatedInts(),
-    default="10",
-    help=cli_help["member_num"],
+    default="1,2,3,4,5,6,7,8,9,10",
+    help=cli_help["member_ids"],
 )
 @click.option(
     "--member-type",
@@ -106,7 +106,7 @@ def stats(
     stats_file_name,
     model_output_dir,
     file_id,
-    member_num,
+    member_ids,
     member_type,
     perturbed_model_output_dir,
     file_specification,
@@ -116,15 +116,11 @@ def stats(
 
     # compute stats for the ensemble and the reference run
     if ensemble:
-        # Add 0 to the list of member numbers to include the reference run
-        if len(member_num) == 1:
-            member_num = list(range(member_num[0] + 1))
-        else:
-            member_num.append(0)
+        member_ids.append(0)
         with Pool() as p:
             args = [
                 (
-                    m_num,
+                    m_id,
                     member_type,
                     model_output_dir,
                     perturbed_model_output_dir,
@@ -132,7 +128,7 @@ def stats(
                     stats_file_name,
                     file_specification,
                 )
-                for m_num in member_num
+                for m_id in member_ids
             ]
             p.starmap(process_member, args)
     else:

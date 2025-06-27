@@ -17,7 +17,7 @@ import click
 
 from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
 from util.log_handler import logger
-from util.utils import get_seed_from_member_number, process_member_num
+from util.utils import get_seed_from_member_id
 
 
 def is_float(string):
@@ -114,7 +114,7 @@ def append_job(job, job_list, parallel):
         try:
             time.sleep(5)
             p.wait()
-            test_job_returncode(p)
+            check_job_returncode(p)
         finally:
             p.kill()
     else:
@@ -127,7 +127,7 @@ def finalize_jobs(job_list, dry, parallel):
         for job in job_list:
             job.communicate()
             try:
-                test_job_returncode(job)
+                check_job_returncode(job)
             except subprocess.CalledProcessError as e:
                 logger.error(e)
                 last_exception = e
@@ -135,7 +135,7 @@ def finalize_jobs(job_list, dry, parallel):
             raise last_exception
 
 
-def test_job_returncode(job):
+def check_job_returncode(job):
     """Test job return code."""
     if job.returncode != 0:
         raise subprocess.CalledProcessError(returncode=job.returncode, cmd=job.args)
@@ -171,10 +171,10 @@ def test_job_returncode(job):
     help=cli_help["submit_command"],
 )
 @click.option(
-    "--member-num",
-    default="10",
+    "--member-ids",
+    default="1,2,3,4,5,6,7,8,9,10",
     type=CommaSeperatedInts(),
-    help=cli_help["member_num"],
+    help=cli_help["member_ids"],
 )
 @click.option(
     "--member-type",
@@ -215,7 +215,7 @@ def run_ensemble(
     experiment_name,
     perturbed_experiment_name,
     submit_command,
-    member_num,
+    member_ids,
     member_type,
     parallel,
     dry,
@@ -234,31 +234,33 @@ def run_ensemble(
         append_job(job, job_list, parallel)
 
     # run the ensemble
-    processed_member_num = process_member_num(member_num)
+    for m_id in member_ids:
 
-    for m_num, m_id in processed_member_num:
-
-        Path(perturbed_run_dir.format(member_id=m_id)).mkdir(
+        Path(perturbed_run_dir.format(member_id=str(m_id))).mkdir(
             exist_ok=True, parents=True
         )
-        os.chdir(perturbed_run_dir.format(member_id=m_id))
+        os.chdir(perturbed_run_dir.format(member_id=str(m_id)))
+
         if member_type:
-            m_id = member_type + "_" + m_id
+            m_id_str = member_type + "_" + str(m_id)
+        else:
+            m_id_str = str(m_id)
+
         runscript = f"{run_dir}/{run_script_name}"
 
-        perturbed_run_dir_path = perturbed_run_dir.format(member_id=m_id)
-        perturbed_run_script_path = perturbed_run_script_name.format(member_id=m_id)
+        perturbed_run_dir_path = perturbed_run_dir.format(member_id=m_id_str)
+        perturbed_run_script_path = perturbed_run_script_name.format(member_id=m_id_str)
         perturbed_runscript = f"{perturbed_run_dir_path}/{perturbed_run_script_path}"
 
         prepare_perturbed_run_script(
             runscript,
             perturbed_runscript,
             experiment_name,
-            perturbed_experiment_name.format(member_id=m_id),
+            perturbed_experiment_name.format(member_id=m_id_str),
             lhs,
             rhs_new,
             rhs_old,
-            get_seed_from_member_number(m_num),
+            get_seed_from_member_id(m_id),
         )
 
         if not dry:

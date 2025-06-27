@@ -14,7 +14,7 @@ import pandas as pd
 import xarray as xr
 
 from util import model_output_parser
-from util.click_util import CommaSeperatedInts, cli_help
+from util.click_util import cli_help
 from util.constants import cdo_bins
 from util.dataframe_ops import df_from_file_ids
 from util.file_system import file_names_from_pattern
@@ -93,10 +93,10 @@ def rel_diff_stats(
     help=cli_help["file_id"],
 )
 @click.option(
-    "--member-num",
-    type=CommaSeperatedInts(),
-    default="10",
-    help=cli_help["member_num"],
+    "--member-id",
+    type=int,
+    default=1,
+    help=cli_help["member_id"],
 )
 @click.option(
     "--member-type",
@@ -120,20 +120,17 @@ def rel_diff_stats(
 def cdo_table(
     model_output_dir,
     file_id,
-    member_num,
+    member_id: int,
     member_type,
     perturbed_model_output_dir,
     cdo_table_file,
     file_specification,
 ):  # pylint: disable=too-many-positional-arguments
-    # TODO: A single perturbed run provides enough data to make proper statistics.
-    #       refactor cdo_table interface to reflect that
-    if len(member_num) == 1:
-        member_num = list(range(1, member_num[0] + 1))
+
     if member_type:
-        member_id = member_type + "_" + str(member_num[0])
+        member_id_str = member_type + "_" + str(member_id)
     else:
-        member_id = str(member_num[0])
+        member_id_str = str(member_id)
 
     file_specification = file_specification[0]  # can't store dicts as defaults in click
     assert isinstance(file_specification, dict), "must be dict"
@@ -154,7 +151,7 @@ def cdo_table(
                 continue
             ref_files.sort()
             perturb_files, err = file_names_from_pattern(
-                perturbed_model_output_dir.format(member_id=member_id), file_pattern
+                perturbed_model_output_dir.format(member_id=member_id_str), file_pattern
             )
             if err > 0:
                 logger.info(
@@ -168,7 +165,7 @@ def cdo_table(
                     continue
                 ref_data = xr.open_dataset(f"{model_output_dir}/{rf}")
                 perturb_data = xr.open_dataset(
-                    f"{perturbed_model_output_dir.format(member_id=member_id)}/{pf}"
+                    f"{perturbed_model_output_dir.format(member_id=member_id_str)}/{pf}"
                 )
                 diff_data = ref_data.copy()
                 varnames = [
