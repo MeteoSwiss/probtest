@@ -73,11 +73,11 @@ def test_tolerance(stats_file_set, caplog):
         log=caplog,
     )
 
-    match = re.search(r".*for (\d+) out of 20.*", log)
+    match = re.search(r".*(\d+) members out of 20 pass.*", log)
     passed_count = match.group(1) if match else "0"
     error_message = (
         f"The test-tolerance output is incorrect. It should pass for "
-        f"18 out of 20 but it passed for {passed_count} out of 20."
+        f"8 out of 20 but it passed for {passed_count} out of 20."
     )
 
-    assert "18 out of 20" in log, error_message
+    assert "8 members out of 20" in log, error_message
