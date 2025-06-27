@@ -7,7 +7,7 @@
             "perturbed_experiment_name": "{{experiment_name}}_member_id_{member_id}",
             "stats_file_name": "stats_{member_id}.csv",
             "tolerance_file_name": "{{reference}}/{{experiment_name}}_tolerance.csv",
-            "member_num": "[{member_num}]",
+            "member_id": "[{member_id}]",
             "member_type": "{{member_type}}",
             "factor": 5,
             "file_specification": [{
@@ -48,7 +48,7 @@
         },
     "select-members":
         {
-            "test_tolerance": false,
+            "enable_check_only": false,
             "selected_members_file_name": "{{reference}}/{{experiment_name}}_selected_members.csv"
         },
     "check":

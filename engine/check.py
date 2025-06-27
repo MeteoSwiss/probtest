@@ -12,7 +12,7 @@ import sys
 import click
 
 from util.click_util import cli_help
-from util.dataframe_ops import compute_div_dataframe, test_stats_file_with_tolerances
+from util.dataframe_ops import check_stats_file_with_tolerances, compute_div_dataframe
 from util.log_handler import logger
 
 
@@ -36,7 +36,7 @@ from util.log_handler import logger
 )
 def check(input_file_ref, input_file_cur, tolerance_file_name, factor):
 
-    out, err, tol = test_stats_file_with_tolerances(
+    out, err, tol = check_stats_file_with_tolerances(
         tolerance_file_name, input_file_ref, input_file_cur, factor
     )
 

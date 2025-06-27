@@ -191,7 +191,7 @@ python ../externals/probtest/probtest.py tolerance
 These commands will generate a number of files:
 
 - `stats_ref.csv`: contains the post-processed output from the unperturbed reference run
-- `stats_{member_num}.csv`: contain the post-processed output from the perturbed reference runs (only needed temporarily to generate the tolerance file)
+- `stats_{member_id}.csv`: contain the post-processed output from the perturbed reference runs (only needed temporarily to generate the tolerance file)
 - `exp_name_tolerance.csv`: contains tolerance ranges computed from the stats-files
 
 These can then be used to compare against the output of a test binary (usually a

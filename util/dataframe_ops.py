@@ -289,7 +289,7 @@ def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
     return df_tol, df_ref, df_cur
 
 
-def test_stats_file_with_tolerances(
+def check_stats_file_with_tolerances(
     tolerance_file_name, input_file_ref, input_file_cur, factor
 ):
 
