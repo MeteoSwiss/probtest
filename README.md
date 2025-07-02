@@ -6,7 +6,7 @@ Probtest is a suite of python scripts to test various aspects of weather and cli
 1. [Commands](#commands)
 2. [Quick start guide](#quick-start-guide)
 3. [Developing in probtest](#developing-in-probtest)
-4. [Create Probtest Container via GitHub Actions](#create-probtest-container-via-github-actions)
+4. [Probtest container](#probtest-container)
 
 ## Commands
 
@@ -277,10 +277,15 @@ actually committing:
 pre-commit run --all-files
 ```
 
-## Create Probtest Container via GitHub Actions
-You can build the Probtest Docker container using the GitHub Actions workflow defined in the [build-container.yml](.github/workflows/build-container.yml).
+## Probtest Container
 
-**Steps:**
+Prebuilt Docker images for the latest Probtest releases are available on Docker Hub: [c2sm/probtest](https://hub.docker.com/r/c2sm/probtest/tags)
+
+### Build the Probtest Container via GitHub Actions
+
+You can also build the Probtest Docker image yourself using the GitHub Actions workflow defined in [`build-container.yml`](.github/workflows/build-container.yml).
+
+#### Steps:
 
 1. Navigate to the `Actions` tab of this repository.
 2. Select the `Deploy image to DockerHub and GitHub Release` workflow from the list.
@@ -289,11 +294,10 @@ You can build the Probtest Docker container using the GitHub Actions workflow de
 5. Once completed, open the workflow run and scroll down to the `Artifacts` section.
 6. Download the `probtest_image.tar` artifact.
 
-**Load the Docker image locally:**
+#### Load the Image into Docker
 
-After downloading the artifact, load it into Docker with (Docker needs to be installed on your system):
-```console
+To load the downloaded image into your local Docker installation, run:
+
+```bash
 docker load -i probtest_image.tar
 ```
-
-You can now run or tag the image as needed.
