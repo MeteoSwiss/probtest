@@ -20,14 +20,6 @@ from util.log_handler import logger
 from util.utils import get_seed_from_member_id, prepend_type_to_member_id
 
 
-def is_float(string):
-    try:
-        float(string)
-        return True
-    except ValueError:
-        return False
-
-
 # replace an assignment statement (left=*right* to left=new)
 # "right" is used here to identify multiple assignments of "left"
 def replace_assignment(line, left, right_new, right_old, seed):
