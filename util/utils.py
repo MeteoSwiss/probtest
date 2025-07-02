@@ -13,6 +13,9 @@ def unique_elements(inlist):
             unique.append(element)
     return unique
 
+def prepend_type_to_member_id(member_type, member_id):
+    return (member_type + "_" + str(member_id)) if member_type else str(member_id)
+
 
 def first_idx_of(li, el):
     return li.index(el)

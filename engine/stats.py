@@ -16,6 +16,7 @@ import click
 from util.click_util import CommaSeperatedInts, cli_help
 from util.dataframe_ops import df_from_file_ids
 from util.log_handler import logger
+from util.utils import prepend_type_to_member_id
 
 
 def monotonically_increasing(li):
@@ -43,17 +44,15 @@ def process_member(
     file_specification,
 ):  # pylint: disable=too-many-positional-arguments
     if member_id == 0:
+        complete_member_id = "ref"
         input_dir = model_output_dir
-        m_id_str = "ref"
     else:
-        m_id_str = str(member_id)
-        if member_type:
-            m_id_str = member_type + "_" + m_id_str
-        input_dir = perturbed_model_output_dir.format(member_id=m_id_str)
+        complete_member_id = prepend_type_to_member_id(member_type, member_id)
+        input_dir = perturbed_model_output_dir.format(member_id=complete_member_id)
     create_stats_dataframe(
         input_dir,
         file_id,
-        stats_file_name.format(member_id=m_id_str),
+        stats_file_name.format(member_id=complete_member_id),
         file_specification,
     )
 
@@ -120,7 +119,7 @@ def stats(
         with Pool() as p:
             args = [
                 (
-                    m_id,
+                    member_id,
                     member_type,
                     model_output_dir,
                     perturbed_model_output_dir,
@@ -128,7 +127,7 @@ def stats(
                     stats_file_name,
                     file_specification,
                 )
-                for m_id in member_ids
+                for member_id in member_ids
             ]
             p.starmap(process_member, args)
     else:
