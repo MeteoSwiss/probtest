@@ -5,7 +5,7 @@ Probtest is a suite of python scripts to test various aspects of weather and cli
 ## Table of contents
 1. [Commands](#commands)
 2. [Quick start guide](#quick-start-guide)
-3. [Developing in probtest](#developing-in-probtest)
+3. [Developing probtest](#developing-probtest)
 4. [Probtest container](#probtest-container)
 
 ## Commands
