@@ -291,7 +291,7 @@ You can build the Probtest Docker container using the GitHub Actions workflow de
 
 **Load the Docker image locally:**
 
-After downloading the artifact, load it into Docker with:
+After downloading the artifact, load it into Docker with (Docker needs to be installed on your system):
 ```console
 docker load -i probtest_image.tar
 ```
