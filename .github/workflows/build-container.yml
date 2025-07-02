@@ -1,7 +1,10 @@
 name: Build Docker Container
 
 on:
-  workflow_dispatch:  # Manual trigger
+  push:
+    branches:
+      - container
+#  workflow_dispatch:  # Manual trigger
 
 jobs:
   build:
