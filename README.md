@@ -288,7 +288,7 @@ You can also build the Probtest Docker image yourself using the GitHub Actions w
 #### Steps:
 
 1. Navigate to the `Actions` tab of this repository.
-2. Select the `Deploy image to DockerHub and GitHub Release` workflow from the list.
+2. Select the `Build Docker Container` workflow from the list.
 3. Click the `Run workflow` button (top-right) and confirm.
 4. Wait for the workflow to complete (approximately 50 minutes).
 5. Once completed, open the workflow run and scroll down to the `Artifacts` section.
