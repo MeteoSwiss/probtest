@@ -208,6 +208,7 @@ def run_select_members_cli(
     max_member_count=15,
     min_factor=5.0,
     max_factor=50.0,
+    total_member_count=20,
     log=None,
 ):  # pylint: disable=too-many-positional-arguments
     args = [
@@ -224,7 +225,7 @@ def run_select_members_cli(
         "--max-factor",
         str(max_factor),
         "--total-member-count",
-        str(20),
+        str(total_member_count),
     ]
     if enable_check_only:
         args.append("--enable-check-only")
