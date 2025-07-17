@@ -31,7 +31,7 @@ dateline_regexs = (
 )
 icon_date_formats = ("%a %b %d %H:%M:%S %Z %Y", "%a %d %b %Y %H:%M:%S %p %Z")
 
-DICT_REGEX = "({} *:) *(.*)"
+DICT_REGEX = r"^\s*{} *: *(.*)"
 
 
 def _convert_dateline_to_start_end_datetime(dateline, icon_date_format):
@@ -139,11 +139,15 @@ def read_logfile(filename):
         meta_data["finish_time"] = finish_datetime_converted
 
         # get meta data from ICON log (in the form "Key : Value")
-        revision = re.search(DICT_REGEX.format("Revision"), full_file)
-        branch = re.search(DICT_REGEX.format("Branch"), full_file)
+        revision = re.search(
+            DICT_REGEX.format("revision"), full_file, re.IGNORECASE | re.MULTILINE
+        )
+        branch = re.search(
+            DICT_REGEX.format("branch"), full_file, re.IGNORECASE | re.MULTILINE
+        )
 
-        meta_data["revision"] = revision.group(2)
-        meta_data["branch"] = branch.group(2)
+        meta_data["revision"] = revision.group(1).strip() if revision else None
+        meta_data["branch"] = branch.group(1).strip() if branch else None
     meta_data["n_tables"] = len(timing_data)
     meta_data["entries"] = [len(e["indent"]) for e in timing_data]
 
