@@ -5,7 +5,7 @@ This command line tool provides functionality for:
 - Creating copies of specified model files and optionally copying all files from
   a source directory to a destination directory.
 - Applying perturbations to arrays in NetCDF files based on a specified
-  perturbation amplitude and random seed.
+  perturbation amplitude and fixed seed.
 """
 
 import os
