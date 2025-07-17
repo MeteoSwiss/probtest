@@ -83,6 +83,7 @@ def perturb(
     copy_all_files,
 ):  # pylint: disable=unused-argument, too-many-positional-arguments
 
+    # `member_id` is already an input option
     for _member_id in member_ids:
 
         perturbed_dir = perturbed_model_input_dir.format(
