@@ -138,7 +138,7 @@ def cdo_table(
 
     # step 1: compute rel-diff netcdf files
     with tempfile.TemporaryDirectory() as tmpdir:
-        complete_member_id = prepend_type_to_member_id(member_type, member_id)
+        typed_member_id = prepend_type_to_member_id(member_type, member_id)
         for _, file_pattern in file_id:
             ref_files, err = file_names_from_pattern(model_output_dir, file_pattern)
             if err > 0:
@@ -148,7 +148,7 @@ def cdo_table(
                 continue
             ref_files.sort()
             perturb_files, err = file_names_from_pattern(
-                perturbed_model_output_dir.format(member_id=complete_member_id),
+                perturbed_model_output_dir.format(member_id=typed_member_id),
                 file_pattern,
             )
             if err > 0:
@@ -163,7 +163,7 @@ def cdo_table(
                     continue
                 ref_data = xr.open_dataset(f"{model_output_dir}/{rf}")
                 perturb_data = xr.open_dataset(
-                    f"{perturbed_model_output_dir.format(member_id=complete_member_id)}"
+                    f"{perturbed_model_output_dir.format(member_id=typed_member_id)}"
                     f"/{pf}"
                 )
                 diff_data = ref_data.copy()

@@ -22,7 +22,7 @@ To work with probtest, a configuration file is needed. This file contains all th
 
 ### perturb
 
-Creates an ensemble of netcdf files that can be used as input by the model.
+Creates an set of netcdf files that can be used as input for a perturbed model ensemble.
 
 ### run-ensemble
 

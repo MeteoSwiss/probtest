@@ -83,10 +83,10 @@ def perturb(
     copy_all_files,
 ):  # pylint: disable=unused-argument, too-many-positional-arguments
 
-    for member_id in member_ids:
+    for _member_id in member_ids:
 
         perturbed_dir = perturbed_model_input_dir.format(
-            member_id=prepend_type_to_member_id(member_type, member_id)
+            member_id=prepend_type_to_member_id(member_type, _member_id)
         )
 
         model_input_dir_abspath = os.path.abspath(model_input_dir)
@@ -106,7 +106,7 @@ def perturb(
             for vn in variable_names:
                 d.variables[vn][:] = perturb_array(
                     array=d.variables[vn][:],
-                    seed=get_seed_from_member_id(member_id),
+                    seed=get_seed_from_member_id(_member_id),
                     perturb_amplitude=perturb_amplitude,
                 )
             d.close()

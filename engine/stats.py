@@ -92,19 +92,19 @@ def stats(
         member_ids.append(0)
         for member_id in member_ids:
             if member_id == 0:
-                complete_member_id = "ref"
+                typed_member_id = "ref"
                 output_dir = model_output_dir
             else:
-                complete_member_id = prepend_type_to_member_id(member_type, member_id)
+                typed_member_id = prepend_type_to_member_id(member_type, member_id)
                 output_dir = perturbed_model_output_dir.format(
-                    member_id=complete_member_id
+                    member_id=typed_member_id
                 )
 
             df_args.append(
                 (
                     output_dir,
                     file_id,
-                    stats_file_name.format(member_id=complete_member_id),
+                    stats_file_name.format(member_id=typed_member_id),
                     file_specification,
                 )
             )
