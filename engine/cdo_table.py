@@ -127,7 +127,6 @@ def cdo_table(
     cdo_table_file,
     file_specification,
 ):  # pylint: disable=too-many-positional-arguments
-        
 
     file_specification = file_specification[0]  # can't store dicts as defaults in click
     assert isinstance(file_specification, dict), "must be dict"
@@ -149,7 +148,8 @@ def cdo_table(
                 continue
             ref_files.sort()
             perturb_files, err = file_names_from_pattern(
-                perturbed_model_output_dir.format(member_id=complete_member_id), file_pattern
+                perturbed_model_output_dir.format(member_id=complete_member_id),
+                file_pattern,
             )
             if err > 0:
                 logger.info(
@@ -163,7 +163,8 @@ def cdo_table(
                     continue
                 ref_data = xr.open_dataset(f"{model_output_dir}/{rf}")
                 perturb_data = xr.open_dataset(
-                    f"{perturbed_model_output_dir.format(member_id=complete_member_id)}/{pf}"
+                    f"{perturbed_model_output_dir.format(member_id=complete_member_id)}"
+                    f"/{pf}"
                 )
                 diff_data = ref_data.copy()
                 varnames = [

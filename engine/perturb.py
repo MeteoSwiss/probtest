@@ -22,9 +22,10 @@ from util.utils import get_seed_from_member_id, prepend_type_to_member_id
 
 def perturb_array(array, seed, perturb_amplitude):
     np.random.seed(seed)
-    perturbation = (
-        np.random.rand(*array.shape) * 2 - 1
-    ) * perturb_amplitude + 1  # *2-1: map to [-1,1), *perturb_amplitude: rescale to perturbation amplitude, +1 perturb around 1
+    # *2-1: map to [-1,1)
+    # *perturb_amplitude: rescale to perturbation amplitude
+    # +1 perturb around 1
+    perturbation = (np.random.rand(*array.shape) * 2 - 1) * perturb_amplitude + 1
     return np.copy(array * perturbation)
 
 
@@ -87,19 +88,18 @@ def perturb(
         perturbed_dir = perturbed_model_input_dir.format(
             member_id=prepend_type_to_member_id(member_type, member_id)
         )
-        
+
         model_input_dir_abspath = os.path.abspath(model_input_dir)
-        
-        # Create directory for perturbed ensemble member 
+
+        # Create directory for perturbed ensemble member
         if not os.path.exists(perturbed_dir):
             logger.info("creating new directory: %s", perturbed_dir)
             os.makedirs(perturbed_dir)
-            
+
         # Add perturbed files to member directory
         data = [
-            nc4_get_copy(
-                f"{model_input_dir_abspath}/{f}", f"{perturbed_dir}/{f}"
-            ) for f in files
+            nc4_get_copy(f"{model_input_dir_abspath}/{f}", f"{perturbed_dir}/{f}")
+            for f in files
         ]
 
         for d in data:
@@ -111,8 +111,11 @@ def perturb(
                 )
             d.close()
 
-        # Copy rest of the files in `model_input_dir` to the perturbed ensemble member dir (`perturbed_dir`)
+        # Copy rest of the files in `model_input_dir` to the perturbed ensemble
+        # member dir (`perturbed_dir`)
         if copy_all_files:
             for f in os.listdir(model_input_dir_abspath):
-                if f not in files: # files added manually via `files` flag already copied above
+                if (
+                    f not in files
+                ):  # files added manually via `files` flag already copied above
                     shutil.copy(os.path.join(model_input_dir, f), perturbed_dir)

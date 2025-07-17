@@ -37,5 +37,6 @@ def test_get_seed_from_member_id_unique_seeds():
     seeds = [get_seed_from_member_id(i) for i in range(1, 121)]
     assert len(seeds) == len(set(seeds)), "Seeds are not unique!"
 
+
 def test_prepend_type_to_member_id():
     assert prepend_type_to_member_id("double", 3) == "double_3"

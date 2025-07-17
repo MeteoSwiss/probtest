@@ -234,11 +234,13 @@ def run_ensemble(
         os.chdir(perturbed_run_dir.format(member_id=str(member_id)))
 
         runscript = f"{run_dir}/{run_script_name}"
-        
+
         complete_member_id = prepend_type_to_member_id(member_type, member_id)
 
         perturbed_run_dir_path = perturbed_run_dir.format(member_id=complete_member_id)
-        perturbed_run_script_path = perturbed_run_script_name.format(member_id=complete_member_id)
+        perturbed_run_script_path = perturbed_run_script_name.format(
+            member_id=complete_member_id
+        )
         perturbed_runscript = f"{perturbed_run_dir_path}/{perturbed_run_script_path}"
 
         prepare_perturbed_run_script(

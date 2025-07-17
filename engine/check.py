@@ -12,7 +12,7 @@ import sys
 import click
 
 from util.click_util import cli_help
-from util.dataframe_ops import check_stats_file_with_tolerances, compute_division_df
+from util.dataframe_ops import check_stats_file_with_tolerances, compute_division
 from util.log_handler import logger
 
 
@@ -49,8 +49,6 @@ def check(input_file_ref, input_file_cur, tolerance_file_name, factor):
         logger.info("\nTolerance")
         logger.info(tol)
         logger.info("\nError relative to tolerance")
-        logger.info(
-            compute_division_df(err, tol)
-        )
+        logger.info(compute_division(err, tol))
 
     sys.exit(0 if out else 1)
