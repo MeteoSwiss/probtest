@@ -3,7 +3,6 @@ CLI for computing stats
 
 This command line tool provides functionality for:
 - Creating and saving statistics dataframes from specified model output files.
-- Verifying that lists of values are monotonically increasing.
 - Generating statistics for both ensemble and reference model runs.
 """
 
@@ -16,10 +15,7 @@ import click
 from util.click_util import CommaSeperatedInts, cli_help
 from util.dataframe_ops import df_from_file_ids
 from util.log_handler import logger
-
-
-def monotonically_increasing(li):
-    return all(x <= y for x, y in zip(li[:-1], li[1:]))
+from util.utils import prepend_type_to_member_id
 
 
 def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specification):
@@ -31,31 +27,6 @@ def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specificati
     df.to_csv(stats_file_name)
 
     return df
-
-
-def process_member(
-    member_id,
-    member_type,
-    model_output_dir,
-    perturbed_model_output_dir,
-    file_id,
-    stats_file_name,
-    file_specification,
-):  # pylint: disable=too-many-positional-arguments
-    if member_id == 0:
-        input_dir = model_output_dir
-        m_id_str = "ref"
-    else:
-        m_id_str = str(member_id)
-        if member_type:
-            m_id_str = member_type + "_" + m_id_str
-        input_dir = perturbed_model_output_dir.format(member_id=m_id_str)
-    create_stats_dataframe(
-        input_dir,
-        file_id,
-        stats_file_name.format(member_id=m_id_str),
-        file_specification,
-    )
 
 
 @click.command()
@@ -116,21 +87,31 @@ def stats(
 
     # compute stats for the ensemble and the reference run
     if ensemble:
+        df_args = []
+
         member_ids.append(0)
-        with Pool() as p:
-            args = [
+        for member_id in member_ids:
+            if member_id == 0:
+                typed_member_id = "ref"
+                output_dir = model_output_dir
+            else:
+                typed_member_id = prepend_type_to_member_id(member_type, member_id)
+                output_dir = perturbed_model_output_dir.format(
+                    member_id=typed_member_id
+                )
+
+            df_args.append(
                 (
-                    m_id,
-                    member_type,
-                    model_output_dir,
-                    perturbed_model_output_dir,
+                    output_dir,
                     file_id,
-                    stats_file_name,
+                    stats_file_name.format(member_id=typed_member_id),
                     file_specification,
                 )
-                for m_id in member_ids
-            ]
-            p.starmap(process_member, args)
+            )
+
+        with Pool() as p:
+            p.starmap(create_stats_dataframe, df_args)
+
     else:
         create_stats_dataframe(
             model_output_dir,

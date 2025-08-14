@@ -19,6 +19,7 @@ from util.constants import cdo_bins
 from util.dataframe_ops import df_from_file_ids
 from util.file_system import file_names_from_pattern
 from util.log_handler import logger
+from util.utils import prepend_type_to_member_id
 
 
 def compute_rel_diff(var1, var2):
@@ -127,11 +128,6 @@ def cdo_table(
     file_specification,
 ):  # pylint: disable=too-many-positional-arguments
 
-    if member_type:
-        member_id_str = member_type + "_" + str(member_id)
-    else:
-        member_id_str = str(member_id)
-
     file_specification = file_specification[0]  # can't store dicts as defaults in click
     assert isinstance(file_specification, dict), "must be dict"
 
@@ -142,6 +138,7 @@ def cdo_table(
 
     # step 1: compute rel-diff netcdf files
     with tempfile.TemporaryDirectory() as tmpdir:
+        typed_member_id = prepend_type_to_member_id(member_type, member_id)
         for _, file_pattern in file_id:
             ref_files, err = file_names_from_pattern(model_output_dir, file_pattern)
             if err > 0:
@@ -151,7 +148,8 @@ def cdo_table(
                 continue
             ref_files.sort()
             perturb_files, err = file_names_from_pattern(
-                perturbed_model_output_dir.format(member_id=member_id_str), file_pattern
+                perturbed_model_output_dir.format(member_id=typed_member_id),
+                file_pattern,
             )
             if err > 0:
                 logger.info(
@@ -165,7 +163,8 @@ def cdo_table(
                     continue
                 ref_data = xr.open_dataset(f"{model_output_dir}/{rf}")
                 perturb_data = xr.open_dataset(
-                    f"{perturbed_model_output_dir.format(member_id=member_id_str)}/{pf}"
+                    f"{perturbed_model_output_dir.format(member_id=typed_member_id)}"
+                    f"/{pf}"
                 )
                 diff_data = ref_data.copy()
                 varnames = [

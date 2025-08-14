@@ -1,6 +1,6 @@
 """
 This module provides utility functions for list and string operations, as well as
-a function to generate seeds based on a member number for probtest.
+a function to get fixed seeds based on the ensemble member number.
 """
 
 import re
@@ -12,6 +12,10 @@ def unique_elements(inlist):
         if element not in unique:
             unique.append(element)
     return unique
+
+
+def prepend_type_to_member_id(member_type, member_id):
+    return (member_type + "_" + str(member_id)) if member_type else str(member_id)
 
 
 def first_idx_of(li, el):

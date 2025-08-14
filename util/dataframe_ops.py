@@ -38,7 +38,7 @@ def compute_rel_diff_dataframe(df1, df2):
     return out
 
 
-def compute_div_dataframe(df1, df2):
+def compute_division(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
     # avoid division by 0 and put nan instead
     out = df1 / df2.replace({0: np.nan})
     # put 0 if numerator is 0 as well
