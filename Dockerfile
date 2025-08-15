@@ -38,4 +38,4 @@ RUN cd /probtest && conda run --name probtest pytest -v -s --cov --cov-report=te
 WORKDIR /probtest
 
 SHELL ["/bin/bash", "-c"]
-ENTRYPOINT ["conda", "run", "--name", "probtest", "/bin/bash", "-c"]
+ENTRYPOINT ["/opt/conda/miniconda/bin/conda", "run", "--name", "probtest", "/bin/bash", "-c"]
