@@ -22,27 +22,38 @@ def sample_data():
     return da
 
 
-# Manual list of supported and stable statistics in xarray
-ALL_STATS = [
-    "mean",
-    "max",
-    "min",
-    "sum",
-    "std",
-    "var",
-    "median",
-    "prod",
-]
+ALL_STATS = ["mean", "max", "min", "sum", "std", "var", "median", "prod"]
+ALL_DIMS = ["x", "y", "x:y"]
 
 @pytest.mark.parametrize("stat", ALL_STATS)
-def test_statistics_no_fill(sample_data, stat):
-    """
-    Test that for every dimension of the xarray the statistics are computed correctly"
-    """
-    for dim in sample_data.dims:
-        result = statistics_over_horizontal_dim(sample_data, [dim], [stat])
-        expected = getattr(sample_data, stat)(dim=dim, skipna=False)
-        assert np.allclose(result[0], expected)
+@pytest.mark.parametrize("dims", ALL_DIMS)
+def test_statistics_against_manual(sample_data, stat, dims):
+    result = statistics_over_horizontal_dim(sample_data, [dims], [stat])
+    values = [r.values for r in result]
+    numbers = values[0].tolist()
+
+    hor_dims = dims.split(":") if ":" in dims else [dims]
+    axis_map = {"x": 0, "y": 1}
+    axes = tuple(axis_map[d] for d in hor_dims)
+
+    data =sample_data
+
+    EXPECTED = {
+    "mean":   {"x": [2.5, 3.5, 4.5], "y": [2, 5],   "x:y": [3.5]},
+    "max":    {"x": [4, 5, 6],       "y": [3, 6],   "x:y": [6]},
+    "min":    {"x": [1, 2, 3],       "y": [1, 4],   "x:y": [1]},
+    "sum":    {"x": [5, 7, 9],       "y": [6, 15],  "x:y": [21]},
+    "std":    {"x": [1.5, 1.5, 1.5], "y": [0.816496580927726, 0.816496580927726], "x:y": [np.std(data)]},
+    "var":    {"x": [2.25, 2.25, 2.25], "y": [0.6666666666666666, 0.6666666666666666], "x:y": [np.var(data)]},
+    "median": {"x": [2.5, 3.5, 4.5], "y": [2, 5],   "x:y": [3.5]},
+    "prod":   {"x": [4, 10, 18],     "y": [6, 120], "x:y": [720]},
+    }
+
+    expected = EXPECTED[stat][dims]
+
+
+    np.testing.assert_allclose(numbers, expected)
+
 
 
 
