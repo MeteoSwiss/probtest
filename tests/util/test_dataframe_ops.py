@@ -4,17 +4,19 @@ This module contains unit tests for the `dataframe_ops.py` module.
 
 from unittest.mock import patch
 
+import numpy as np
 import pandas as pd
 import pytest
-import numpy as np
 
-from util.dataframe_ops import parse_check
-from util.dataframe_ops import force_monotonic
-from util.dataframe_ops import compute_rel_diff_dataframe
-from util.dataframe_ops import compute_division
-from util.dataframe_ops import parse_probtest_csv
-from util.dataframe_ops import check_variable
-from util.dataframe_ops import unify_time_index
+from util.dataframe_ops import (
+    compute_division,
+    compute_rel_diff_dataframe,
+    force_monotonic,
+    parse_check,
+    parse_probtest_csv,
+    unify_time_index,
+)
+
 
 @patch("util.dataframe_ops.parse_probtest_csv")
 def test_parse_check(mock_parse_probtest_csv, setup_csv_files):
@@ -61,8 +63,6 @@ def test_parse_check(mock_parse_probtest_csv, setup_csv_files):
     pd.testing.assert_frame_equal(df_cur, expected_cur)
 
 
-
-
 def test_force_monotonic():
     """
     Test that the function modify the dataframe forcing the values of every line
@@ -89,10 +89,8 @@ def test_force_monotonic():
         assert (sub_df.diff(axis=1).fillna(0) >= 0).all().all()
 
     # Comparison with expected dataframe
-    expected = pd.DataFrame([[1,5,2,7],[3,2,3,9],[2,8,5,8]], columns =columns)
+    expected = pd.DataFrame([[1, 5, 2, 7], [3, 2, 3, 9], [2, 8, 5, 8]], columns=columns)
     pd.testing.assert_frame_equal(df, expected)
-
-
 
 
 def test_compute_rel_diff_basic():
@@ -103,7 +101,7 @@ def test_compute_rel_diff_basic():
     df2 = pd.DataFrame({"A": [1, 1], "B": [3, 5]})
 
     result = compute_rel_diff_dataframe(df1, df2)
-    expected = pd.DataFrame([[0, 0], [0.33333 , 0.2]], columns = ["A", "B"])
+    expected = pd.DataFrame([[0, 0], [0.33333, 0.2]], columns=["A", "B"])
 
     pd.testing.assert_frame_equal(result, expected)
 
@@ -116,7 +114,7 @@ def test_compute_rel_diff_with_negatives():
     df2 = pd.DataFrame({"A": [-2, -1], "B": [3, -5]})
 
     result = compute_rel_diff_dataframe(df1, df2)
-    expected = pd.DataFrame([[0.500, 0], [0.33333 , 0.2]], columns = ["A", "B"])
+    expected = pd.DataFrame([[0.500, 0], [0.33333, 0.2]], columns=["A", "B"])
 
     pd.testing.assert_frame_equal(result, expected)
 
@@ -129,7 +127,7 @@ def test_compute_rel_diff_with_zeros():
     df2 = pd.DataFrame({"A": [1, -1], "B": [2, -2]})
 
     result = compute_rel_diff_dataframe(df1, df2)
-    expected = pd.DataFrame([[1.0, 2.0], [1.0, 2.0]], columns = ["A", "B"])
+    expected = pd.DataFrame([[1.0, 2.0], [1.0, 2.0]], columns=["A", "B"])
 
     pd.testing.assert_frame_equal(result, expected)
 
@@ -144,7 +142,6 @@ def test_compute_rel_diff_identical():
     result = compute_rel_diff_dataframe(df1, df2)
 
     assert (result == 0).all().all()
-
 
 
 def test_compute_division_normal_case():
@@ -200,8 +197,8 @@ def test_division_both_zero():
 
 
 # Creation of a temporary file for function test
-@pytest.fixture
-def sample_csv(tmp_path):
+@pytest.fixture(name="sample_csv", scope="function")
+def fixture_sample_csv(tmp_path):
     csv_content = """col1,col2,3,3,2,2
 sub1,sub2,A,B,A,B
 a,b,1,3,5,7
@@ -214,7 +211,8 @@ d,e,2,4,6,8
 
 def test_parse_probtest_csv(sample_csv):
     """
-    Check that the first multiindex of the rows is reversed because it is not in ascending order
+    Check that the first multiindex of the rows is reversed because
+    it is not in ascending order
     """
     df = parse_probtest_csv(sample_csv, index_col=[0, 1])
 
@@ -236,17 +234,14 @@ def test_parse_probtest_csv(sample_csv):
     pd.testing.assert_frame_equal(df, expected)
 
 
-
-
 # Create a dataframe to test unify_time_index
-@pytest.fixture
-def sample_unify_time():
+@pytest.fixture(name="sample_unify_time", scope="module")
+def fixture_sample_unify_time():
     features = ["A", "B"]
     times = [6, 4, 2]
 
     multi_index = pd.MultiIndex.from_product(
-        [features, times],
-        names=["feature", "time"]
+        [features, times], names=["feature", "time"]
     )
 
     data1 = [
@@ -257,7 +252,6 @@ def sample_unify_time():
         [25, 26, 27, 28, 29, 30],
     ]
     df1 = pd.DataFrame(data1, columns=multi_index)
-
 
     data2 = [
         [101, 102, 103, 104, 105, 106],
@@ -281,10 +275,8 @@ def test_unify_time_index(sample_unify_time):
     times = [0, 1, 2]  # same as before but in ascending order and starting from 0
 
     multi_index = pd.MultiIndex.from_product(
-        [features, times],
-        names=["feature", "time"]
+        [features, times], names=["feature", "time"]
     )
-
 
     data1 = [
         [3, 2, 1, 6, 5, 4],
