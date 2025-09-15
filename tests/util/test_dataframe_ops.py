@@ -95,7 +95,7 @@ def test_force_monotonic():
 
 def test_compute_rel_diff_basic():
     """
-    Test that the function is giving the expected values with normal numbers
+    Test that the function is giving the expected values with basic numbers
     """
     df1 = pd.DataFrame([[1, 3], [2, 4]], columns=["A", "B"])
     df2 = pd.DataFrame([[1, 3], [1, 5]], columns=["A", "B"])
