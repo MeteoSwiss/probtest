@@ -97,11 +97,11 @@ def test_compute_rel_diff_basic():
     """
     Test that the function is giving the expected values with basic numbers
     """
-    df1 = pd.DataFrame([[1, 3], [2, 4]], columns=["A", "B"])
-    df2 = pd.DataFrame([[1, 3], [1, 5]], columns=["A", "B"])
+    df1 = pd.DataFrame([[1.0, 3.0], [2.0, 4.0]], columns=["A", "B"])
+    df2 = pd.DataFrame([[1.0, 3.0], [1.0, 5.0]], columns=["A", "B"])
 
     result = compute_rel_diff_dataframe(df1, df2)
-    expected = pd.DataFrame([[0, 0], [1./3., 0.2]], columns=["A", "B"])
+    expected = pd.DataFrame([[0, 0], [1.0 / 3.0, 0.2]], columns=["A", "B"])
 
     pd.testing.assert_frame_equal(result, expected, check_exact=False)
 
@@ -110,11 +110,11 @@ def test_compute_rel_diff_with_negatives():
     """
     Test that the function is giving the expected values also with negative numbers
     """
-    df1 = pd.DataFrame({"A": [-1., -2.], "B": [3., -4.]})
-    df2 = pd.DataFrame({"A": [-2., -1.], "B": [3., -5.]})
+    df1 = pd.DataFrame([[-1.0, 3.0], [-2.0, -4.0]], columns=["A", "B"])
+    df2 = pd.DataFrame([[-2.0, 3.0], [-1.0, -5.0]], columns=["A", "B"])
 
     result = compute_rel_diff_dataframe(df1, df2)
-    expected = pd.DataFrame([[1./2., 0], [1./3., 0.2]], columns=["A", "B"])
+    expected = pd.DataFrame([[0.5, 0], [1.0 / 3.0, 0.2]], columns=["A", "B"])
 
     pd.testing.assert_frame_equal(result, expected, check_exact=False)
 
@@ -123,8 +123,8 @@ def test_compute_rel_diff_with_zeros():
     """
     Test that the function is giving the expected values also with zeros in numerator
     """
-    df1 = pd.DataFrame({"A": [0, 0], "B": [0, 0]})
-    df2 = pd.DataFrame({"A": [1, -1], "B": [2, -2]})
+    df1 = pd.DataFrame([[0, 0], [0, 0]], columns=["A", "B"])
+    df2 = pd.DataFrame([[1.0, 2.0], [-1.0, -2.0]], columns=["A", "B"])
 
     result = compute_rel_diff_dataframe(df1, df2)
     expected = pd.DataFrame([[1.0, 2.0], [1.0, 2.0]], columns=["A", "B"])
@@ -136,7 +136,7 @@ def test_compute_rel_diff_identical():
     """
     Test that the function is giving the expected values aift dataframe are identical
     """
-    df1 = pd.DataFrame({"A": [1, 2], "B": [3, 4]})
+    df1 = pd.DataFrame([[1.0, 2.0], [3.0, 4.0]], columns=["A", "B"])
     df2 = df1.copy()
 
     result = compute_rel_diff_dataframe(df1, df2)
@@ -146,41 +146,41 @@ def test_compute_rel_diff_identical():
 
 def test_compute_division_basic():
     """
-    Test that the function is giving the expected values with normal numbers
+    Test that the function is giving the expected values with basic numbers
     """
-    df1 = pd.DataFrame({"A": [10, 20], "B": [30, 40]})
-    df2 = pd.DataFrame({"A": [2, 4], "B": [5, 10]})
+    df1 = pd.DataFrame([[10.0, 20.0], [30.0, 40.0]], columns=["A", "B"])
+    df2 = pd.DataFrame([[2.0, 4.0], [5.0, 10.0]], columns=["A", "B"])
 
     result = compute_division(df1, df2)
-    expected = pd.DataFrame({"A": [5.0, 5.0], "B": [6.0, 4.0]})
+    expected = pd.DataFrame([[5.0, 5.0], [6.0, 4.0]], columns=["A", "B"])
 
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result, expected, check_exact=True)
 
 
 def test_compute_division_with_zero_in_denominator():
     """
     Test that the function is giving the expected values also with zeros in denominator
     """
-    df1 = pd.DataFrame({"A": [10, 20], "B": [30, 40]})
-    df2 = pd.DataFrame({"A": [0, 4], "B": [5, 0]})
+    df1 = pd.DataFrame([[10.0, 20.0], [30.0, 40.0]], columns=["A", "B"])
+    df2 = pd.DataFrame([[0, 4.0], [5.0, 0]], columns=["A", "B"])
 
     result = compute_division(df1, df2)
-    expected = pd.DataFrame({"A": [np.nan, 5.0], "B": [6.0, np.nan]})
+    expected = pd.DataFrame([[np.nan, 5.0], [6.0, np.nan]], columns=["A", "B"])
 
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result, expected, check_exact=True)
 
 
 def test_division_with_zero_in_numerator():
     """
     Test that the function is giving the expected values also with zeros in numerator
     """
-    df1 = pd.DataFrame({"A": [0, 20], "B": [0, 40]})
-    df2 = pd.DataFrame({"A": [2, 4], "B": [5, 10]})
+    df1 = pd.DataFrame([[0, 20.0], [0, 40.0]], columns=["A", "B"])
+    df2 = pd.DataFrame([[2.0, 4.0], [5.0, 10.0]], columns=["A", "B"])
 
     result = compute_division(df1, df2)
-    expected = pd.DataFrame({"A": [0.0, 5.0], "B": [0.0, 4.0]})
+    expected = pd.DataFrame([[0.0, 5.0], [0.0, 4.0]], columns=["A", "B"])
 
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result, expected, check_exact=True)
 
 
 def test_division_both_zero():
@@ -188,12 +188,12 @@ def test_division_both_zero():
     Check the function in case all values are equal to zero
     """
     df1 = pd.DataFrame({"A": [0, 0], "B": [0, 0]})
-    df2 = pd.DataFrame({"A": [0, 1], "B": [2, 0]})
+    df2 = pd.DataFrame({"A": [0, 1.0], "B": [2.0, 0]})
 
     result = compute_division(df1, df2)
     expected = pd.DataFrame({"A": [0.0, 0.0], "B": [0.0, 0.0]})
 
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result, expected, check_exact=True)
 
 
 # Creation of a temporary file for function test
