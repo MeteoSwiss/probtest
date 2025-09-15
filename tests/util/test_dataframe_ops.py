@@ -90,7 +90,7 @@ def test_force_monotonic():
 
     # Comparison with expected dataframe
     expected = pd.DataFrame([[1, 5, 2, 7], [3, 2, 3, 9], [2, 8, 5, 8]], columns=columns)
-    pd.testing.assert_frame_equal(df, expected)
+    pd.testing.assert_frame_equal(df, expected, check_exact=True)
 
 
 def test_compute_rel_diff_basic():
