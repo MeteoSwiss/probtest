@@ -114,9 +114,9 @@ def test_compute_rel_diff_with_negatives():
     df2 = pd.DataFrame({"A": [-2, -1], "B": [3, -5]})
 
     result = compute_rel_diff_dataframe(df1, df2)
-    expected = pd.DataFrame([[0.500, 0], [0.33333, 0.2]], columns=["A", "B"])
+    expected = pd.DataFrame([[1./2., 0], [1./3., 0.2]], columns=["A", "B"])
 
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result, expected, check_exact=False)
 
 
 def test_compute_rel_diff_with_zeros():
@@ -129,7 +129,7 @@ def test_compute_rel_diff_with_zeros():
     result = compute_rel_diff_dataframe(df1, df2)
     expected = pd.DataFrame([[1.0, 2.0], [1.0, 2.0]], columns=["A", "B"])
 
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result, expected, check_exact=True)
 
 
 def test_compute_rel_diff_identical():
