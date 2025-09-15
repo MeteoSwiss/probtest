@@ -144,7 +144,7 @@ def test_compute_rel_diff_identical():
     assert (result == 0).all().all()
 
 
-def test_compute_division_normal_case():
+def test_compute_division_basic():
     """
     Test that the function is giving the expected values with normal numbers
     """
