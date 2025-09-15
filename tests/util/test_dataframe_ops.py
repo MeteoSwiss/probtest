@@ -97,8 +97,8 @@ def test_compute_rel_diff_basic():
     """
     Test that the function is giving the expected values with normal numbers
     """
-    df1 = pd.DataFrame({"A": [1, 2], "B": [3, 4]})
-    df2 = pd.DataFrame({"A": [1, 1], "B": [3, 5]})
+    df1 = pd.DataFrame([[1, 3], [2, 4]], columns=["A", "B"])
+    df2 = pd.DataFrame([[1, 3], [1, 5]], columns=["A", "B"])
 
     result = compute_rel_diff_dataframe(df1, df2)
     expected = pd.DataFrame([[0, 0], [1./3., 0.2]], columns=["A", "B"])
