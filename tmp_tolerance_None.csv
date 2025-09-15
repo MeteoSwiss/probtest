@@ -1,6 +1,0 @@
-time,,0,0,0,1,1,1,2,2,2
-statistic,,max,mean,min,max,mean,min,max,mean,min
-file_ID,variable,,,,,,,,,
-Format1:*test_3d*.nc,v1,0.0,8.17741,0.0,0.0,8.17741,0.0,0.0,22.80306,0.0
-Format2:*test_2d*.nc,v2,0.0,9.94558,0.0,0.0,9.94558,0.0,0.0,9.94558,0.0
-Format3:*test_2d*.nc,v3,0.0,4.22007,0.0,0.0,9.39512,0.0,,,
