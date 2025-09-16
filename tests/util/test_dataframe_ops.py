@@ -114,7 +114,7 @@ def test_compute_rel_diff_with_negatives():
     df2 = pd.DataFrame([[-2.0, 3.0], [-1.0, -5.0]], columns=["A", "B"])
 
     result = compute_rel_diff_dataframe(df1, df2)
-    expected = pd.DataFrame([[0.5, 0], [1.0 / 3.0, 0.2]], columns=["A", "B"])
+    expected = pd.DataFrame([[0.5, 0.0], [1.0 / 3.0, 0.2]], columns=["A", "B"])
 
     pd.testing.assert_frame_equal(result, expected, check_exact=False)
 
