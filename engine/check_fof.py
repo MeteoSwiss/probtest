@@ -1,3 +1,9 @@
+"""
+CLI for checking two fof files
+
+This module provides a command-line interface (CLI) to check that
+two given fof files are conistent.
+"""
 import xarray as xr
 import click
 import numpy as np
@@ -23,7 +29,6 @@ def compute_hash_for_vars_and_attrs(ds, hash_vars):
     for var in hash_vars:
         if var in ds.data_vars:
             var_data = ds[var].values
-            # get rid of order
             all_bytes += np.sort(var_data.ravel()).tobytes()
 
             for attr, value in sorted(ds[var].attrs.items()):
@@ -32,7 +37,7 @@ def compute_hash_for_vars_and_attrs(ds, hash_vars):
     return hashlib.md5(all_bytes).hexdigest()
 
 
-def compare_nc_files(file1, file2):
+def compare_nc_files(file1, file2, hash_vars):
     ds1 = xr.open_dataset(file1)
     ds2 = xr.open_dataset(file2)
 
@@ -54,9 +59,9 @@ def compare_nc_files(file1, file2):
 
 
     if hash1 == hash2:
-        print("NetCDF files are consistent")
+        print("fof files are consistent")
     else:
-        print("NetCDF files are NOT consistent")
+        print("fof files are NOT consistent")
 
 
 
@@ -67,7 +72,7 @@ def compare_nc_files(file1, file2):
 
 def check_fof(file1, file2):
 
-    compare_nc_files(file1, file2)
+    compare_nc_files(file1, file2, hash_vars)
 
 if __name__ == "__main__":
     check_fof()
