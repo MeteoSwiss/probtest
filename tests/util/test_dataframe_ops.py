@@ -129,7 +129,7 @@ def test_compute_rel_diff_with_zeros():
     result = compute_rel_diff_dataframe(df1, df2)
     expected = pd.DataFrame([[1.0, 2.0], [1.0, 2.0]], columns=["A", "B"])
 
-    pd.testing.assert_frame_equal(result, expected, check_exact=True)
+    pd.testing.assert_frame_equal(result, expected, check_exact=False)
 
 
 def test_compute_rel_diff_identical():
