@@ -2,12 +2,11 @@
 This module contains unit tests for the `engine/check_fof.py` module.
 """
 
-import xarray as xr
 import numpy as np
 import pytest
-from engine.check_fof import compute_hash_for_vars_and_attrs
-from engine.check_fof import compare_arrays
+import xarray as xr
 
+from engine.check_fof import compare_arrays, compute_hash_for_vars_and_attrs
 
 
 @pytest.fixture(name="nc1", scope="function")
@@ -80,13 +79,16 @@ def test_compute_same_hash_reversed_order(nc1, nc3):
 def fixture_arr1():
     return np.array([1.0, 2.0, 3.0, 4.0, 5.0])
 
+
 @pytest.fixture(name="arr2", scope="function")
 def fixture_arr2():
     return np.array([1.0, 2.0, 3.0, 4.0, 5.0])
 
+
 @pytest.fixture(name="arr3", scope="function")
 def fixture_arr3():
     return np.array([np.nan, np.nan, np.nan, np.nan, np.nan])
+
 
 @pytest.fixture(name="arr4", scope="function")
 def fixture_arr4():
@@ -98,8 +100,9 @@ def test_compare_arrays_equal(arr1, arr2):
     Test that, for identical arrays, the size of the array
     and the number of identical values coincide
     """
-    t,e = compare_arrays(arr1, arr2, var_name = None)
+    t, e = compare_arrays(arr1, arr2, var_name=None)
     assert t == e == 5
+
 
 def test_compare_arrays_nan(arr3):
     """
@@ -107,14 +110,15 @@ def test_compare_arrays_nan(arr3):
     and the number of identical values coincide
     """
     arr4 = arr3.copy()
-    t,e = compare_arrays(arr3, arr4, var_name = None)
+    t, e = compare_arrays(arr3, arr4, var_name=None)
     assert t == e == 5
+
 
 def test_compare_arrays_different(arr1, arr4):
     """
     Test that, for different arrays, the size of the array
     and the number of identical values do not coincide
     """
-    t,e = compare_arrays(arr1, arr4, var_name = None)
+    t, e = compare_arrays(arr1, arr4, var_name=None)
     assert t == 5
     assert e == 3
