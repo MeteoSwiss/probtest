@@ -10,7 +10,6 @@ import hashlib
 import click
 import numpy as np
 import xarray as xr
-import pandas as pd
 
 # variable that are not supposed to change across fof files
 hash_vars = [
@@ -32,7 +31,7 @@ hash_vars = [
     "ident",
     "time",
     "time_nomi",
-   # "time_dbase",
+    # "time_dbase",
     "z_station",
     "z_modsurf",
     "sta_corr",
@@ -41,14 +40,14 @@ hash_vars = [
     "mdlsfc",
     "instype",
     "obs_id",
-  #  "source",
+    #  "source",
     "subset",
     "dbkz",
     "index_d",
-   # "varno",
+    # "varno",
     "bcor",
     "level_typ",
-   # "qual",
+    # "qual",
     "veri_model",
     "veri_run_type",
     "veri_run_class",
@@ -63,7 +62,7 @@ hash_vars = [
     "n_hdr",
     "n_body",
     "n_radar",
-    "plevel"
+    "plevel",
 ]
 
 
@@ -82,7 +81,6 @@ def compute_hash_for_vars_and_attrs(ds):
     return hashlib.md5(all_bytes).hexdigest()
 
 
-
 def compare_arrays(arr1, arr2, var_name):
     total = arr1.size
 
@@ -93,7 +91,7 @@ def compare_arrays(arr1, arr2, var_name):
         equal = total
 
     else:
-        mask_equal = (arr1 == arr2)
+        mask_equal = arr1 == arr2
         equal = mask_equal.sum()
         percent = (equal / total) * 100
         print(f"Differences in '{var_name}': {percent:.2f}% equal")
@@ -102,7 +100,6 @@ def compare_arrays(arr1, arr2, var_name):
             print(f"   - ds1: {arr1.ravel()[i]}, ds2: {arr2.ravel()[i]}")
 
     return total, equal
-
 
 
 def compare_nc_files(file1, file2):
@@ -126,7 +123,6 @@ def compare_nc_files(file1, file2):
     ds1_sorted = ds1.sortby(index_vars)
     ds2_sorted = ds2.sortby(index_vars)
 
-
     for var in hash_vars:
         # variable comparison
         if var in ds1_sorted.data_vars and var in ds2_sorted.data_vars:
@@ -145,17 +141,16 @@ def compare_nc_files(file1, file2):
             total_elements_all += t
             equal_elements_all += e
 
-
     if total_elements_all > 0:
-        percent_equal_all = (equal_elements_all / total_elements_all)* 100
+        percent_equal_all = (equal_elements_all / total_elements_all) * 100
         percent_diff_all = 100 - percent_equal_all
         print(f"Total percentage of equality: {percent_equal_all:.2f}%")
         print(f"Total percentage of difference: {percent_diff_all:.2f}%")
 
+
 @click.command()
 @click.argument("file1", type=click.Path(exists=True))
 @click.argument("file2", type=click.Path(exists=True))
-
 def check_fof(file1, file2):
 
     if "SYNOP" in file1:
@@ -175,4 +170,4 @@ def check_fof(file1, file2):
 
 
 if __name__ == "__main__":
-    check_fof()
+    check_fof()  # pylint: disable=no-value-for-parameter
