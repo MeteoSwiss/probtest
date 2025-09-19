@@ -10,6 +10,7 @@ import hashlib
 import click
 import numpy as np
 import xarray as xr
+import os
 
 # variable that are not supposed to change across fof files
 hash_vars = [
@@ -87,7 +88,9 @@ def compare_arrays(arr1, arr2, var_name):
     if np.array_equal(arr1, arr2):
         equal = total
 
-    elif np.array_equal(arr1, arr2, equal_nan=True):
+    elif (np.issubdtype(arr1.dtype, np.number)
+          and np.issubdtype(arr2.dtype, np.number)
+          and np.array_equal(arr1, arr2, equal_nan=True)):
         equal = total
 
     else:
@@ -115,6 +118,9 @@ def compare_nc_files(file1, file2):
         return
 
     print("fof files are NOT consistent")
+    if os.path.basename(file1) != os.path.basename(file2):
+        return
+    #print(os.path.basename(file1))
 
     index_vars = ["lat", "lon", "statid"]
     total_elements_all = 0
@@ -129,17 +135,28 @@ def compare_nc_files(file1, file2):
             arr1 = ds1_sorted[var].values
             arr2 = ds2_sorted[var].values
 
-            total, equal = compare_arrays(arr1, arr2, var)
-            total_elements_all += total
-            equal_elements_all += equal
+            if arr1.size == arr2.size:
+                total, equal = compare_arrays(arr1, arr2, var)
+                total_elements_all += total
+                equal_elements_all += equal
+            else:
+
+                total_elements_all += max(arr1.size, arr2.size)
+                equal_elements_all += 0
+
 
         # attribute comparison
         if var in ds1_sorted.attrs and var in ds2_sorted.attrs:
             arr1 = np.array(ds1_sorted.attrs[var], dtype=object)
             arr2 = np.array(ds2_sorted.attrs[var], dtype=object)
-            t, e = compare_arrays(arr1, arr2, var)
-            total_elements_all += t
-            equal_elements_all += e
+            if arr1.size == arr2.size:
+                t, e = compare_arrays(arr1, arr2, var)
+                total_elements_all += t
+                equal_elements_all += e
+
+            else:
+                total_elements_all += max(arr1.size, arr2.size)
+                equal_elements_all += 0
 
     if total_elements_all > 0:
         percent_equal_all = (equal_elements_all / total_elements_all) * 100
