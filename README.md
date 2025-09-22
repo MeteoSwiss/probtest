@@ -106,7 +106,7 @@ poetry install
 ```
 To check that everything is setup correctly, you can do
 ```console
-poetry run pytest -v -s --cov=probtest --cov-report=term tests/
+poetry run pytest -v -s --cov --cov-report=term tests/
 ```
 
 
@@ -249,13 +249,13 @@ Our tests are executed using `pytest`, ensuring a consistent and efficient testi
 
 Simply run
 ```console
-pytest -s -v tests/*
+poetry run pytest -s -v tests/*
 ```
 in order to run all tests.
 
 To run only a subset of test run
 ```console
-pytest -s -v path/to/your/test.py
+poetry run pytest -s -v path/to/your/test.py
 ```
 
 Reference data, crucial for validating the outcomes of our tests and detecting any deviations in `probtests` results, is maintained in the [tests/data](tests/data) directory. This approach guarantees that our tests are both comprehensive and reliable, safeguarding the integrity of our codebase.
@@ -267,7 +267,7 @@ Please install the pre-commit hooks (after installing all Python requirements
 including the `pre-commit` package):
 
 ```console
-pre-commit install
+poetry run pre-commit install
 ```
 
 This hook will be executed automatically whenever you commit.
@@ -277,7 +277,7 @@ Just stage and commit again to finalize the commit.
 You can also run the following command, to trigger the pre-commit action without
 actually committing:
 ```console
-pre-commit run --all-files
+poetry run pre-commit run --all-files
 ```
 
 ## Probtest Container
