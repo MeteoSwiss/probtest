@@ -1,6 +1,12 @@
 name: Run Pytest in probtest
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   probtest-pytest:
@@ -8,23 +14,35 @@ jobs:
     defaults:
       run:
         shell: bash -l {0}
+
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: 3.10.8
-    - uses: conda-incubator/setup-miniconda@v2
-      with:
-        miniconda-version: "latest"
-        channels: conda-forge
-        channel-priority: flexible
-        show-channel-urls: true
-    - name: Create env from pinned environment
+
+    - name: Install Poetry
       run: |
-        ./setup_env.sh -n probtest
-    - name: Run Pytest
+        curl -sSL https://install.python-poetry.org | python3 -
+
+    - name: Configure Poetry to use the right Python version
+      run: |
+        poetry env use python3.10
+
+    - name: Install dependencies with Poetry
+      run: |
+        poetry install
+
+    - name: Run Pytest with coverage
       env:
         TZ: Europe/Zurich
       run: |
-        conda run --name probtest pytest -v -s --cov --cov-report=term tests/
+        poetry run pytest -v --cov=probtest --cov-report=xml --cov-report=term tests/
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage.xml
