@@ -81,29 +81,32 @@ Visualize the performance database generated with `performance`.
 
 Even though probtest is used exclusively with ICON at the moment, it does not contain any information about the model or its directory structure. This makes it very flexible and applicable to any circumstance (e.g. usable by Buildbot, Jenkins and human users alike). However, it also requires a lot of information about the model and the data to be processed upon invocation. Since a typical probtest usage involves multiple commands (e.g. run-ensemble -> stats -> tolerance -> check) this leads to a lot of redundancy in the invocation. Therefore, probtest can read commonly used input variables (e.g. the model output directory, the experiment name, the name of the submit script, ...) from a configuration file in json format. To further ease the process, these configuration files can be created from templates using the `init` command. A template for ICON is contained in this repository in the `templates` subdirectory.
 
-### Setup conda
+### Setup probtest
 
-All requirements for using probtest can be easily installed with conda using the
-setup scripts.
+All requirements for using probtest can be easily installed with pip or poetry.
 
-For setting up conda you use
-```console
-./setup_miniconda.sh -u
-```
-which will modify your `.bashrc`, or you can use
-```console
-./setup_miniconda.sh
-source miniconda/bin/activate
-```
-which requires to source minconda.
+#### Setup with pip
+The setup with pip is recommended for users.
 
-The pinned requirements can be installed by
+For setting up the venv you use
 ```console
-./setup_env.sh
+python3.10 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
 ```
-The unpinned requirements and updating the environment can be done by
+
+#### Setup with poetry
+The setup with poetry is recommended for developers and needed for changing or
+adding requirements.
+It is assumed you are having a poetry installation.
 ```console
-./setup_env.sh -u -e
+poetry env use python3.10
+poetry install
+```
+To check that everything is setup correctly, you can do
+```console
+poetry run pytest -v -s --cov=probtest --cov-report=term tests/
 ```
 
 
