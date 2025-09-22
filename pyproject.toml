@@ -52,3 +52,8 @@ build-backend = "poetry.core.masonry.api"
 output = "requirements.txt"
 without_hashes = false
 without = ["dev", "test"]
+
+#[tool.poetry-auto-export.dev]
+#output = "requirements_dev.txt"
+#without_hashes = true
+#with = ["dev", "test"]
