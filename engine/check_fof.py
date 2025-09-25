@@ -5,6 +5,8 @@ This module provides a command-line interface (CLI) to check that
 two given fof files are conistent.
 """
 
+import os
+
 import click
 import numpy as np
 import xarray as xr
@@ -110,7 +112,7 @@ def prepare_array(arr):
 def print_entire_line(ds1, ds2, diff):
     """
     If the specific option is called, this function print
-    the entire line in which differences were found
+    the entire line in which differences were found.
     """
     if diff.size > 0:
         da1 = ds1.to_dataframe().reset_index()
@@ -125,7 +127,40 @@ def print_entire_line(ds1, ds2, diff):
             print("-" * max(len(row1), len(row2)))
 
 
-def compare_var_and_attr_ds(ds1, ds2, entireline):
+def get_list_to_skip(file1):
+    """
+    Obtain the list of variables that we expect
+    to change depending on the type of fof file.
+    """
+    name1 = os.path.basename(file1)
+
+    name1_core = name1.replace("fof", "").replace(".nc", "")
+
+    if "TEMP" in name1_core:
+        list_to_skip = ["source"]
+
+    elif "AIREP" in name1_core:
+        list_to_skip = ["i_body", "record", "source"]
+
+    elif "PILOT" in name1_core:
+        list_to_skip = ["i_body", "record", "source", "e_o", "plevel"]
+
+    elif "SYNOP" in name1_core:
+        list_to_skip = [
+            "i_body",
+            "record",
+            "source",
+            "state",
+            "plevel",
+            "flags",
+            "check",
+            "sso_stdh",
+        ]
+
+    return list_to_skip
+
+
+def compare_var_and_attr_ds(ds1, ds2, entireline, list_to_skip):
     """
     Variable by variable and attribute by attribute,
     comparison of the two files.
@@ -134,7 +169,7 @@ def compare_var_and_attr_ds(ds1, ds2, entireline):
     total_all, equal_all = 0, 0
 
     for var in set(ds1.data_vars).union(ds2.data_vars):
-        if var in ds1.data_vars and var in ds2.data_vars:
+        if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
             arr1 = prepare_array(ds1[var].values)
             arr2 = prepare_array(ds2[var].values)
 
@@ -149,7 +184,7 @@ def compare_var_and_attr_ds(ds1, ds2, entireline):
             total_all += t
             equal_all += e
 
-        if var in ds1.attrs and var in ds2.attrs:
+        if var in ds1.attrs and var in ds2.attrs and var not in list_to_skip:
             arr1 = np.array(ds1.attrs[var], dtype=object)
             arr2 = np.array(ds2.attrs[var], dtype=object)
             if arr1.size == arr2.size:
@@ -165,6 +200,19 @@ def compare_var_and_attr_ds(ds1, ds2, entireline):
     return total_all, equal_all
 
 
+def primary_check(file1, file2):
+    """
+    Test that the two files are of the same type.
+    """
+    name1 = os.path.basename(file1)
+    name2 = os.path.basename(file2)
+
+    name1_core = name1.replace("fof", "").replace(".nc", "")
+    name2_core = name2.replace("fof", "").replace(".nc", "")
+
+    return name1_core == name2_core
+
+
 @click.command()
 @click.argument("file1", type=click.Path(exists=True))
 @click.argument("file2", type=click.Path(exists=True))
@@ -172,6 +220,11 @@ def compare_var_and_attr_ds(ds1, ds2, entireline):
     "--entireline", is_flag=True, help="If there are differences, printe the whole line"
 )
 def check_fof(file1, file2, entireline):
+
+    if not primary_check(file1, file2):
+        print("Different types of files")
+        return
+
     ds1 = xr.open_dataset(file1)
     ds2 = xr.open_dataset(file2)
 
@@ -179,12 +232,13 @@ def check_fof(file1, file2, entireline):
     ds_reports2_sorted, ds_obs2_sorted = split_feedback_dataset(ds2)
 
     total_elements_all, equal_elements_all = 0, 0
+    list_to_skip = get_list_to_skip(file1)
 
     for ds1, ds2 in [
         (ds_reports1_sorted, ds_reports2_sorted),
         (ds_obs1_sorted, ds_obs2_sorted),
     ]:
-        t, e = compare_var_and_attr_ds(ds1, ds2, entireline)
+        t, e = compare_var_and_attr_ds(ds1, ds2, entireline, list_to_skip)
         total_elements_all += t
         equal_elements_all += e
 
