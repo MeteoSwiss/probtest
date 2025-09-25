@@ -177,6 +177,8 @@ cli_help = {
     + "reference.",
     "new_reference_threshold": r"The factor by which the current time can be faster "
     + r"than the reference before a warning gets printed.",
+    "minimum_tolerance": r"non-zero value to set variable tolerances to when the"
+    + r"calculated tolerances from the ensemble are exactly zero.",
 }
 
 del dataframe_ops
