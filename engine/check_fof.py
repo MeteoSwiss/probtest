@@ -3,6 +3,7 @@ CLI for checking two fof files
 
 This module provides a command-line interface (CLI) to check that
 two given fof files are conistent.
+Veri data are not considered, only reports and observations are compared.
 """
 
 import os
@@ -92,10 +93,10 @@ def compare_arrays(arr1, arr2, var_name):
         percent = (equal / total) * 100
         print(f"Differences in '{var_name}': {percent:.2f}% equal")
         diff_idx = np.where(~mask_equal.ravel())[0]
-
-        diff = diff_idx[:20]
-        for i in diff:
-            print(f"   - ds1: {arr1.ravel()[i]}, ds2: {arr2.ravel()[i]}")
+        diff = diff_idx
+        # diff = diff_idx[:20]
+        # for i in diff:
+        #     print(f"   - ds1: {arr1.ravel()[i]}, ds2: {arr2.ravel()[i]}")
 
     return total, equal, diff
 
@@ -112,61 +113,61 @@ def prepare_array(arr):
 def print_entire_line(ds1, ds2, diff):
     """
     If the specific option is called, this function print
-    the entire line in which differences were found.
+    the entire line in which differences are found.
     """
     if diff.size > 0:
         da1 = ds1.to_dataframe().reset_index()
         da2 = ds2.to_dataframe().reset_index()
 
         for i in diff:
-            row1 = " | ".join(map(str, da1.loc[i]))
-            row2 = " | ".join(map(str, da2.loc[i]))
 
+            row1 = "|".join(map(str, da1.loc[i]))
+            row2 = "|".join(map(str, da2.loc[i]))
+
+            print("|".join(da1.columns))
             print(f"ds1: {row1}")
             print(f"ds2: {row2}")
             print("-" * max(len(row1), len(row2)))
 
 
-def get_list_to_skip(file1):
+def write_lines(ds1, ds2, diff, path_name):
     """
-    Obtain the list of variables that we expect
-    to change depending on the type of fof file.
+    If the specific option is called, this function save
+    the lines in which differences are found.
     """
-    name1 = os.path.basename(file1)
+    if diff.size > 0:
+        da1 = ds1.to_dataframe().reset_index()
+        da2 = ds2.to_dataframe().reset_index()
 
-    name1_core = name1.replace("fof", "").replace(".nc", "")
+        for i in diff:
 
-    if "TEMP" in name1_core:
-        list_to_skip = ["source"]
+            row1 = "|".join(map(str, da1.loc[i]))
+            row2 = "|".join(map(str, da2.loc[i]))
 
-    elif "AIREP" in name1_core:
-        list_to_skip = ["i_body", "record", "source"]
-
-    elif "PILOT" in name1_core:
-        list_to_skip = ["i_body", "record", "source", "e_o", "plevel"]
-
-    elif "SYNOP" in name1_core:
-        list_to_skip = [
-            "i_body",
-            "record",
-            "source",
-            "state",
-            "plevel",
-            "flags",
-            "check",
-            "sso_stdh",
-        ]
-
-    return list_to_skip
+            with open(path_name, "a", encoding="utf-8") as f:
+                f.write("|".join(da1.columns) + "\n")
+                f.write(row1 + "\n")
+                f.write(row2 + "\n")
 
 
-def compare_var_and_attr_ds(ds1, ds2, entireline, list_to_skip):
+def compare_var_and_attr_ds(ds1, ds2, nl, output, location):
     """
     Variable by variable and attribute by attribute,
     comparison of the two files.
     """
 
     total_all, equal_all = 0, 0
+    list_to_skip = ["source", "i_body", "l_body"]
+
+    if output:
+        if location:
+            path_name = location
+        else:
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            path_name = os.path.join(script_dir, "differences.csv")
+
+        with open(path_name, "w", encoding="utf-8") as f:
+            f.write("Differences\n")
 
     for var in set(ds1.data_vars).union(ds2.data_vars):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
@@ -175,7 +176,12 @@ def compare_var_and_attr_ds(ds1, ds2, entireline, list_to_skip):
 
             if arr1.size == arr2.size:
                 t, e, diff = compare_arrays(arr1, arr2, var)
-                if entireline:
+
+                if output:
+                    write_lines(ds1, ds2, diff, path_name)
+
+                if nl != 0:
+                    diff = diff[:nl]
                     print_entire_line(ds1, ds2, diff)
 
             else:
@@ -190,8 +196,13 @@ def compare_var_and_attr_ds(ds1, ds2, entireline, list_to_skip):
             if arr1.size == arr2.size:
                 t, e, diff = compare_arrays(arr1, arr2, var)
 
-                if entireline:
+                if output:
+                    write_lines(ds1, ds2, diff, path_name)
+
+                if nl != 0:
+                    diff = diff[:nl]
                     print_entire_line(ds1, ds2, diff)
+
             else:
                 t, e = max(arr1.size, arr2.size), 0
             total_all += t
@@ -217,9 +228,34 @@ def primary_check(file1, file2):
 @click.argument("file1", type=click.Path(exists=True))
 @click.argument("file2", type=click.Path(exists=True))
 @click.option(
-    "--entireline", is_flag=True, help="If there are differences, printe the whole line"
+    "--print-lines",
+    is_flag=True,
+    help="Prints the lines where there are differences. "
+    "If --lines is not specified, then the first 10 " \
+    "differences per variables are shown.",
 )
-def check_fof(file1, file2, entireline):
+@click.option(
+    "--lines",
+    "-n",
+    default=10,
+    help="Option to specify how many lines to print " "with the --print-lines option",
+)
+@click.option(
+    "--output",
+    "-o",
+    is_flag=True,
+    help="Option to save differences in a CSV file. "
+    "If the location is not specified, the file "
+    "is saved in the same location as this code. ",
+)
+@click.option(
+    "--location",
+    "-l",
+    default=None,
+    help="if specified, location where to save " \
+    "the CSV file with the differences ",
+)
+def check_fof(file1, file2, print_lines, lines, output, location):
 
     if not primary_check(file1, file2):
         print("Different types of files")
@@ -232,13 +268,17 @@ def check_fof(file1, file2, entireline):
     ds_reports2_sorted, ds_obs2_sorted = split_feedback_dataset(ds2)
 
     total_elements_all, equal_elements_all = 0, 0
-    list_to_skip = get_list_to_skip(file1)
+
+    if print_lines:
+        nl = lines
+    else:
+        nl = 0
 
     for ds1, ds2 in [
         (ds_reports1_sorted, ds_reports2_sorted),
         (ds_obs1_sorted, ds_obs2_sorted),
     ]:
-        t, e = compare_var_and_attr_ds(ds1, ds2, entireline, list_to_skip)
+        t, e = compare_var_and_attr_ds(ds1, ds2, nl, output, location)
         total_elements_all += t
         equal_elements_all += e
 
@@ -247,6 +287,8 @@ def check_fof(file1, file2, entireline):
         percent_diff_all = 100 - percent_equal_all
         print(f"Total percentage of equality: {percent_equal_all:.2f}%")
         print(f"Total percentage of difference: {percent_diff_all:.2f}%")
+        if equal_elements_all == total_elements_all:
+            print("Files are consistent!")
 
 
 if __name__ == "__main__":
