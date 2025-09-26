@@ -231,7 +231,7 @@ def primary_check(file1, file2):
     "--print-lines",
     is_flag=True,
     help="Prints the lines where there are differences. "
-    "If --lines is not specified, then the first 10 " \
+    "If --lines is not specified, then the first 10 "
     "differences per variables are shown.",
 )
 @click.option(
@@ -252,8 +252,7 @@ def primary_check(file1, file2):
     "--location",
     "-l",
     default=None,
-    help="if specified, location where to save " \
-    "the CSV file with the differences ",
+    help="If specified, location where to save the CSV file with the differences.",
 )
 def check_fof(file1, file2, print_lines, lines, output, location):
 
