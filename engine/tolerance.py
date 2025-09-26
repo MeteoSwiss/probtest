@@ -44,7 +44,7 @@ from util.log_handler import logger
 @click.option(
     "--minimum-tolerance",
     type=float,
-    default="1e-14",
+    default="0.0",
     help=cli_help["member_type"],
 )
 def tolerance(stats_file_name, tolerance_file_name, member_ids, member_type, minimum_tolerance):
