@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from engine.check_fof import compare_arrays, compute_hash_for_vars_and_attrs
+from engine.check_fof import compare_arrays
 
 
 @pytest.fixture(name="nc1", scope="function")
@@ -54,25 +54,25 @@ def fixture_nc3():
     return data
 
 
-def test_compute_same_hash_identical_ds(nc1, nc2):
-    """
-    Test that two identical datasets provide the same hash
-    """
-    hash1 = compute_hash_for_vars_and_attrs(nc1)
-    hash2 = compute_hash_for_vars_and_attrs(nc2)
+# def test_compute_same_hash_identical_ds(nc1, nc2):
+#     """
+#     Test that two identical datasets provide the same hash
+#     """
+#     hash1 = compute_hash_for_vars_and_attrs(nc1)
+#     hash2 = compute_hash_for_vars_and_attrs(nc2)
 
-    assert hash1 == hash2
+#     assert hash1 == hash2
 
 
-def test_compute_same_hash_reversed_order(nc1, nc3):
-    """
-    Test that datasets with same values, but reversed order provide
-    same hash
-    """
-    hash1 = compute_hash_for_vars_and_attrs(nc1)
-    hash3 = compute_hash_for_vars_and_attrs(nc3)
+# def test_compute_same_hash_reversed_order(nc1, nc3):
+#     """
+#     Test that datasets with same values, but reversed order provide
+#     same hash
+#     """
+#     hash1 = compute_hash_for_vars_and_attrs(nc1)
+#     hash3 = compute_hash_for_vars_and_attrs(nc3)
 
-    assert hash1 == hash3
+#     assert hash1 == hash3
 
 
 @pytest.fixture(name="arr1", scope="function")

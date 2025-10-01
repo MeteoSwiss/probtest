@@ -254,7 +254,9 @@ def primary_check(file1, file2):
     default=None,
     help="If specified, location where to save the CSV file with the differences.",
 )
-def check_fof(file1, file2, print_lines, lines, output, location):
+def check_fof(
+    file1, file2, print_lines, lines, output, location
+):  # pylint: disable=too-many-positional-arguments
 
     if not primary_check(file1, file2):
         print("Different types of files")
