@@ -7,9 +7,11 @@ Veri data are not considered, only reports and observations are compared.
 """
 
 import os
+import shutil
 
 import click
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 
@@ -91,7 +93,10 @@ def compare_arrays(arr1, arr2, var_name):
         mask_equal = arr1 == arr2
         equal = mask_equal.sum()
         percent = (equal / total) * 100
-        print(f"Differences in '{var_name}': {percent:.2f}% equal")
+        print(
+            f"Differences in '{var_name}': {percent:.2f}% equal. "
+            f"{total} total entries for this variable"
+        )
         diff_idx = np.where(~mask_equal.ravel())[0]
         diff = diff_idx
         # diff = diff_idx[:20]
@@ -110,6 +115,16 @@ def prepare_array(arr):
     return arr
 
 
+def clean_value(x):
+    """
+    Elimination of unnecessary spaces that ruin the
+    alignment when printing the value.
+    """
+    if isinstance(x, bytes):
+        return x.decode().rstrip(" '")
+    return str(x).rstrip(" '")
+
+
 def print_entire_line(ds1, ds2, diff):
     """
     If the specific option is called, this function print
@@ -120,14 +135,30 @@ def print_entire_line(ds1, ds2, diff):
         da2 = ds2.to_dataframe().reset_index()
 
         for i in diff:
+            col_width = 13
+            row1 = "|".join(f"{clean_value(x):<{col_width}}" for x in da1.loc[i])
 
-            row1 = "|".join(map(str, da1.loc[i]))
-            row2 = "|".join(map(str, da2.loc[i]))
+            row2 = "|".join(f"{clean_value(x):<{col_width}}" for x in da2.loc[i])
 
-            print("|".join(da1.columns))
-            print(f"ds1: {row1}")
-            print(f"ds2: {row2}")
-            print("-" * max(len(row1), len(row2)))
+            diff_row = []
+            for x, y in zip(da1.loc[i], da2.loc[i]):
+                if pd.api.types.is_number(x) and pd.api.types.is_number(y):
+                    row_diff = x - y
+                else:
+                    row_diff = "nan"
+
+                diff_row.append(row_diff)
+
+            row_diff = "|".join(f"{str(x):<{col_width}}" for x in diff_row)
+
+            index = "|".join(f"{str(x):<{col_width}}" for x in da1.columns)
+
+            print(f"\033[1mid\033[0m  : {index}")
+            print(f"\033[1mref\033[0m : {row1}")
+            print(f"\033[1mcur\033[0m : {row2}")
+            print(f"\033[1mdiff\033[0m: {row_diff}")
+            term_width = shutil.get_terminal_size().columns
+            print("-" * term_width)
 
 
 def write_lines(ds1, ds2, diff, path_name):
@@ -138,16 +169,30 @@ def write_lines(ds1, ds2, diff, path_name):
     if diff.size > 0:
         da1 = ds1.to_dataframe().reset_index()
         da2 = ds2.to_dataframe().reset_index()
-
+        col_width = 13
+        index = "|".join(f"{str(x):<{col_width}}" for x in da1.columns)
         for i in diff:
 
-            row1 = "|".join(map(str, da1.loc[i]))
-            row2 = "|".join(map(str, da2.loc[i]))
+            row1 = "|".join(f"{clean_value(x):<{col_width}}" for x in da1.loc[i])
+
+            row2 = "|".join(f"{clean_value(x):<{col_width}}" for x in da2.loc[i])
+
+            diff_row = []
+            for x, y in zip(da1.loc[i], da2.loc[i]):
+                if pd.api.types.is_number(x) and pd.api.types.is_number(y):
+                    row_diff = x - y
+                else:
+                    row_diff = "nan"
+
+                diff_row.append(row_diff)
+
+            row_diff = "|".join(f"{str(x):<{col_width}}" for x in diff_row)
 
             with open(path_name, "a", encoding="utf-8") as f:
-                f.write("|".join(da1.columns) + "\n")
-                f.write(row1 + "\n")
-                f.write(row2 + "\n")
+                f.write(f"id  : {index}" + "\n")
+                f.write(f"ref  : {row1}" + "\n")
+                f.write(f"cur  : {row2}" + "\n")
+                f.write(f"diff : {row_diff}" + "\n")
 
 
 def compare_var_and_attr_ds(ds1, ds2, nl, output, location):
