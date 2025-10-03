@@ -10,7 +10,9 @@ import warnings
 
 import numpy as np
 import pandas as pd
+import xarray as xr
 
+from engine.check_fof import split_feedback_dataset
 from util.constants import CHECK_THRESHOLD, compute_statistics
 from util.file_system import file_names_from_pattern
 from util.log_handler import logger
@@ -60,6 +62,13 @@ def parse_probtest_csv(path, index_col):
     )
 
     return pd.DataFrame(df, columns=new_cols)
+
+
+def parse_probtest_fof(path):
+    ds = xr.open_dataset(path)
+    _, _, ds_veri = split_feedback_dataset(ds)
+    df_veri = ds_veri.to_dataframe().reset_index()
+    return pd.DataFrame(df_veri)
 
 
 def read_input_file(label, file_name, specification):
@@ -273,40 +282,61 @@ def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
     """
     df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
 
-    logger.info("applying a factor of %s to the spread", factor)
+    # logger.info("applying a factor of %s to the spread", factor)
     df_tol *= factor
 
     df_ref = parse_probtest_csv(input_file_ref, index_col=[0, 1, 2])
     df_cur = parse_probtest_csv(input_file_cur, index_col=[0, 1, 2])
 
+    # logger.info(
+    #     "checking %s against %s using tolerances from %s",
+    #     input_file_cur,
+    #     input_file_ref,
+    #     tolerance_file_name,
+    # )
+
+    return df_tol, df_ref, df_cur
+
+
+def check_stats_file_with_tolerances(
+    tolerance_file_name, input_file_ref, input_file_cur, factor, type_f="stats"
+):
+    if type_f == "fof":
+        ds_tol = pd.read_csv(tolerance_file_name, index_col=0)
+        df_tol = ds_tol * factor
+
+        df_ref = parse_probtest_fof(input_file_ref)
+
+        df_cur = parse_probtest_fof(input_file_cur)
+
+    else:
+        df_tol, df_ref, df_cur = parse_check(
+            tolerance_file_name, input_file_ref, input_file_cur, factor
+        )
+
+    logger.info("applying a factor of %s to the spread", factor)
     logger.info(
         "checking %s against %s using tolerances from %s",
         input_file_cur,
         input_file_ref,
         tolerance_file_name,
     )
-
-    return df_tol, df_ref, df_cur
-
-
-def check_stats_file_with_tolerances(
-    tolerance_file_name, input_file_ref, input_file_cur, factor
-):
-
-    df_tol, df_ref, df_cur = parse_check(
-        tolerance_file_name, input_file_ref, input_file_cur, factor
-    )
-
     # check if variables are available in reference file
     skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
+
     if skip_test:  # No intersection
         logger.error("RESULT: check FAILED")
         sys.exit(1)
 
+    if type_f == "fof":
+        df_ref = df_ref["veri_data"]
+        df_cur = df_cur["veri_data"]
+
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
-    # take maximum over height
-    diff_df = diff_df.groupby(["file_ID", "variable"]).max()
+    # if stats, take maximum over height
+    if type_f == "stats":
+        diff_df = diff_df.groupby(["file_ID", "variable"]).max()
 
     out, err, tol = check_variable(diff_df, df_tol)
 
