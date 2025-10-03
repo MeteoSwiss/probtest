@@ -60,8 +60,8 @@ def tolerance(
     member_type,
     fof_file_name,
     tolerance_file_fof_name,
-    fof_type
-): # pylint: disable=too-many-positional-arguments
+    fof_type,
+):  # pylint: disable=too-many-positional-arguments
 
     jobs = []
     if fof_file_name:
@@ -132,7 +132,7 @@ def tolerance(
     #         if ndata < 1:
     #             logger.critical(
     #                 "not enough data to compute tolerance, got %s dataset.
-                 #Abort.", ndata
+    # Abort.", ndata
     #             )
     #             sys.exit(1)
 

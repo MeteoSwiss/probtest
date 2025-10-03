@@ -104,11 +104,15 @@ cli_help = {
     + r"Must contain '\{member_id\}'.",
     "tolerance_file_name": r"the name of the file containing the tolerances "
     + r"(per time step and variable)",
+    "tolerance_file_fof_name": r"the name of the file containing the tolerances "
+    + r"(for the fof file)",
     "stats_file_name": r"the name of the stats file. No absolute path here, it will "
     + r"always be created in the (perturbed) model_output_dir.",
+    "fof_file_name": r"the name of the fof file.",
     "member_count": r"count of ensemble members " + r'(e.g. "10")',
     "member_id": r"id of ensemble member " + r'(e.g. "3")',
     "member_ids": r"comma separated list of member ids" + r'(e.g. "1,3,14")',
+    "fof_type": r"type of fof files you want to analyse",
     "member_type": r"precision of experiment (e.g. double or mixed). "
     + r"The type is part of the created member_id, which is equal to "
     + r"(member_type+'_'+str(member_id))",
@@ -138,6 +142,8 @@ cli_help = {
     + r"df_from_file_ids for the specification.",
     "input_file_ref": r"reference file to check against",
     "input_file_cur": r"current file to be tested",
+    "input_file_fof_ref": r"reference fof file to check against",
+    "input_file_fof_cur": r"current fof file to be tested",
     "factor": r"relaxation factor for the tolerance values",
     "timing_regex": r"regex for the file that contains the latest log",
     "timing_names": r"the name of the timing entries to be displayed (comma separated)",
