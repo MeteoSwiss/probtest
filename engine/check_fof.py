@@ -65,9 +65,27 @@ def split_feedback_dataset(ds):
 
     ds_obs = dataset[vars_shape2]
     sort_keys_obs = ["lat", "lon", "statid", "varno", "level", "time_nomi"]
+    vars_shape2.append("veri_data")
+    ds_veri = dataset[vars_shape2]
     ds_obs_sorted = ds_obs.sortby(sort_keys_obs)
+    ds_veri_sorted = ds_veri.sortby(sort_keys_obs)
 
-    return ds_report_sorted, ds_obs_sorted
+    vars_to_drop = [
+        "obs",
+        "bcor",
+        "level_typ",
+        "level_sig",
+        "state",
+        "flags",
+        "check",
+        "e_o",
+        "qual",
+        "plevel",
+    ]
+
+    ds_veri = ds_obs_sorted.drop_vars(vars_to_drop)
+
+    return ds_report_sorted, ds_obs_sorted, ds_veri_sorted
 
 
 def compare_arrays(arr1, arr2, var_name):
@@ -310,8 +328,8 @@ def check_fof(
     ds1 = xr.open_dataset(file1)
     ds2 = xr.open_dataset(file2)
 
-    ds_reports1_sorted, ds_obs1_sorted = split_feedback_dataset(ds1)
-    ds_reports2_sorted, ds_obs2_sorted = split_feedback_dataset(ds2)
+    ds_reports1_sorted, ds_obs1_sorted, _ = split_feedback_dataset(ds1)
+    ds_reports2_sorted, ds_obs2_sorted, _ = split_feedback_dataset(ds2)
 
     total_elements_all, equal_elements_all = 0, 0
 
