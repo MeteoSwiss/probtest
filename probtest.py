@@ -12,7 +12,6 @@ import matplotlib
 from engine.cdo_table import cdo_table
 from engine.check import check
 from engine.check_fof import check_fof
-from engine.check_tol_fof import check_tol_fof
 from engine.init import init
 from engine.performance import performance
 from engine.performance_check import performance_check
@@ -21,7 +20,6 @@ from engine.run_ensemble import run_ensemble
 from engine.select_members import select_members
 from engine.stats import stats
 from engine.tolerance import tolerance
-from engine.tolerance_fof import tolerance_fof
 from util.click_util import load_defaults
 from util.log_handler import initialize_logger
 from visualize.cdo_table_reader import cdo_table_reader
@@ -63,8 +61,6 @@ cli.add_command(performance_check)
 cli.add_command(cdo_table)
 cli.add_command(cdo_table_reader)
 cli.add_command(check_fof)
-cli.add_command(tolerance_fof)
-cli.add_command(check_tol_fof)
 
 if __name__ == "__main__":
     cli()
