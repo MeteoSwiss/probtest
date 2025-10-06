@@ -76,13 +76,17 @@ def tolerance(
             jobs.append(("fof", files, ref_file, out_file))
 
     if stats_file_name:
+
         files = [
-            stats_file_name.format(
-                member_id=(str(m_id) if not member_type else f"{member_type}_{m_id}")
+            stats_file_name.format(member_id=m_id)
+            for m_id in (
+                (str(m_id) if not member_type else member_type + "_" + str(m_id))
+                for m_id in member_ids
             )
-            for m_id in member_ids
         ]
-        ref_file = stats_file_name.format(member_id="ref")
+        print(files)
+
+        ref_file = stats_file_name.format(member_id="ref", member_type="")
         out_file = tolerance_file_name
         jobs.append(("stats", files, ref_file, out_file))
 
