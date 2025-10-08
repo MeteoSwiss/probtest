@@ -15,7 +15,7 @@ from pathlib import Path
 
 import click
 
-from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
+from util.click_util import CommaSeparatedInts, CommaSeparatedStrings, cli_help
 from util.log_handler import logger
 from util.utils import get_seed_from_member_id, prepend_type_to_member_id
 
@@ -165,7 +165,7 @@ def check_job_returncode(job):
 @click.option(
     "--member-ids",
     default="1,2,3,4,5,6,7,8,9,10",
-    type=CommaSeperatedInts(),
+    type=CommaSeparatedInts(),
     help=cli_help["member_ids"],
 )
 @click.option(
@@ -186,17 +186,17 @@ def check_job_returncode(job):
 )
 @click.option(
     "--lhs",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     help=cli_help["lhs"],
 )
 @click.option(
     "--rhs-new",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     help=cli_help["rhs_new"],
 )
 @click.option(
     "--rhs-old",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     help=cli_help["rhs_old"],
 )
 def run_ensemble(

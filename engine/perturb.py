@@ -14,7 +14,7 @@ import shutil
 import click
 import numpy as np
 
-from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
+from util.click_util import CommaSeparatedInts, CommaSeparatedStrings, cli_help
 from util.log_handler import logger
 from util.netcdf_io import nc4_get_copy
 from util.utils import get_seed_from_member_id, prepend_type_to_member_id
@@ -41,12 +41,12 @@ def perturb_array(array, seed, perturb_amplitude):
 )
 @click.option(
     "--files",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     help=cli_help["files"],
 )
 @click.option(
     "--member-ids",
-    type=CommaSeperatedInts(),
+    type=CommaSeparatedInts(),
     default="1,2,3,4,5,6,7,8,9,10",
     help=cli_help["member_ids"],
 )
@@ -58,7 +58,7 @@ def perturb_array(array, seed, perturb_amplitude):
 )
 @click.option(
     "--variable-names",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     help=cli_help["variable_names"],
 )
 @click.option(

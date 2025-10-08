@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from util.click_util import CommaSeperatedStrings, cli_help
+from util.click_util import CommaSeparatedStrings, cli_help
 from util.constants import DATETIME_FORMAT
 from util.log_handler import logger
 from util.tree import TimingTree
@@ -67,7 +67,7 @@ def plot_meta_data_timer(
 )
 @click.option(
     "--timing-names",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     help=cli_help["timing_names"],
 )
 @click.option(
