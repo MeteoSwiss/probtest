@@ -104,8 +104,10 @@ cli_help = {
     + r"Must contain '\{member_id\}'.",
     "tolerance_file_name": r"the name of the file containing the tolerances "
     + r"(per time step and variable)",
-    "tolerance_file_fof_name": r"the name of the file containing the tolerances "
-    + r"(for the fof file)",
+    "tolerance_files_name": r"list containing the name of the files "
+    + r"containing the tolerances (per time step and variable), "
+    + r"both for stats and fof files",
+    "files_name": r"list containing the name of the stat file and the fof file.",
     "stats_file_name": r"the name of the stats file. No absolute path here, it will "
     + r"always be created in the (perturbed) model_output_dir.",
     "fof_file_name": r"the name of the fof file.",
@@ -141,9 +143,11 @@ cli_help = {
     + r"option must be defined in the json config file. See doc string of  "
     + r"df_from_file_ids for the specification.",
     "input_file_ref": r"reference file to check against",
+    "input_files_ref": r"list of reference files to check against, "
+    + r"both for stats and fof files",
     "input_file_cur": r"current file to be tested",
-    "input_file_fof_ref": r"reference fof file to check against",
-    "input_file_fof_cur": r"current fof file to be tested",
+    "input_files_cur": r"list of current files to be tested, "
+    + r"both for stats and fof files",
     "factor": r"relaxation factor for the tolerance values",
     "timing_regex": r"regex for the file that contains the latest log",
     "timing_names": r"the name of the timing entries to be displayed (comma separated)",

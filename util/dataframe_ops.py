@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from engine.check_fof import split_feedback_dataset
+from engine.fof_compare import split_feedback_dataset
 from util.constants import CHECK_THRESHOLD, compute_statistics
 from util.file_system import file_names_from_pattern
 from util.log_handler import logger
@@ -282,26 +282,20 @@ def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
     """
     df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
 
-    # logger.info("applying a factor of %s to the spread", factor)
     df_tol *= factor
 
     df_ref = parse_probtest_csv(input_file_ref, index_col=[0, 1, 2])
     df_cur = parse_probtest_csv(input_file_cur, index_col=[0, 1, 2])
 
-    # logger.info(
-    #     "checking %s against %s using tolerances from %s",
-    #     input_file_cur,
-    #     input_file_ref,
-    #     tolerance_file_name,
-    # )
-
     return df_tol, df_ref, df_cur
 
 
 def check_stats_file_with_tolerances(
-    tolerance_file_name, input_file_ref, input_file_cur, factor, type_f="stats"
+    tolerance_file_name, input_file_ref, input_file_cur, factor
 ):
-    if type_f == "fof":
+
+    if "fof" in input_file_ref:
+        type_f = "fof"
         ds_tol = pd.read_csv(tolerance_file_name, index_col=0)
         df_tol = ds_tol * factor
 
@@ -310,6 +304,7 @@ def check_stats_file_with_tolerances(
         df_cur = parse_probtest_fof(input_file_cur)
 
     else:
+        type_f = "stats"
         df_tol, df_ref, df_cur = parse_check(
             tolerance_file_name, input_file_ref, input_file_cur, factor
         )
@@ -341,3 +336,12 @@ def check_stats_file_with_tolerances(
     out, err, tol = check_variable(diff_df, df_tol)
 
     return out, err, tol
+
+
+def enough_data(dfs):
+    ndata = len(dfs)
+    if ndata < 1:
+        logger.critical(
+            "not enough data to compute tolerance, got %s dataset. Abort.", ndata
+        )
+        sys.exit(1)
