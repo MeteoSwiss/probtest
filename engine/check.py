@@ -64,13 +64,10 @@ def check(
         out, err, tol = check_stats_file_with_tolerances(
             tolerance_file_name, input_file_ref, input_file_cur, factor
         )
-        output_list.append([out, err, tol, input_file_cur])
-
-    for output in output_list:
-        out = output[0]
-        err = output[1]
-        tol = output[2]
-        file = output[3]
+        out = out[0]
+        err = out[1]
+        tol = out[2]
+        file = out[3]
 
         if out:
             logger.info("RESULT: check PASSED for %s", file)
