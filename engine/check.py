@@ -19,66 +19,62 @@ from util.log_handler import logger
 
 @click.command()
 @click.option(
-    "--input-files-ref",
+    "--reference_files",
     type=CommaSeperatedStrings(),
-    help=cli_help["input_files_ref"],
+    help=cli_help["reference_files"],
     default=None,
 )
 @click.option(
-    "--input-files-cur",
+    "--current_files",
     type=CommaSeperatedStrings(),
-    help=cli_help["input_files_cur"],
+    help=cli_help["current_files"],
     default=None,
 )
 @click.option(
-    "--tolerance-files-name",
+    "--tolerance-files",
     type=CommaSeperatedStrings(),
-    help=cli_help["tolerance_files_name"],
+    help=cli_help["tolerance_files_input"],
     default=None,
 )
 @click.option("--factor", type=float, help=cli_help["factor"])
 @click.option(
-    "--fof-type",
+    "--fof-types",
     default="",
-    help=cli_help["fof_type"],
+    help=cli_help["fof_types"],
 )
 def check(
-    input_files_ref,
-    input_files_cur,
-    tolerance_files_name,
+    reference_files,
+    current_files,
+    tolerance_files,
     factor,
-    fof_type,
+    fof_types,
 ):
 
-    zipped = zip(input_files_ref, input_files_cur, tolerance_files_name)
+    zipped = zip(reference_files, current_files, tolerance_files)
 
-    expanded_zip = expand_zip(zipped, fof_type)
-
-    output_list = []
+    expanded_zip = expand_zip(zipped, fof_types)
 
     for ref, cur, tol in expanded_zip:
-        input_file_ref = ref
-        input_file_cur = cur
-        tolerance_file_name = tol
+        reference_file = ref
+        current_file = cur
+        tolerance_file = tol
 
         out, err, tol = check_stats_file_with_tolerances(
-            tolerance_file_name, input_file_ref, input_file_cur, factor
+            tolerance_file, reference_file, current_file, factor
         )
-        out = out[0]
-        err = out[1]
-        tol = out[2]
-        file = out[3]
 
+        all_out = True
         if out:
-            logger.info("RESULT: check PASSED for %s", file)
+            logger.info("RESULT: check PASSED for %s", current_file)
 
         else:
-            logger.info("RESULT: check FAILED for %s", file)
+            logger.info("RESULT: check FAILED for %s", current_file)
             logger.info("Differences")
             logger.info(err)
             logger.info("\nTolerance")
             logger.info(tol)
             logger.info("\nError relative to tolerance")
             logger.info(compute_division(err, tol))
+            all_out = False
 
-    sys.exit(0 if out else 1)
+    sys.exit(0 if all_out else 1)

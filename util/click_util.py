@@ -104,17 +104,22 @@ cli_help = {
     + r"Must contain '\{member_id\}'.",
     "tolerance_file_name": r"the name of the file containing the tolerances "
     + r"(per time step and variable)",
-    "tolerance_files_name": r"list containing the name of the files "
+    "tolerance_files_output": r"list containing the name of the files "
     + r"containing the tolerances (per time step and variable), "
-    + r"both for stats and fof files",
-    "files_name": r"list containing the name of the stat file and the fof file.",
+    + r"both for stats and fof files. This file is an output of the computations "
+    + r"done in tolerance.py and will be use as input in check.py",
+    "tolerance_files_input": r"list containing the name of the files "
+    + r"containing the tolerances (per time step and variable), "
+    + r"both for stats and fof files. This file is used as an input but it is"
+    + r" the output of the tolerance.py module.",
+    "ensemble_files": r"list containing the name of the stat file and the fof file.",
     "stats_file_name": r"the name of the stats file. No absolute path here, it will "
     + r"always be created in the (perturbed) model_output_dir.",
     "fof_file_name": r"the name of the fof file.",
     "member_count": r"count of ensemble members " + r'(e.g. "10")',
     "member_id": r"id of ensemble member " + r'(e.g. "3")',
     "member_ids": r"comma separated list of member ids" + r'(e.g. "1,3,14")',
-    "fof_type": r"type of fof files you want to analyse",
+    "fof_types": r"type of fof files you want to analyse",
     "member_type": r"precision of experiment (e.g. double or mixed). "
     + r"The type is part of the created member_id, which is equal to "
     + r"(member_type+'_'+str(member_id))",
@@ -143,10 +148,10 @@ cli_help = {
     + r"option must be defined in the json config file. See doc string of  "
     + r"df_from_file_ids for the specification.",
     "input_file_ref": r"reference file to check against",
-    "input_files_ref": r"list of reference files to check against, "
+    "reference_files": r"list of reference files to check against, "
     + r"both for stats and fof files",
     "input_file_cur": r"current file to be tested",
-    "input_files_cur": r"list of current files to be tested, "
+    "current_files": r"list of current files to be tested, "
     + r"both for stats and fof files",
     "factor": r"relaxation factor for the tolerance values",
     "timing_regex": r"regex for the file that contains the latest log",

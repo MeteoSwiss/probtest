@@ -13,28 +13,29 @@ import pandas as pd
 
 from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
 from util.dataframe_ops import (
+    FileType,
     compute_rel_diff_dataframe,
-    enough_data,
     force_monotonic,
+    has_enough_data,
     parse_probtest_csv,
     parse_probtest_fof,
 )
-from util.fof_utils import expand_zip, order_stat_fof
+from util.fof_utils import expand_zip
 from util.log_handler import logger
 
 
 @click.command()
 @click.option(
-    "--files_name",
+    "--ensemble_files",
     type=CommaSeperatedStrings(),
     default=None,
-    help=cli_help["files_name"],
+    help=cli_help["ensemble_files"],
 )
 @click.option(
-    "--tolerance-files-name",
+    "--tolerance-files",
     type=CommaSeperatedStrings(),
     default=None,
-    help=cli_help["tolerance_files_name"],
+    help=cli_help["tolerance_files_output"],
 )
 @click.option(
     "--member-ids",
@@ -49,70 +50,66 @@ from util.log_handler import logger
     help=cli_help["member_type"],
 )
 @click.option(
-    "--fof-type",
+    "--fof-types",
     default="",
-    help=cli_help["fof_type"],
+    help=cli_help["fof_types"],
 )
 def tolerance(
-    files_name,
-    tolerance_files_name,
+    ensemble_files,
+    tolerance_files,
     member_ids,
     member_type,
-    fof_type,
+    fof_types,
 ):
 
-    expanded = expand_zip(files_name, fof_type, member_ids, member_type)
-    results = []
-    tolerance_files_name = order_stat_fof(tolerance_files_name)
+    expanded = expand_zip(ensemble_files, fof_types, member_ids="{member_id}")
+    expanded_tol = expand_zip(tolerance_files, fof_types)
 
-    if any("stat" in name.lower() for name in files_name):
-        dfs = [
-            parse_probtest_csv(stat[0], index_col=[0, 1, 2])
-            for stat in expanded
-            if "stat" in stat[0].lower()
-        ]
-        df_ref = parse_probtest_csv(
-            files_name[0].format(member_id="ref"), index_col=[0, 1, 2]
-        )
-        enough_data(dfs)
+    files_list = zip(expanded, expanded_tol)
 
-        rdiff = [compute_rel_diff_dataframe(df_ref, df) for df in dfs]
-        rdiff_max = [r.groupby(["file_ID", "variable"]).max() for r in rdiff]
+    for item in files_list:
+        if any(FileType.STATS.value in i for i in item[0]):
 
-        df_max = pd.concat(rdiff_max).groupby(["file_ID", "variable"]).max()
-        force_monotonic(df_max)
-
-        results.append([df_max, tolerance_files_name[0]])
-
-    if any("fof" in name.lower() for name in files_name):
-        fof_list = fof_type.split(",") if fof_type else []
-        dfs_fof, dfs_ref_fof = {}, {}
-
-        for tfof in fof_list:
-            dfs_fof[tfof] = [
-                parse_probtest_fof(stat[0])
-                for stat in expanded
-                if "fof" in stat[0].lower() and tfof in stat[0]
-            ]
-            enough_data(dfs_fof[tfof])
-
-            dfs_ref_fof[tfof] = parse_probtest_fof(
-                files_name[1].format(member_id="ref", fof_type=tfof)
+            stats_files = expand_zip(
+                item[0], member_ids=member_ids, member_type=member_type
             )
 
+            dfs = [
+                parse_probtest_csv(file[0], index_col=[0, 1, 2]) for file in stats_files
+            ]
+
+            df_ref = parse_probtest_csv(
+                item[0][0].format(member_id="ref"), index_col=[0, 1, 2]
+            )
+
+            has_enough_data(dfs)
+
+            rdiff = [compute_rel_diff_dataframe(df_ref, df) for df in dfs]
+            rdiff_max = [r.groupby(["file_ID", "variable"]).max() for r in rdiff]
+
+            df_max = pd.concat(rdiff_max).groupby(["file_ID", "variable"]).max()
+            force_monotonic(df_max)
+
+        elif any(FileType.FOF.value in f for f in item[0]):
+
+            fof_files = expand_zip(item[0], member_ids=member_ids)
+
+            dfs_fof = [parse_probtest_fof(file[0]) for file in fof_files]
+
+            has_enough_data(dfs_fof)
+
+            df_ref_fof = parse_probtest_fof(item[0][0].format(member_id="ref"))
+
             rdiff = [
-                compute_rel_diff_dataframe(
-                    dfs_ref_fof[tfof]["veri_data"], df["veri_data"]
-                )
-                for df in dfs_fof[tfof]
+                compute_rel_diff_dataframe(df_ref_fof["veri_data"], df["veri_data"])
+                for df in dfs_fof
             ]
             df_max = pd.concat(rdiff, axis=1).max(axis=1)
 
-            results.append([df_max, tolerance_files_name[1].format(fof_type=tfof)])
-
-    for df_max, tol_file in results:
-        tolerance_dir = os.path.dirname(tol_file)
+        tolerance_file = repr(item[1][0])
+        tolerance_dir = os.path.dirname(tolerance_file)
+        print(tolerance_dir)
         if tolerance_dir and not os.path.exists(tolerance_dir):
             os.makedirs(tolerance_dir)
-        logger.info("writing tolerance file to %s", tol_file)
-        df_max.to_csv(tol_file)
+        logger.info("writing tolerance file to %s", tolerance_file)
+        df_max.to_csv(tolerance_file)

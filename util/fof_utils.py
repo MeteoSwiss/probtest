@@ -294,7 +294,11 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
     member_ids = member_ids or [""]
     member_type = member_type or [""]
 
-    zipped = zipped if isinstance(zipped, zip) else zip(zipped)
+    zipped = (
+        zipped
+        if isinstance(zipped, zip)
+        else zip(zipped if isinstance(zipped, (list, tuple)) else [zipped])
+    )
 
     fof_list = fof_type.split(",") if isinstance(fof_type, str) else fof_type
     member_list = member_ids.split(",") if isinstance(member_ids, str) else member_ids
@@ -330,16 +334,3 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
                     )
 
     return expanded
-
-
-def order_stat_fof(names):
-    """
-    Sort a list according to the following rules:
-    - “stat” first, if present
-    - “fof” second, if present
-    """
-    stat = [n for n in names if "stat" in n.lower()]
-    fof = [n for n in names if "fof" in n.lower()]
-    others = [n for n in names if n not in stat + fof]
-
-    return stat + others + fof
