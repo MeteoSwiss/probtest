@@ -14,7 +14,7 @@ from pathlib import Path
 import click
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
-from util.click_util import CommaSeperatedInts, cli_help
+from util.click_util import CommaSeparatedInts, cli_help
 from util.log_handler import logger
 
 
@@ -44,7 +44,7 @@ from util.log_handler import logger
 )
 @click.option(
     "--member-ids",
-    type=CommaSeperatedInts(),
+    type=CommaSeparatedInts(),
     default="1,2,3,4,5,6,7,8,9,10",
     help=cli_help["member_ids"],
 )
