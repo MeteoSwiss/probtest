@@ -4,6 +4,7 @@ This module contains functions for handling fof files
 
 import os
 import shutil
+from enum import Enum
 
 import numpy as np
 import pandas as pd
@@ -288,23 +289,27 @@ def primary_check(file1, file2):
 def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
     """
     Expands a list of tuples (zip) by replacing the placeholders
-    {fof_type}, {member_id} and {member_type} with the values provided.
+    {fof_type}, {member_id}, and {member_type} with the values provided.
+    If a placeholder is present but no corresponding value is given,
+    the placeholder is left unchanged.
     """
-    fof_type = fof_type or [""]
-    member_ids = member_ids or [""]
-    member_type = member_type or [""]
-
-    zipped = (
-        zipped
-        if isinstance(zipped, zip)
-        else zip(zipped if isinstance(zipped, (list, tuple)) else [zipped])
-    )
+    fof_type = fof_type or []
+    member_ids = member_ids or []
+    member_type = member_type or []
 
     fof_list = fof_type.split(",") if isinstance(fof_type, str) else fof_type
     member_list = member_ids.split(",") if isinstance(member_ids, str) else member_ids
     member_type_list = (
         member_type.split(",") if isinstance(member_type, str) else member_type
     )
+
+    if isinstance(zipped, (list, tuple)):
+        if not isinstance(zipped[0], tuple):
+            zipped = [(z,) for z in zipped]
+    elif isinstance(zipped, zip):
+        zipped = list(zipped)
+    else:
+        zipped = [(zipped,)]
 
     expanded = []
 
@@ -315,22 +320,64 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
             "member_type": any("{member_type}" in str(item) for item in tup),
         }
 
-        combos = [fof_list if placeholders["fof_type"] else [""]]
-        combos.append(member_list if placeholders["member_id"] else [""])
-        combos.append(member_type_list if placeholders["member_type"] else [""])
+        fof_values = (
+            fof_list
+            if (placeholders["fof_type"] and fof_list)
+            else ([None] if placeholders["fof_type"] else [""])
+        )
+        member_values = (
+            member_list
+            if (placeholders["member_id"] and member_list)
+            else ([None] if placeholders["member_id"] else [""])
+        )
+        member_type_values = (
+            member_type_list
+            if (placeholders["member_type"] and member_type_list)
+            else ([None] if placeholders["member_type"] else [""])
+        )
 
-        for fof_val in combos[0]:
-            for member_val in combos[1]:
-                for type_val in combos[2]:
-                    expanded.append(
-                        tuple(
-                            item.format(
-                                fof_type=fof_val,
-                                member_id=member_val,
-                                member_type=type_val,
-                            )
-                            for item in tup
+        for fof_val in fof_values:
+            for member_val in member_values:
+                for mtype_val in member_type_values:
+                    formatted_items = [
+                        item.format(
+                            fof_type=fof_val if fof_val is not None else "{fof_type}",
+                            member_id=(
+                                member_val if member_val is not None else "{member_id}"
+                            ),
+                            member_type=(
+                                mtype_val if mtype_val is not None else "{member_type}"
+                            ),
                         )
+                        for item in tup
+                    ]
+                    expanded.append(
+                        formatted_items[0]
+                        if len(formatted_items) == 1
+                        else tuple(formatted_items)
                     )
 
     return expanded
+
+
+class FileType(Enum):
+    """
+    Class that memorizes the distinction between file types
+    """
+
+    FOF = "fof"
+    STATS = "stats"
+
+
+def get_file_type(filename: str) -> FileType:
+    """
+    Determine the file type based on a substring contained in the filename.
+    """
+    name = filename.lower()
+
+    if "fof" in name:
+        return FileType.FOF
+    if "stats" in name:
+        return FileType.STATS
+
+    raise ValueError(f"Unknown file type for '{filename}'")

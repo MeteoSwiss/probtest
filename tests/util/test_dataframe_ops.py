@@ -13,15 +13,15 @@ from util.dataframe_ops import (
     compute_rel_diff_dataframe,
     force_monotonic,
     parse_check,
-    parse_probtest_csv,
+    parse_probtest_stats,
     unify_time_index,
 )
 
 
-@patch("util.dataframe_ops.parse_probtest_csv")
-def test_parse_check(mock_parse_probtest_csv, setup_csv_files):
-    # Mock the return value of parse_probtest_csv
-    mock_parse_probtest_csv.side_effect = lambda file, index_col: pd.read_csv(
+@patch("util.dataframe_ops.parse_probtest_stats")
+def test_parse_check(mock_parse_probtest_stats, setup_csv_files):
+    # Mock the return value of parse_probtest_stats
+    mock_parse_probtest_stats.side_effect = lambda file, index_col: pd.read_csv(
         file, index_col=index_col
     )
 
@@ -209,12 +209,12 @@ d,e,2,4,6,8
     return file_path
 
 
-def test_parse_probtest_csv(sample_csv):
+def test_parse_probtest_stats(sample_csv):
     """
     Check that the first multiindex of the rows is reversed because
     it is not in ascending order
     """
-    df = parse_probtest_csv(sample_csv, index_col=[0, 1])
+    df = parse_probtest_stats(sample_csv, index_col=[0, 1])
 
     expected = pd.DataFrame(
         {

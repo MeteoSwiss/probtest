@@ -1,9 +1,9 @@
 """
 CLI for computing tolerance values from statistical datasets and from fof files.
 
-This module reads statistical data from CSV files, computes relative differences,
-and determines the tolerance levels for various ensemble members. Same is done
-for fof files.
+This module reads statistical data from CSV files and fof data from netCDF files,
+computes relative differences, and determines the tolerance levels for various
+ensemble members.
 """
 
 import os
@@ -13,14 +13,12 @@ import pandas as pd
 
 from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
 from util.dataframe_ops import (
-    FileType,
     compute_rel_diff_dataframe,
+    file_name_parser,
     force_monotonic,
     has_enough_data,
-    parse_probtest_csv,
-    parse_probtest_fof,
 )
-from util.fof_utils import expand_zip
+from util.fof_utils import FileType, expand_zip, get_file_type
 from util.log_handler import logger
 
 
@@ -51,6 +49,7 @@ from util.log_handler import logger
 )
 @click.option(
     "--fof-types",
+    type=CommaSeperatedStrings(),
     default="",
     help=cli_help["fof_types"],
 )
@@ -62,54 +61,36 @@ def tolerance(
     fof_types,
 ):
 
-    expanded = expand_zip(ensemble_files, fof_types, member_ids="{member_id}")
-    expanded_tol = expand_zip(tolerance_files, fof_types)
+    files_list = zip(ensemble_files, tolerance_files)
+    expanded_zip = expand_zip(files_list, fof_types)
 
-    files_list = zip(expanded, expanded_tol)
+    for mem, tol in expanded_zip:
 
-    for item in files_list:
-        if any(FileType.STATS.value in i for i in item[0]):
+        ensemble_files = expand_zip(mem, member_ids=member_ids, member_type=member_type)
 
-            stats_files = expand_zip(
-                item[0], member_ids=member_ids, member_type=member_type
-            )
+        dfs = [file_name_parser[get_file_type(mem)](file) for file in ensemble_files]
 
-            dfs = [
-                parse_probtest_csv(file[0], index_col=[0, 1, 2]) for file in stats_files
-            ]
+        df_ref = file_name_parser[get_file_type(mem)](mem.format(member_id="ref"))
 
-            df_ref = parse_probtest_csv(
-                item[0][0].format(member_id="ref"), index_col=[0, 1, 2]
-            )
+        has_enough_data(dfs)
 
-            has_enough_data(dfs)
+        file_type = get_file_type(mem)
+        df_ref = df_ref["veri_data"] if file_type is FileType.FOF else df_ref
+        dfs = [df["veri_data"] for df in dfs] if file_type is FileType.FOF else dfs
 
-            rdiff = [compute_rel_diff_dataframe(df_ref, df) for df in dfs]
+        rdiff = [compute_rel_diff_dataframe(df_ref, df) for df in dfs]
+
+        if file_type is FileType.STATS:
             rdiff_max = [r.groupby(["file_ID", "variable"]).max() for r in rdiff]
-
             df_max = pd.concat(rdiff_max).groupby(["file_ID", "variable"]).max()
             force_monotonic(df_max)
 
-        elif any(FileType.FOF.value in f for f in item[0]):
-
-            fof_files = expand_zip(item[0], member_ids=member_ids)
-
-            dfs_fof = [parse_probtest_fof(file[0]) for file in fof_files]
-
-            has_enough_data(dfs_fof)
-
-            df_ref_fof = parse_probtest_fof(item[0][0].format(member_id="ref"))
-
-            rdiff = [
-                compute_rel_diff_dataframe(df_ref_fof["veri_data"], df["veri_data"])
-                for df in dfs_fof
-            ]
+        elif file_type is FileType.FOF:
             df_max = pd.concat(rdiff, axis=1).max(axis=1)
 
-        tolerance_file = repr(item[1][0])
-        tolerance_dir = os.path.dirname(tolerance_file)
+        tolerance_dir = os.path.dirname(tol)
         print(tolerance_dir)
-        if tolerance_dir and not os.path.exists(tolerance_dir):
-            os.makedirs(tolerance_dir)
-        logger.info("writing tolerance file to %s", tolerance_file)
-        df_max.to_csv(tolerance_file)
+        if tolerance_dir and not os.path.exists(tol):
+            os.makedirs(tol)
+        logger.info("writing tolerance file to %s", tol)
+        df_max.to_csv(tol)

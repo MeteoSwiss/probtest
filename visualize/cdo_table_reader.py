@@ -7,7 +7,7 @@ import click
 import pandas as pd
 
 from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
-from util.dataframe_ops import parse_probtest_csv
+from util.dataframe_ops import parse_probtest_stats
 
 pd.set_option("expand_frame_repr", False)
 
@@ -50,7 +50,7 @@ def cdo_table_reader(variables, file_id, times, histogram, cdo_table_file):
     times = times if times else slice(None)
     hist = slice(None) if histogram else "rel_diff"
 
-    df = parse_probtest_csv(cdo_table_file, index_col=[0, 1])
+    df = parse_probtest_stats(cdo_table_file, index_col=[0, 1])
     sub_df = df.loc[(file_ids, variables), (times, hist)]
 
     print(sub_df)

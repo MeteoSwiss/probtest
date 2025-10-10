@@ -3,8 +3,8 @@ CLI for Checking Data Files with Tolerances
 
 This module defines a CLI to compare two data files (reference and current)
 against specified tolerances.
-It utilizes utility functions for testing statistical files with tolerances and
-computing divergence between DataFrames.
+It utilizes utility functions for testing statistical and fof files with
+tolerances and computing divergence between DataFrames.
 """
 
 import sys
@@ -12,7 +12,7 @@ import sys
 import click
 
 from util.click_util import CommaSeperatedStrings, cli_help
-from util.dataframe_ops import check_stats_file_with_tolerances, compute_division
+from util.dataframe_ops import check_files_with_tolerances, compute_division
 from util.fof_utils import expand_zip
 from util.log_handler import logger
 
@@ -39,6 +39,7 @@ from util.log_handler import logger
 @click.option("--factor", type=float, help=cli_help["factor"])
 @click.option(
     "--fof-types",
+    type=CommaSeperatedStrings(),
     default="",
     help=cli_help["fof_types"],
 )
@@ -54,12 +55,9 @@ def check(
 
     expanded_zip = expand_zip(zipped, fof_types)
 
-    for ref, cur, tol in expanded_zip:
-        reference_file = ref
-        current_file = cur
-        tolerance_file = tol
+    for reference_file, current_file, tolerance_file in expanded_zip:
 
-        out, err, tol = check_stats_file_with_tolerances(
+        out, err, tol = check_files_with_tolerances(
             tolerance_file, reference_file, current_file, factor
         )
 

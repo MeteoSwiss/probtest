@@ -16,7 +16,7 @@ import click
 
 from engine.tolerance import tolerance
 from util.click_util import cli_help
-from util.dataframe_ops import check_stats_file_with_tolerances
+from util.dataframe_ops import check_files_with_tolerances
 from util.log_handler import logger
 
 
@@ -153,7 +153,7 @@ def check_selection_by_ids(
     passed = set()
     failed = set()
 
-    # Change level to not get whole output from check_stats_file_with_tolerances
+    # Change level to not get whole output from check_files_with_tolerances
     original_level = logging.getLogger().level
     logging.getLogger().setLevel(logging.ERROR)
 
@@ -162,7 +162,7 @@ def check_selection_by_ids(
     for mem in member_ids:
         m_id = str(mem) if not member_type else member_type + "_" + str(mem)
 
-        out, err, _ = check_stats_file_with_tolerances(
+        out, err, _ = check_files_with_tolerances(
             tolerance_file_name,
             stats_file_name.format(member_id="ref"),
             stats_file_name.format(member_id=m_id),

@@ -7,7 +7,6 @@ reference datasets with specified tolerances.
 
 import sys
 import warnings
-from enum import Enum
 
 import numpy as np
 import pandas as pd
@@ -15,7 +14,7 @@ import xarray as xr
 
 from util.constants import CHECK_THRESHOLD, compute_statistics
 from util.file_system import file_names_from_pattern
-from util.fof_utils import split_feedback_dataset
+from util.fof_utils import FileType, get_file_type, split_feedback_dataset
 from util.log_handler import logger
 from util.model_output_parser import model_output_parser
 
@@ -49,7 +48,7 @@ def compute_division(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def parse_probtest_csv(path, index_col):
+def parse_probtest_stats(path, index_col=(0, 1, 2)):
     df = pd.read_csv(path, index_col=index_col, header=[0, 1])
 
     times = df.columns.levels[0].astype(int)
@@ -281,31 +280,22 @@ def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
             - df_cur (pandas.DataFrame): The current DataFrame parsed from the
                                          current input file.
     """
-    df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
+    df_tol = parse_probtest_stats(tolerance_file_name, index_col=[0, 1])
 
     df_tol *= factor
 
-    df_ref = parse_probtest_csv(input_file_ref, index_col=[0, 1, 2])
-    df_cur = parse_probtest_csv(input_file_cur, index_col=[0, 1, 2])
+    df_ref = parse_probtest_stats(input_file_ref, index_col=[0, 1, 2])
+    df_cur = parse_probtest_stats(input_file_cur, index_col=[0, 1, 2])
 
     return df_tol, df_ref, df_cur
 
 
-class FileType(Enum):
-    """
-    class that memorizes the distinction between file types
-    """
-
-    FOF = "fof"
-    STATS = "stats"
-
-
-def check_stats_file_with_tolerances(
+def check_files_with_tolerances(
     tolerance_file_name, input_file_ref, input_file_cur, factor
 ):
+    file_type = get_file_type(input_file_ref)
 
-    if FileType.FOF.value in input_file_ref:
-        file_type = FileType.FOF
+    if file_type == FileType.FOF:
         ds_tol = pd.read_csv(tolerance_file_name, index_col=0)
         df_tol = ds_tol * factor
 
@@ -314,7 +304,6 @@ def check_stats_file_with_tolerances(
         df_cur = parse_probtest_fof(input_file_cur)
 
     else:
-        file_type = FileType.STATS
         df_tol, df_ref, df_cur = parse_check(
             tolerance_file_name, input_file_ref, input_file_cur, factor
         )
@@ -355,3 +344,9 @@ def has_enough_data(dfs):
             "not enough data to compute tolerance, got %s dataset. Abort.", ndata
         )
         sys.exit(1)
+
+
+file_name_parser = {
+    FileType.FOF: parse_probtest_fof,
+    FileType.STATS: parse_probtest_stats,
+}
