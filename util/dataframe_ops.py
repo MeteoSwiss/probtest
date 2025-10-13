@@ -308,7 +308,6 @@ def check_stats_file_with_tolerances(
     # take maximum over height
     diff_df = diff_df.groupby(["file_ID", "variable"]).max()
 
-
     out, err, tol = check_variable(diff_df, df_tol)
 
     return out, err, tol
