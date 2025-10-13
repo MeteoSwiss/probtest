@@ -47,13 +47,3 @@ coverage = ">=7.6.9"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poetry-auto-export]
-output = "requirements.txt"
-without_hashes = false
-without = ["dev", "test"]
-
-#[tool.poetry-auto-export.dev]
-#output = "requirements_dev.txt"
-#without_hashes = true
-#with = ["dev", "test"]
