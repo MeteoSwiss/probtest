@@ -13,9 +13,14 @@ echo "Exporting production requirements (requirements.txt)..."
 poetry export -f requirements.txt --without dev,test -o requirements.txt
 echo "requirements.txt exported successfully."
 
-# Step 3: Export dev & test requirements
-echo "Exporting dev & test requirements (requirements_dev.txt)..."
-poetry export -f requirements.txt --with dev,test -o requirements_dev.txt
+# Step 3: Export dev requirements
+echo "Exporting dev requirements (requirements_dev.txt)..."
+poetry export -f requirements.txt --only dev -o requirements_dev.txt
 echo "requirements_dev.txt exported successfully."
+
+# Step 4: Export test requirements
+echo "Exporting test requirements (requirements_test.txt)..."
+poetry export -f requirements.txt --only test -o requirements_test.txt
+echo "requirements_test.txt exported successfully."
 
 echo "=== All done! ==="
