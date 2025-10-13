@@ -1,41 +1,32 @@
-# Use the official Ubuntu base image
-FROM ubuntu:latest
+# Use the official Python base image with your desired version
+FROM python:3.10-slim
 
 # Set environment variables
 ENV TZ=Europe/Zurich
+ENV PYTHONUNBUFFERED=1
 
-# Install necessary dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
+    git \
+    curl \
     wget \
     bzip2 \
-    ca-certificates \
-    curl \
-    git \
-    # Install tzdata to set the timezone, otherwise timing tests of probtest will fail with
-    # ValueError: time data 'Sun Jun 26 20:11:23 CEST 2022' does not match format '%a %b %d %H:%M:%S %Z %Y'
     tzdata \
-    && apt-get clean
-
-
-COPY . /probtest
-RUN cd /probtest && ./setup_miniconda.sh -p /opt/conda
-# Add conda to PATH
-ENV PATH=/opt/conda/miniconda/bin:$PATH
-
-# only unpinned env works on aarch64
-RUN ARCH=$(uname -m) && \
-    cd /probtest && chmod +x /probtest/setup_env.sh && \
-    if [ "$ARCH" = "aarch64" ]; then \
-        ./setup_env.sh -u -n probtest; \
-    else \
-        ./setup_env.sh -n probtest; \
-    fi
-
-# Test probtest
-RUN cd /probtest && conda run --name probtest pytest -v -s --cov --cov-report=term tests/
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
 WORKDIR /probtest
 
-SHELL ["/bin/bash", "-c"]
-ENTRYPOINT ["conda", "run", "--name", "probtest", "/bin/bash", "-c"]
+# Copy project files
+COPY . /probtest
+
+# Install Python dependencies from requirements.txt
+RUN pip install --upgrade pip
+RUN pip install -r requirements_dev.txt
+
+# Optional: run tests (can remove in production image)
+RUN pytest -v -s --cov --cov-report=term tests/
+
+# Set entrypoint to bash
+ENTRYPOINT ["/bin/bash"]
