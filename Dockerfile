@@ -15,13 +15,17 @@ ENV PYTHONUNBUFFERED=1
 
 COPY . /probtest
 
-
 # Set the working directory
 WORKDIR /probtest
 
 # Install Python dependencies from requirements.txt
 RUN pip install --upgrade pip
-RUN pip install -r requirements_dev.txt
+RUN pip install -r requirements.txt
+RUN pip install -r requirements_test.txt
 
-# Set default command
-CMD ["python3", "--version"]
+# Test probtest
+RUN pytest -v -s --cov --cov-report=term tests/
+
+SHELL ["/bin/bash", "-c"]
+ENTRYPOINT ["python3", "probtest.py"]
+CMD ["python3", "probtest.py"]
