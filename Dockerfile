@@ -5,12 +5,15 @@ FROM python:3.10-slim
 ENV TZ=Europe/Zurich
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies
+# Install necessary dependencies
 RUN apt-get update && apt-get install -y \
-    git \
-    curl \
     wget \
     bzip2 \
+    ca-certificates \
+    curl \
+    git \
+    # Install tzdata to set the timezone, otherwise timing tests of probtest will fail with
+    # ValueError: time data 'Sun Jun 26 20:11:23 CEST 2022' does not match format '%a %b %d %H:%M:%S %Z %Y'
     tzdata \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
