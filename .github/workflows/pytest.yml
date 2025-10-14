@@ -23,15 +23,12 @@ jobs:
     - name: Install Poetry
       run: |
         curl -sSL https://install.python-poetry.org | python3 -
-
     - name: Configure Poetry to use the right Python version
       run: |
         poetry env use python3.10
-
     - name: Install dependencies with Poetry
       run: |
         poetry install
-
     - name: Run Pytest with coverage
       env:
         TZ: Europe/Zurich
