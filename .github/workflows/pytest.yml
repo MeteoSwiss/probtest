@@ -1,12 +1,6 @@
 name: Run Pytest in probtest
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+on: [push]
 
 jobs:
   probtest-pytest:
@@ -33,4 +27,4 @@ jobs:
       env:
         TZ: Europe/Zurich
       run: |
-        poetry run pytest -v --cov --cov-report=term tests/
+        poetry run pytest -v -s --cov --cov-report=term tests/
