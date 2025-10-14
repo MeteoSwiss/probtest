@@ -33,8 +33,7 @@ jobs:
       env:
         TZ: Europe/Zurich
       run: |
-        poetry run pytest -v --cov=probtest --cov-report=xml --cov-report=term tests/
-
+        poetry run pytest -v --cov --cov-report=term --cov-report=xml tests/
     - name: Upload coverage report
       uses: actions/upload-artifact@v4
       with:
