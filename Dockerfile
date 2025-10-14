@@ -1,5 +1,5 @@
 # Use the official Python base image with your desired version
-FROM dockerhub.apps.cp.meteoswiss.ch/mch/python-3.10:latest-slim
+FROM python:3.10-slim
 
 # Set environment variables
 ENV TZ=Europe/Zurich
