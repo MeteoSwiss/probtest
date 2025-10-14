@@ -171,7 +171,7 @@ This will:
 This command sets up the configuration file. For more help on the command line arguments for `init`, see
 
 ```console
-python probtest.py init --help
+poetry run probtest init --help
 ```
 
 The `--template-name` argument can be used to specify the template from which the configuration file is created. One of the templates provided by probtest is `templates/ICON.jinja` which is used as the default in case no other template name is provided. The init command replaces all placeholder values in the template with the values given as command line arguments. All other probtest commands can then read from the configuration file. The name of the configuration file to use is read from the `PROBTEST_CONFIG` environment variable. If this is not set explicitly, probtest will look for a file called `probtest.json` in the current directory.
@@ -179,7 +179,7 @@ The `--template-name` argument can be used to specify the template from which th
 Setting up the configuration file with `init` may not be fitted perfectly to where you want your probtest files to be. In that case, you can manually edit the file after creation. Alternatively, you can add arguments for your probtest commands on the command line which take precedence over the configuration file defaults. For more help on the options on a specific command, see
 
 ```console
-python probtest.py {command} --help
+poetry run probtest {command} --help
 ```
 
 ### Example: Check the output of an ICON experiment with an test build compared to a reference build
