@@ -5,13 +5,18 @@ FROM dockerhub.apps.cp.meteoswiss.ch/mch/python-3.10:latest-slim
 ENV TZ=Europe/Zurich
 ENV PYTHONUNBUFFERED=1
 
-# Install minimal packages
-# RUN apt-get update -o Acquire::ForceIPv4=true && \
-#     apt-get install -y --no-install-recommends \
-#     curl \
-#     git \
-#     && apt-get clean \
-#     && rm -rf /var/lib/apt/lists/*
+# Install necessary dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    bzip2 \
+    ca-certificates \
+    curl \
+    git \
+    # Install tzdata to set the timezone, otherwise timing tests of probtest will fail with
+    # ValueError: time data 'Sun Jun 26 20:11:23 CEST 2022' does not match format '%a %b %d %H:%M:%S %Z %Y'
+    tzdata \
+    && apt-get clean
+
 
 COPY . /probtest
 
@@ -28,4 +33,3 @@ RUN pytest -v -s --cov --cov-report=term tests/
 
 SHELL ["/bin/bash", "-c"]
 ENTRYPOINT ["python3", "probtest.py"]
-CMD ["python3", "probtest.py"]
