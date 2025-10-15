@@ -45,7 +45,7 @@ from util.log_handler import logger
     "--minimum-tolerance",
     type=float,
     default="0.0",
-    help=cli_help["member_type"],
+    help=cli_help["minimum_tolerance"],
 )
 def tolerance(stats_file_name, tolerance_file_name, member_ids, member_type, minimum_tolerance):
 
@@ -79,7 +79,7 @@ def tolerance(stats_file_name, tolerance_file_name, member_ids, member_type, min
     # Take the cumulative maximum to only allow monotonically growing tolerances
     force_monotonic(df_max)
     
-    # Set a fixed non-zero tolerance value in case these became exactly zero
+    # Set a fixed tolerance value in case these became exactly zero
     df_max = df_max.map(lambda x: minimum_tolerance if x < minimum_tolerance else x)
 
     tolerance_dir = os.path.dirname(tolerance_file_name)
