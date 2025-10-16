@@ -68,13 +68,12 @@ def tolerance(
 
         ensemble_files = expand_zip(mem, member_ids=member_ids, member_type=member_type)
 
-        dfs = [file_name_parser[get_file_type(mem)](file) for file in ensemble_files]
+        file_type = get_file_type(mem)
 
-        df_ref = file_name_parser[get_file_type(mem)](mem.format(member_id="ref"))
+        dfs = [file_name_parser[file_type](file) for file in ensemble_files]
+        df_ref = file_name_parser[file_type](mem.format(member_id="ref"))
 
         has_enough_data(dfs)
-
-        file_type = get_file_type(mem)
         df_ref = df_ref["veri_data"] if file_type is FileType.FOF else df_ref
         dfs = [df["veri_data"] for df in dfs] if file_type is FileType.FOF else dfs
 
