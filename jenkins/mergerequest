@@ -10,7 +10,7 @@ pipeline {
             steps {
                 sh '''
                 # create a virtual environment if not exists
-                python3.10 -m venv venv
+                python3 -m venv venv
 
                 # activate the venv
                 source venv/bin/activate
