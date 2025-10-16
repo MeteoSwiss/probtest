@@ -9,6 +9,7 @@ pipeline {
         stage('Pytest') {
             steps {
                 sh '''
+                python --version
                 # create a virtual environment if not exists
                 python3 -m venv venv
 
