@@ -11,7 +11,9 @@ coverage.xml
 miniconda
 
 # output from unittest
+random_tolerance.csv
 test_stats.csv
 test_stats_csv.csv
 test_stats_csv.dat
-random_tolerance.csv
+tmp_tolerance_None.csv
+tolerance.csv
