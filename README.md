@@ -194,7 +194,7 @@ output of the test is within a perturbed ensemble of the reference build.
 This is in particular used to validate a GPU build against a CPU reference.
 
 You need to have setup a proper environment, for example as described in the
-section [Setup conda](#setup-conda).
+section [Setup probtest](#setup-probtest).
 
 #### Initialize probtest
 Once set up, probtest can generate the config file according to your needs.
