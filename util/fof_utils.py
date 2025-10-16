@@ -13,7 +13,7 @@ import xarray as xr
 
 def get_report_variables(ds):
     """
-    Get dimension of reports.
+    Get variable names of reports.
     """
     vars_shape_report = []
     shape_report = ds.attrs["n_hdr"]
