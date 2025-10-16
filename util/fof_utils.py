@@ -286,6 +286,29 @@ def primary_check(file1, file2):
     return name1_core == name2_core
 
 
+def to_list(value):
+    """
+    This function ensures that whatever value is passed to expand_zip,
+    one always gets something iterable and consistent.
+    """
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [v.strip() for v in value.split(",") if v.strip()]
+    return value
+
+
+def value_list(placeholder, values, placeholders):
+    """
+    Decide which values to use for a placeholder.
+    - If the placeholder is not present, returns [""]
+    - If placeholder is present but no values provided, returns [None]
+    """
+    if not placeholders.get(placeholder, False):
+        return [""]
+    return values or [None]
+
+
 def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
     """
     Expands a list of tuples (zip) by replacing the placeholders
@@ -293,69 +316,42 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
     If a placeholder is present but no corresponding value is given,
     the placeholder is left unchanged.
     """
-    fof_type = fof_type or []
-    member_ids = member_ids or []
-    member_type = member_type or []
 
-    fof_list = fof_type.split(",") if isinstance(fof_type, str) else fof_type
-    member_list = member_ids.split(",") if isinstance(member_ids, str) else member_ids
-    member_type_list = (
-        member_type.split(",") if isinstance(member_type, str) else member_type
-    )
+    fof_list = to_list(fof_type)
+    member_list = to_list(member_ids)
+    member_type_list = to_list(member_type)
 
-    if isinstance(zipped, (list, tuple)):
-        if not isinstance(zipped[0], tuple):
-            zipped = [(z,) for z in zipped]
-    elif isinstance(zipped, zip):
+    if isinstance(zipped, zip):
         zipped = list(zipped)
+    elif isinstance(zipped, (list, tuple)):
+        zipped = [(z,) if not isinstance(z, tuple) else z for z in zipped]
     else:
         zipped = [(zipped,)]
 
     expanded = []
 
-    for tup in zipped:
+    for items in zipped:
         placeholders = {
-            "fof_type": any("{fof_type}" in str(item) for item in tup),
-            "member_id": any("{member_id}" in str(item) for item in tup),
-            "member_type": any("{member_type}" in str(item) for item in tup),
+            key: any(f"{{{key}}}" in str(item) for item in items)
+            for key in ("fof_type", "member_id", "member_type")
         }
 
-        fof_values = (
-            fof_list
-            if (placeholders["fof_type"] and fof_list)
-            else ([None] if placeholders["fof_type"] else [""])
-        )
-        member_values = (
-            member_list
-            if (placeholders["member_id"] and member_list)
-            else ([None] if placeholders["member_id"] else [""])
-        )
-        member_type_values = (
-            member_type_list
-            if (placeholders["member_type"] and member_type_list)
-            else ([None] if placeholders["member_type"] else [""])
-        )
+        fof_values = value_list("fof_type", fof_list, placeholders)
+        member_values = value_list("member_id", member_list, placeholders)
+        member_type_values = value_list("member_type", member_type_list, placeholders)
 
         for fof_val in fof_values:
             for member_val in member_values:
                 for mtype_val in member_type_values:
-                    formatted_items = [
+                    formatted = [
                         item.format(
-                            fof_type=fof_val if fof_val is not None else "{fof_type}",
-                            member_id=(
-                                member_val if member_val is not None else "{member_id}"
-                            ),
-                            member_type=(
-                                mtype_val if mtype_val is not None else "{member_type}"
-                            ),
+                            fof_type=fof_val or "{fof_type}",
+                            member_id=member_val or "{member_id}",
+                            member_type=mtype_val or "{member_type}",
                         )
-                        for item in tup
+                        for item in items
                     ]
-                    expanded.append(
-                        formatted_items[0]
-                        if len(formatted_items) == 1
-                        else tuple(formatted_items)
-                    )
+                    expanded.append(formatted[0] if len(formatted) == 1 else tuple(formatted))
 
     return expanded
 
