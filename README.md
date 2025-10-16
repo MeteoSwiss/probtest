@@ -187,9 +187,9 @@ Setting up the configuration file with `init` may not be fitted perfectly to whe
 poetry run probtest {command} --help
 ```
 
-### Example: Check the output of an ICON experiment with an test build compared to a reference build
+### Example: Check the output of an ICON experiment with a test build compared to a reference build
 
-Objective: Run an `exp_name` ICON experiment with an test build and check if the
+Objective: Run an `exp_name` ICON experiment with a test build and check if the
 output of the test is within a perturbed ensemble of the reference build.
 This is in particular used to validate a GPU build against a CPU reference.
 
