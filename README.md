@@ -200,7 +200,7 @@ Objective: Run an `exp_name` ICON experiment with a test build and check if the
 output of the test is within a perturbed ensemble of the reference build.
 This is in particular used to validate a GPU build against a CPU reference.
 
-You need to have setup a proper environment, for example as described in the
+You need to have set up a proper environment, for example as described in the
 section [Setup probtest](#setup-probtest).
 
 #### Initialize probtest
