@@ -96,7 +96,7 @@ def run_tolerance_cli(
     tolerance_file_name,
     member_type=None,
     member_ids="1,2,3,4,5,6,7,8,9,10",
-    minimum_tolerance=0.0,
+    minimum_tolerance=0.0
 ):
     args = [
         "--stats-file-name",
@@ -106,7 +106,7 @@ def run_tolerance_cli(
         "--member-ids",
         member_ids,
         "--minimum-tolerance",
-        minimum_tolerance,
+        minimum_tolerance
     ]
     if member_type is not None:
         args.append("--member-type")
