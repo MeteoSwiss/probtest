@@ -27,7 +27,7 @@ def get_report_variables(ds):
 
 def get_observation_variables(ds):
     """
-    Get dimension of observations.
+    Get variable names of observations.
     """
     vars_shape_observation = []
     shape_observation = ds.attrs["n_body"]
