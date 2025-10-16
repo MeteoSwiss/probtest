@@ -119,7 +119,7 @@ cli_help = {
     "member_count": r"count of ensemble members " + r'(e.g. "10")',
     "member_id": r"id of ensemble member " + r'(e.g. "3")',
     "member_ids": r"comma separated list of member ids" + r'(e.g. "1,3,14")',
-    "fof_types": r"type of fof files you want to analyse",
+    "fof_types": r"type of fof files you want to analyse" + r'(e.g. AIREP,PILOT)',
     "member_type": r"precision of experiment (e.g. double or mixed). "
     + r"The type is part of the created member_id, which is equal to "
     + r"(member_type+'_'+str(member_id))",

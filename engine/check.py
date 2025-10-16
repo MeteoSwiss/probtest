@@ -12,7 +12,7 @@ import sys
 import click
 
 from util.click_util import CommaSeperatedStrings, cli_help
-from util.dataframe_ops import check_files_with_tolerances, compute_division
+from util.dataframe_ops import check_file_with_tolerances, compute_division
 from util.fof_utils import expand_zip
 from util.log_handler import logger
 
@@ -56,10 +56,10 @@ def check(
     expanded_zip = expand_zip(zipped, fof_types)
 
     all_out = True
-    
+
     for reference_file, current_file, tolerance_file in expanded_zip:
 
-        out, err, tol = check_files_with_tolerances(
+        out, err, tol = check_file_with_tolerances(
             tolerance_file, reference_file, current_file, factor
         )
 

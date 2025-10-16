@@ -45,8 +45,8 @@ def split_feedback_dataset(ds):
     expand lat, lon, statid and time_nomi according to l_body
     and sort them to assure unique order.
     """
-    vars_shape_report = get_report_variables(ds)
-    ds_reports = ds[vars_shape_report]
+    report_variables = get_report_variables(ds)
+    ds_reports = ds[report_variables]
 
     sort_keys_reports = ["lat", "lon", "statid", "time_nomi", "codetype"]
     ds_report_sorted = ds_reports.sortby(sort_keys_reports)
@@ -60,12 +60,12 @@ def split_feedback_dataset(ds):
 
     ds = ds.assign_coords(dict(zip(ds.coords, [ds[coord] for coord in ds.coords])))
 
-    vars_shape_observation = get_observation_variables(ds)
+    observation_variables = get_observation_variables(ds)
 
-    ds_obs = ds[vars_shape_observation]
+    ds_obs = ds[observation_variables]
     sort_keys_obs = ["lat", "lon", "statid", "varno", "level", "time_nomi"]
-    vars_shape_observation.append("veri_data")
-    ds_veri = ds[vars_shape_observation]
+    observation_variables.append("veri_data")
+    ds_veri = ds[observation_variables]
     ds_obs_sorted = ds_obs.sortby(sort_keys_obs)
     ds_veri_sorted = ds_veri.sortby(sort_keys_obs)
 
