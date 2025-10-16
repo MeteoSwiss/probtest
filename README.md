@@ -85,7 +85,7 @@ Even though probtest is used exclusively with ICON at the moment, it does not co
 
 All requirements for using probtest can be easily installed with pip or poetry.
 
-#### #### Setup with pip (Recommended for Users)
+#### Setup with pip (Recommended for Users)
 To set up the virtual environment and install the required dependencies:
 
 ```console
