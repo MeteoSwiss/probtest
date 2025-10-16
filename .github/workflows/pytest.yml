@@ -22,7 +22,7 @@ jobs:
         poetry env use python3.10
     - name: Install dependencies with Poetry
       run: |
-        poetry install
+        poetry install --without=dev
     - name: Run Pytest with coverage
       env:
         TZ: Europe/Zurich
