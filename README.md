@@ -122,7 +122,7 @@ To verify that everything is set up correctly and tests are passing:
 poetry run pytest -v -s --cov --cov-report=term tests/
 ```
 
-Tip: To avoid prefixing every command with poetry run, you can activate the
+Tip: To avoid prefixing every command with `poetry run`, you can activate the
 Poetry virtual environment directly:
 ```console
 source $(poetry env info --path)/bin/activate
