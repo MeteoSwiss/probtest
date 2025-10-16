@@ -9,9 +9,11 @@ pipeline {
         stage('Pytest') {
             steps {
                 sh '''
-                python --version
+                module use /mch-environment/v6/modules
+                module load python/3.10.8
+
                 # create a virtual environment if not exists
-                python3 -m venv venv
+                python3.10 -m venv venv
 
                 # activate the venv
                 source venv/bin/activate
