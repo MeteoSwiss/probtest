@@ -55,16 +55,16 @@ def check(
 
     expanded_zip = expand_zip(zipped, fof_types)
 
+    all_out = True
+    
     for reference_file, current_file, tolerance_file in expanded_zip:
 
         out, err, tol = check_files_with_tolerances(
             tolerance_file, reference_file, current_file, factor
         )
 
-        all_out = True
         if out:
             logger.info("RESULT: check PASSED for %s", current_file)
-
         else:
             logger.info("RESULT: check FAILED for %s", current_file)
             logger.info("Differences")
