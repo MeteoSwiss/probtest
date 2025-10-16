@@ -150,13 +150,20 @@ poetry add --group test pytest-mock
 ```
 
 ##### Update dependencies
-```console
-# Update a specific package
-poetry update numpy
 
-# Update all packages
+Update dependencies within the allowed ranges of `pyproject.toml` and writes a
+new `poetry.lock`.
+
+Update all packages
+```console
 poetry update
 ```
+
+Update a specific package
+```console
+poetry update numpy
+```
+
 ##### Regenerate requirements files
 
 After adding or updating dependencies, run the lock/export script:
