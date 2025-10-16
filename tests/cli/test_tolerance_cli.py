@@ -37,7 +37,8 @@ def test_tolerance_cli(
     else:
         run_tolerance_cli(stats_file_name, tolerance_file_name, member_type="dp")
 
-        # Create modified tolerance df with T tolerances equal to 0.0 to match `minimum_tolerance` default
+        # Create modified tolerance df with T tolerances equal to 0.0 to match
+        # `minimum_tolerance` default
         df_test = load_pandas(tolerance_file_name, index_col=[0, 1])
         modified_df_ref_tolerance = df_ref_tolerance
         modified_df_ref_tolerance.loc[("NetCDF:*.nc", "T")] = 0.0
