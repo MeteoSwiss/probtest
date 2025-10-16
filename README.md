@@ -134,16 +134,21 @@ requirements files in sync.
 
 ##### Add a new dependency
 
+Add a production dependency
 ```console
-# Add a production dependency
 poetry add requests
+```
 
-# Add a development dependency
-poetry add --group dev black
+Add a development dependency
+```console
+poetry add --group dev ruff
+```
 
-# Add a testing dependency
+Add a testing dependency
+```console
 poetry add --group test pytest-mock
 ```
+
 ##### Update dependencies
 ```console
 # Update a specific package
