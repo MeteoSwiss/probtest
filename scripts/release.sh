@@ -14,7 +14,7 @@ poetry version "$NEW_VERSION"
 
 echo "Updating dependencies..."
 poetry update
-./script/poetry_lock.sh
+./scripts/poetry_lock.sh
 
 echo "Committing changes..."
 git add --update
