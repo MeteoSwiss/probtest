@@ -168,7 +168,7 @@ poetry update numpy
 
 After adding or updating dependencies, run the lock/export script:
 ```console
-./scripts/poetry-lock.sh
+./scripts/poetry_lock.sh
 ```
 
 This will:
