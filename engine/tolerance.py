@@ -84,9 +84,6 @@ def tolerance(
     # Set a fixed tolerance value in case these became exactly zero
     df_max = df_max.map(lambda x: minimum_tolerance if x < minimum_tolerance else x)
 
-    # Set a fixed tolerance value in case these became exactly zero
-    df_max = df_max.map(lambda x: minimum_tolerance if x < minimum_tolerance else x)
-
     tolerance_dir = os.path.dirname(tolerance_file_name)
     if tolerance_dir != "" and not os.path.exists(tolerance_dir):
         os.makedirs(tolerance_dir)
