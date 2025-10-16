@@ -177,6 +177,21 @@ This will:
 - Export `requirements.txt` (production)
 - Export `requirements_dev.txt` (dev/test)
 
+### Releas a new probtest version
+
+Release versions use two digits only: the first digit represents breaking major
+changes, and the second digit represents minor, backward-compatible updates.
+
+To prepare a new release, use the provided script:
+```console
+./scripts/release.sh <new_version>
+```
+
+The script automates creating a release branch, bumping the version in
+`pyproject.toml`, and updating the lock file.
+Open a PR with the release branch.
+Open a PR with the release branch.
+After the PR is merged, create a Git tag manually to finalize the release.
 
 ### The init command
 
