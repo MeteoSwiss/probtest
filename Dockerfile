@@ -1,5 +1,5 @@
 # Use the official Python base image with your desired version
-FROM python:3.10-slim
+FROM python:3.10
 
 # Set environment variables
 ENV TZ=Europe/Zurich
