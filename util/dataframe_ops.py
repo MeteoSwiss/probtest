@@ -48,7 +48,10 @@ def compute_division(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def parse_probtest_stats(path, index_col=[0, 1, 2]):
+def parse_probtest_stats(path, index_col=None):
+    if index_col is None:
+        index_col = [0, 1, 2]
+
     df = pd.read_csv(path, index_col=index_col, header=[0, 1])
 
     times = df.columns.levels[0].astype(int)
@@ -297,9 +300,9 @@ def check_file_with_tolerances(
 
     if get_file_type(input_file_cur) != file_type:
         logger.critical(
-                "The current and the reference files are not of the same type; "
-                "it is impossible to calculate the tolerances. Abort."
-            )
+            "The current and the reference files are not of the same type; "
+            "it is impossible to calculate the tolerances. Abort."
+        )
         sys.exit(1)
 
     if file_type == FileType.FOF:

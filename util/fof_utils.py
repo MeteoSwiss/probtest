@@ -351,7 +351,9 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
                         )
                         for item in items
                     ]
-                    expanded.append(formatted[0] if len(formatted) == 1 else tuple(formatted))
+                    expanded.append(
+                        formatted[0] if len(formatted) == 1 else tuple(formatted)
+                    )
 
     return expanded
 
