@@ -25,18 +25,34 @@ jobs:
           username: c2sm
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker image
+      - name: Build AMD64 image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: false
-          tags: c2sm/probtest:latest
-          platforms: linux/amd64,linux/arm64
-          outputs: type=oci,dest=probtest_image.tar
+          tags: c2sm/probtest:amd64
+          platforms: linux/amd64
+          outputs: type=oci,dest=probtest_image_amd64.tar
 
-      - name: Upload Docker image as artifact
+      - name: Upload AMD64 image
         uses: actions/upload-artifact@v4
         with:
-          name: probtest_image.tar
-          path: probtest_image.tar
+          name: probtest_image_amd64
+          path: probtest_image_amd64.tar
+
+      - name: Build ARM64 image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: c2sm/probtest:arm64
+          platforms: linux/arm64
+          outputs: type=oci,dest=probtest_image_arm64.tar
+
+      - name: Upload ARM64 image
+        uses: actions/upload-artifact@v4
+        with:
+          name: probtest_image_arm64
+          path: probtest_image_arm64.tar
