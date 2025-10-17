@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 
-RUN mkdir -p /etc/ld.so.conf.d
+RUN mkdir -p /etc/ld.so.conf.d && touch /etc/ld.so.conf.d/enroot-cxi-hook.conf
 COPY . /probtest
 
 # Set the working directory
