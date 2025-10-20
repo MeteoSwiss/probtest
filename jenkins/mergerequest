@@ -8,8 +8,22 @@ pipeline {
     stages {
         stage('Pytest') {
             steps {
-                sh'''
-                source $SCRATCH/project/icon/probtest/conda/miniconda/bin/activate probtest
+                sh '''
+                module use /mch-environment/v6/modules
+                module load python/3.10.8
+
+                # create a virtual environment if not exists
+                python3.10 -m venv venv
+
+                # activate the venv
+                source venv/bin/activate
+
+                # upgrade pip and install requirements
+                pip install --upgrade pip
+                pip install -r requirements.txt
+                pip install -r requirements_test.txt
+
+                # run tests
                 pytest -v tests/*
                 '''
             }
