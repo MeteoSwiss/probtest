@@ -1,8 +1,9 @@
-# Use the official Ubuntu base image
-FROM ubuntu:latest
+# Use the official Python base image with your desired version
+FROM python:3.10-slim
 
 # Set environment variables
 ENV TZ=Europe/Zurich
+ENV PYTHONUNBUFFERED=1
 
 # Install necessary dependencies
 RUN apt-get update && apt-get install -y \
@@ -17,25 +18,19 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 
+RUN mkdir -p /etc/ld.so.conf.d
 COPY . /probtest
-RUN cd /probtest && ./setup_miniconda.sh -p /opt/conda
-# Add conda to PATH
-ENV PATH=/opt/conda/miniconda/bin:$PATH
-
-# only unpinned env works on aarch64
-RUN ARCH=$(uname -m) && \
-    cd /probtest && chmod +x /probtest/setup_env.sh && \
-    if [ "$ARCH" = "aarch64" ]; then \
-        ./setup_env.sh -u -n probtest; \
-    else \
-        ./setup_env.sh -n probtest; \
-    fi
-
-# Test probtest
-RUN cd /probtest && conda run --name probtest pytest -v -s --cov --cov-report=term tests/
 
 # Set the working directory
 WORKDIR /probtest
 
+# Install Python dependencies from requirements.txt
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+RUN pip install -r requirements_test.txt
+
+# Test probtest
+RUN pytest -v -s --cov --cov-report=term tests/
+
 SHELL ["/bin/bash", "-c"]
-ENTRYPOINT ["conda", "run", "--name", "probtest", "/bin/bash", "-c"]
+ENTRYPOINT ["python3", "probtest.py"]
