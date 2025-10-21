@@ -177,7 +177,7 @@ This will:
 - Export `requirements.txt` (production)
 - Export `requirements_dev.txt` (dev/test)
 
-### Releas a new probtest version
+### Release a new probtest version
 
 Release versions use two digits only: the first digit represents breaking major
 changes, and the second digit represents minor, backward-compatible updates.
