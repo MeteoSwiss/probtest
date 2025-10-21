@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage: ./release.sh 1.2.0
+# Usage: ./release.sh v1.2
 
 NEW_VERSION="$1"
 BRANCH="release/v$NEW_VERSION"
