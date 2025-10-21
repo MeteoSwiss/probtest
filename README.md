@@ -177,6 +177,61 @@ This will:
 - Export `requirements.txt` (production)
 - Export `requirements_dev.txt` (dev/test)
 
+Tip: To avoid prefixing every command with `poetry run`, you can activate the
+Poetry virtual environment directly:
+```console
+source $(poetry env info --path)/bin/activate
+```
+#### Updating and Adding Dependencies
+
+Use Poetry to safely add or update dependencies while keeping the lock file and
+requirements files in sync.
+
+##### Add a new dependency
+
+Add a production dependency
+```console
+poetry add requests
+```
+
+Add a development dependency
+```console
+poetry add --group dev ruff
+```
+
+Add a testing dependency
+```console
+poetry add --group test pytest-mock
+```
+
+##### Update dependencies
+
+Update dependencies within the allowed ranges of `pyproject.toml` and writes a
+new `poetry.lock`.
+
+Update all packages
+```console
+poetry update
+```
+
+Update a specific package
+```console
+poetry update numpy
+```
+
+##### Regenerate requirements files
+
+After adding or updating dependencies, run the lock/export script:
+```console
+./scripts/poetry_lock.sh
+```
+
+This will:
+
+- Update `poetry.lock`
+- Export `requirements.txt` (production)
+- Export `requirements_dev.txt` (dev/test)
+
 ### Releas a new probtest version
 
 Release versions use two digits only: the first digit represents breaking major
