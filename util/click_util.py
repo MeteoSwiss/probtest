@@ -52,7 +52,7 @@ def load_defaults(sections):
     return tmp
 
 
-class CommaSeperatedInts(click.ParamType):
+class CommaSeparatedInts(click.ParamType):
     """
     A custom Click parameter type for handling comma-separated integers.
 
@@ -62,7 +62,7 @@ class CommaSeperatedInts(click.ParamType):
     provided as a single comma-separated string.
     """
 
-    name = "CommaSeperatedInts"
+    name = "CommaSeparatedInts"
 
     def convert(self, value, param, ctx):
         if isinstance(value, list):
@@ -72,7 +72,7 @@ class CommaSeperatedInts(click.ParamType):
         return [int(e) for e in filter(lambda x: x != "", value.split(","))]
 
 
-class CommaSeperatedStrings(click.ParamType):
+class CommaSeparatedStrings(click.ParamType):
     """
     A custom Click parameter type for handling comma-separated strings.
 
@@ -82,7 +82,7 @@ class CommaSeperatedStrings(click.ParamType):
     provided as a single comma-separated string.
     """
 
-    name = "CommaSeperatedStrings"
+    name = "CommaSeparatedStrings"
 
     def convert(self, value, param, ctx):
         if isinstance(value, list):
@@ -192,6 +192,8 @@ cli_help = {
     + "reference.",
     "new_reference_threshold": r"The factor by which the current time can be faster "
     + r"than the reference before a warning gets printed.",
+    "minimum_tolerance": r"non-zero value to set variable tolerances to when the "
+    + r"calculated tolerances from the ensemble are exactly zero.",
 }
 
 del dataframe_ops

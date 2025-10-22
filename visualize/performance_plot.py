@@ -19,7 +19,7 @@ import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
 
-from util.click_util import CommaSeperatedStrings, cli_help
+from util.click_util import CommaSeparatedStrings, cli_help
 from util.constants import DATETIME_FORMAT
 from util.log_handler import logger
 from util.tree import TimingTree
@@ -63,7 +63,7 @@ def colour_revs(times, revs, ax):
 )
 @click.option(
     "--timing-names",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     help=cli_help["timing_names"],
 )
 @click.option(

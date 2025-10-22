@@ -11,7 +11,7 @@ import os
 import click
 import pandas as pd
 
-from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
+from util.click_util import CommaSeparatedInts, CommaSeparatedStrings, cli_help
 from util.dataframe_ops import (
     compute_rel_diff_dataframe,
     file_name_parser,
@@ -25,19 +25,19 @@ from util.log_handler import logger
 @click.command()
 @click.option(
     "--ensemble_files",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     default=None,
     help=cli_help["ensemble_files"],
 )
 @click.option(
     "--tolerance-files",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     default=None,
     help=cli_help["tolerance_files_output"],
 )
 @click.option(
     "--member-ids",
-    type=CommaSeperatedInts(),
+    type=CommaSeparatedInts(),
     default="1,2,3,4,5,6,7,8,9,10",
     help=cli_help["member_ids"],
 )
@@ -49,16 +49,18 @@ from util.log_handler import logger
 )
 @click.option(
     "--fof-types",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     default="",
     help=cli_help["fof_types"],
 )
+@click.option(
+    "--minimum-tolerance",
+    type=float,
+    default="0.0",
+    help=cli_help["minimum_tolerance"],
+)
 def tolerance(
-    ensemble_files,
-    tolerance_files,
-    member_ids,
-    member_type,
-    fof_types,
+    ensemble_files, tolerance_files, member_ids, member_type, fof_types, minimum_tolerance
 ):
 
     files_list = zip(ensemble_files, tolerance_files)
@@ -84,10 +86,14 @@ def tolerance(
         if file_type is FileType.STATS:
             rdiff_max = [r.groupby(["file_ID", "variable"]).max() for r in rdiff]
             df_max = pd.concat(rdiff_max).groupby(["file_ID", "variable"]).max()
+            df_max = df_max.map(lambda x: minimum_tolerance if x < minimum_tolerance else x)
+
             force_monotonic(df_max)
 
         elif file_type is FileType.FOF:
             df_max = pd.concat(rdiff, axis=1).max(axis=1)
+            df_max = df_max.map(lambda x: minimum_tolerance if x < minimum_tolerance else x)
+
 
         tolerance_dir = os.path.dirname(tol)
 

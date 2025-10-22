@@ -96,7 +96,8 @@ def run_tolerance_cli(
     tolerance_files,
     member_type=None,
     member_ids="1,2,5,9,10,15,27,33,45,47",
-    fof_type = "AIREP,PILOT"
+    fof_type = "AIREP,PILOT",
+    minimum_tolerance=0.0,
     ):
     args = [
         "--ensemble_files",
@@ -106,13 +107,13 @@ def run_tolerance_cli(
         "--member-ids",
         member_ids,
         "--fof-types",
-        fof_type
-
+        fof_type,
+        "--minimum-tolerance",
+        minimum_tolerance,
     ]
     if member_type is not None:
         args.append("--member-type")
         args.append(member_type)
-    print(args)
     run_cli(tolerance, args)
 
 

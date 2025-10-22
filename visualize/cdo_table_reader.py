@@ -6,7 +6,7 @@ displaying data from a CSV file.
 import click
 import pandas as pd
 
-from util.click_util import CommaSeperatedInts, CommaSeperatedStrings, cli_help
+from util.click_util import CommaSeparatedInts, CommaSeparatedStrings, cli_help
 from util.dataframe_ops import parse_probtest_stats
 
 pd.set_option("expand_frame_repr", False)
@@ -15,17 +15,17 @@ pd.set_option("expand_frame_repr", False)
 @click.command()
 @click.option(
     "--variables",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     help=cli_help["variables"],
 )
 @click.option(
     "--file-id",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     help=cli_help["file_id"],
 )
 @click.option(
     "--times",
-    type=CommaSeperatedInts(),
+    type=CommaSeparatedInts(),
     help=cli_help["times"],
 )
 @click.option(
