@@ -47,7 +47,6 @@ def find_members_and_factor_validating_for_all_stats_files(
     If the latter occurs, the tolerance factor is increased in case not all
     members haven been validated yet.
     """
-
     members_not_validating = set(range(1, total_member_count + 1))
     member_selection = set()
 
@@ -62,13 +61,12 @@ def find_members_and_factor_validating_for_all_stats_files(
             )
 
             temp_member_selection = member_selection.union({mem})
-
             # creating tolerances
             context = click.Context(tolerance)
             context.invoke(
                 tolerance,
-                stats_file_name=stats_file_name,
-                tolerance_file_name=tolerance_file_name,
+                ensemble_files=[str(stats_file_name)],
+                tolerance_files=[str(tolerance_file_name)],
                 member_ids=list(temp_member_selection),
                 member_type=member_type,
             )
@@ -107,8 +105,8 @@ def find_members_and_factor_validating_for_all_stats_files(
         context = click.Context(tolerance)
         context.invoke(
             tolerance,
-            stats_file_name=stats_file_name,
-            tolerance_file_name=tolerance_file_name,
+            ensemble_files=[str(stats_file_name)],
+            tolerance_files=[str(tolerance_file_name)],
             member_ids=member_selection,
             member_type=member_type,
         )
@@ -262,11 +260,9 @@ def select_members(
     """
     Selects members and writes them to a file together with the tolerance factor
     """
-
     if max_member_count >= total_member_count:
         logger.error("ERROR: max_member_count must be smaller than total_member_count")
         sys.exit(1)
-
     if enable_check_only:
         check_selection_by_ids(
             stats_file_name=stats_file_name,
@@ -276,7 +272,9 @@ def select_members(
             factor=factor,
         )
     else:
+
         tmp_tolerance_file_name = f"tmp_tolerance_{experiment_name}.csv"
+
         start_time = datetime.now()
         selection, factor = find_members_and_factor_validating_for_all_stats_files(
             tmp_tolerance_file_name,

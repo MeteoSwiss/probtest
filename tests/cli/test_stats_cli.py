@@ -39,12 +39,14 @@ def test_stats_cli_ensemble_with_too_small_perturb_amplitude_for_member(
     tmp_dir, too_small_ensemble, df_ref_ensemble_stats, member
 ):
     stats_file = os.path.join(tmp_dir, "stats_{member_id}.csv")
+
     run_stats_cli(
         tmp_dir,
         stats_file,
         ensemble=True,
         perturbed_model_output_dir=too_small_ensemble,
     )
+
     df_test = load_pandas(
         stats_file.format(member_id="dp_" + str(member)),
         index_col=[0, 1, 2],
@@ -60,6 +62,8 @@ def test_stats_cli_ensemble_for_member(
     tmp_dir, ensemble, df_ref_ensemble_stats, new_ref, member
 ):
     stats_file = os.path.join(tmp_dir, "stats_{member_id}.csv")
+    print(stats_file)
+
     run_stats_cli(
         tmp_dir, stats_file, ensemble=True, perturbed_model_output_dir=ensemble
     )

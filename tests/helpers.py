@@ -92,22 +92,27 @@ def run_performance_cli(timing_regex, timing_database):
 
 
 def run_tolerance_cli(
-    stats_file_name,
-    tolerance_file_name,
+    ensemble_files,
+    tolerance_files,
     member_type=None,
-    member_ids="1,2,3,4,5,6,7,8,9,10",
-):
+    member_ids="1,2,5,9,10,15,27,33,45,47",
+    fof_type = "AIREP,PILOT"
+    ):
     args = [
-        "--stats-file-name",
-        stats_file_name,
-        "--tolerance-file-name",
-        tolerance_file_name,
+        "--ensemble_files",
+        ensemble_files,
+        "--tolerance-files",
+        tolerance_files,
         "--member-ids",
         member_ids,
+        "--fof-types",
+        fof_type
+
     ]
     if member_type is not None:
         args.append("--member-type")
         args.append(member_type)
+    print(args)
     run_cli(tolerance, args)
 
 
@@ -229,6 +234,7 @@ def run_select_members_cli(
     ]
     if enable_check_only:
         args.append("--enable-check-only")
+    print(args)
     return run_cli(select_members, args, log)
 
 

@@ -63,6 +63,7 @@ def tolerance(
 
     files_list = zip(ensemble_files, tolerance_files)
     expanded_zip = expand_zip(files_list, fof_types)
+    print(expanded_zip)
 
     for mem, tol in expanded_zip:
 
@@ -71,7 +72,8 @@ def tolerance(
         file_type = get_file_type(mem)
 
         dfs = [file_name_parser[file_type](file) for file in ensemble_files]
-        df_ref = file_name_parser[file_type](mem.format(member_id="ref"))
+        df_ref = file_name_parser[file_type](mem.format(member_id="ref", member_type = ""))
+
 
         has_enough_data(dfs)
         df_ref = df_ref["veri_data"] if file_type is FileType.FOF else df_ref
@@ -88,8 +90,10 @@ def tolerance(
             df_max = pd.concat(rdiff, axis=1).max(axis=1)
 
         tolerance_dir = os.path.dirname(tol)
-        print(tolerance_dir)
+
         if tolerance_dir and not os.path.exists(tol):
-            os.makedirs(tol)
+            os.makedirs(tolerance_dir, exist_ok=True)
+
+
         logger.info("writing tolerance file to %s", tol)
         df_max.to_csv(tol)

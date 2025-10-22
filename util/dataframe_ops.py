@@ -256,11 +256,11 @@ def check_intersection(df_ref, df_cur):
 
 
 def check_variable(diff_df, df_tol):
+
     out = diff_df - df_tol
 
     selector = (out > CHECK_THRESHOLD).any(axis=1)
-
-    return len(out[selector].index) == 0, diff_df[selector], df_tol[selector]
+    return len(out.loc[selector]) == 0, diff_df.loc[selector], df_tol.loc[selector]
 
 
 def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
@@ -287,8 +287,8 @@ def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
 
     df_tol *= factor
 
-    df_ref = parse_probtest_stats(input_file_ref)
-    df_cur = parse_probtest_stats(input_file_cur)
+    df_ref = parse_probtest_stats(input_file_ref, index_col=[0, 1, 2])
+    df_cur = parse_probtest_stats(input_file_cur, index_col=[0, 1, 2])
 
     return df_tol, df_ref, df_cur
 
@@ -308,6 +308,7 @@ def check_file_with_tolerances(
     if file_type == FileType.FOF:
         ds_tol = pd.read_csv(tolerance_file_name, index_col=0)
         df_tol = ds_tol * factor
+        print(df_tol)
 
         df_ref = parse_probtest_fof(input_file_ref)
 
@@ -335,12 +336,16 @@ def check_file_with_tolerances(
     if file_type == FileType.FOF:
         df_ref = df_ref["veri_data"]
         df_cur = df_cur["veri_data"]
+        df_tol.columns = ["veri_data"]
 
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
     # if stats, take maximum over height
     if file_type == FileType.STATS:
         diff_df = diff_df.groupby(["file_ID", "variable"]).max()
+
+    if file_type == FileType.FOF:
+        diff_df = diff_df.to_frame()
 
     out, err, tol = check_variable(diff_df, df_tol)
 

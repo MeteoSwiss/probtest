@@ -16,6 +16,8 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+import random
+import string
 
 from tests.helpers import create_random_stats_file, generate_ensemble, load_pandas
 from util.tree import TimingTree
@@ -239,3 +241,127 @@ def fixture_setup_csv_files(tmp_path):
         "ref_file": ref_file,
         "cur_file": cur_file,
     }
+
+def create_random_sample_dataset(seed=None):
+    n_hdr_size = 5
+    n_body_size = 6
+
+    if seed is not None:
+        np.random.seed(seed)
+        random.seed(seed)
+
+    # --- Header-level variables ---
+    lat = np.random.uniform(0, 90, size=n_hdr_size)
+    lon = np.random.uniform(0, 180, size=n_hdr_size)
+    statid = ["".join(random.choices(string.ascii_lowercase, k=1)) for _ in range(n_hdr_size)]
+    time_nomi = np.random.choice([0, 30, 60, 90], size=n_hdr_size)
+    codetype = np.full(n_hdr_size, 5)
+    lbody = np.random.randint(1, 3, size=n_hdr_size)
+    ibody = np.arange(1, n_hdr_size + 1)
+
+    # --- Body-level variables ---
+    varno = np.random.randint(1, 10, size=n_body_size)
+    level = np.linspace(1000, 700, n_body_size)
+    veri_data = np.random.uniform(0, 100, size=n_body_size)
+    obs = np.random.rand(n_body_size)
+    bcor = np.random.rand(n_body_size)
+    level_typ = np.random.rand(n_body_size)
+    level_sig = np.random.rand(n_body_size)
+    state = np.random.rand(n_body_size)
+    flags = np.random.rand(n_body_size)
+    check = np.random.rand(n_body_size)
+    e_o = np.random.rand(n_body_size)
+    qual = np.random.rand(n_body_size)
+    plevel = np.random.rand(n_body_size)
+
+    # --- Assemble dataset ---
+    data = xr.Dataset(
+        {
+            "lat": (("d_hdr",), lat),
+            "lon": (("d_hdr",), lon),
+            "statid": (("d_hdr",), statid),
+            "time_nomi": (("d_hdr",), time_nomi),
+            "codetype": (("d_hdr",), codetype),
+            "l_body": (("d_hdr",), lbody),
+            "i_body": (("d_hdr",), ibody),
+
+            "varno": (("d_body",), varno),
+            "level": (("d_body",), level),
+            "veri_data": (("d_body",), veri_data),
+            "obs": (("d_body",), obs),
+            "bcor": (("d_body",), bcor),
+            "level_typ": (("d_body",), level_typ),
+            "level_sig": (("d_body",), level_sig),
+            "state": (("d_body",), state),
+            "flags": (("d_body",), flags),
+            "check": (("d_body",), check),
+            "e_o": (("d_body",), e_o),
+            "qual": (("d_body",), qual),
+            "plevel": (("d_body",), plevel),
+        },
+        coords={
+            "d_hdr": np.arange(n_hdr_size),
+            "d_body": np.arange(n_body_size),
+        },
+        attrs={"n_hdr": n_hdr_size, "n_body": n_body_size},
+    )
+
+
+    return data
+
+
+@pytest.fixture(scope="module")
+def fof_file_set(tmp_dir):
+    fof_types = ["AIREP", "PILOT"]  # i tipi di FOF da creare
+    seed = 42
+    files = {}
+
+    fof_patterns = []
+    tol_patterns = []
+
+    print("FFFF")
+
+    for fof_type in fof_types:
+        stats_pattern = os.path.join(tmp_dir, f"fof{fof_type}_{{member_id}}.nc")
+        fof_patterns.append(stats_pattern)
+
+
+        # crea il file di riferimento#
+        ds_ref = create_random_sample_dataset(seed=seed)
+
+        ds_ref.to_netcdf(stats_pattern.format(member_id="ref"))
+
+
+
+    #     # genera 20 membri con piccole variazioni
+        for i in range(1, 11):
+            amp = 1.0e-3
+            if i in {4, 9, 15}:
+                amp = 1.0e1
+
+            ds = create_random_sample_dataset(seed=i)
+
+            # applica rumore solo a "veri_data"
+            if "veri_data" in ds.data_vars:
+                noise = np.random.normal(0, amp, ds["veri_data"].shape)
+                ds["veri_data"] = ds["veri_data"] * (1 + noise)
+
+            ds.to_netcdf(stats_pattern.format(member_id=i))
+            print(ds)
+
+        tol_file = os.path.join(tmp_dir, f"tolerance_{fof_type}.csv")
+        with open(tol_file, "w") as f:
+            f.write("variable,tolerance\nveri_data,0.01\n")
+        tol_patterns.append(tol_file)
+
+    #print(tol_patterns)
+    files["fof"] = fof_patterns
+    files["members"] = os.path.join(tmp_dir, "selected_members.csv")
+    files["tol"] = tol_patterns
+
+
+    yield files
+
+    # cleanup
+    if os.path.exists(files["tol"]):
+        os.remove(files["tol"])
