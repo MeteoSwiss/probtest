@@ -6,12 +6,6 @@ authors = ["SENC <senc@meteoswiss.ch>"]
 license = "BSD 3"
 readme = "README.md"
 
-packages = [
-    { include = "engine" },
-    { include = "util" },
-    { include = "visualize" }
-]
-
 [tool.poetry.scripts]
 probtest = "probtest:cli"
 
