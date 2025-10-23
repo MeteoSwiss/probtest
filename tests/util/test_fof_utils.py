@@ -4,7 +4,6 @@ This module contains unit tests for the `util/fof_utils.py` module.
 
 import numpy as np
 import pytest
-import xarray as xr
 
 from util.fof_utils import (
     FileType,
@@ -26,59 +25,8 @@ from util.fof_utils import (
 
 
 @pytest.fixture(name="ds1", scope="function")
-def sample_dataset():
-    n_hdr_size = 5
-    n_body_size = 6
-
-    lat = [1, 3, 2, 4, 5]
-    lon = [5, 9, 7, 8, 3]
-    varno = [3, 3, 4, 4, 4, 4]
-    statid = ["a", "b", "c", "d", "e"]
-    time_nomi = [0, 30, 0, 30, 60]
-    codetype = [5, 5, 5, 5, 5]
-    lbody = np.array([1, 1, 1, 1, 2])
-    ibody = [1, 2, 3, 4, 5]
-    level = [1000, 950, 900, 850, 800, 750]
-    veri_data = [45, 34, 45, 56, 67, 78]
-    obs = np.array([0.374, 0.950, 0.731, 0.598, 0.156, 0.155])
-    bcor = np.array([0.058, 0.866, 0.601, 0.708, 0.020, 0.969])
-    level_typ = np.array([0.832, 0.212, 0.181, 0.183, 0.304, 0.524])
-    level_sig = np.array([0.431, 0.291, 0.611, 0.139, 0.292, 0.366])
-    state = np.array([0.456, 0.785, 0.199, 0.514, 0.592, 0.046])
-    flags = np.array([0.607, 0.170, 0.065, 0.948, 0.965, 0.808])
-    check = np.array([0.304, 0.097, 0.684, 0.440, 0.122, 0.495])
-    e_o = np.array([0.034, 0.909, 0.258, 0.662, 0.311, 0.520])
-    qual = np.array([0.796, 0.509, 0.810, 0.163, 0.425, 0.138])
-    plevel = np.array([0.801, 0.406, 0.077, 0.847, 0.320, 0.755])
-
-    data = xr.Dataset(
-        {
-            "lat": (("d_hdr",), lat),
-            "lon": (("d_hdr",), lon),
-            "varno": (("d_body",), varno),
-            "statid": (("d_hdr",), statid),
-            "time_nomi": (("d_hdr",), time_nomi),
-            "codetype": (("d_hdr",), codetype),
-            "level": (("d_body",), level),
-            "l_body": (("d_hdr",), lbody),
-            "i_body": (("d_hdr",), ibody),
-            "veri_data": (("d_body",), veri_data),
-            "obs": (("d_body",), obs),
-            "bcor": (("d_body",), bcor),
-            "level_typ": (("d_body",), level_typ),
-            "level_sig": (("d_body",), level_sig),
-            "state": (("d_body",), state),
-            "flags": (("d_body",), flags),
-            "check": (("d_body",), check),
-            "e_o": (("d_body",), e_o),
-            "qual": (("d_body",), qual),
-            "plevel": (("d_body",), plevel),
-        },
-        coords={"d_hdr": np.arange(n_hdr_size), "d_body": np.arange(n_body_size)},
-        attrs={"n_hdr": n_hdr_size, "n_body": n_body_size, "plevel": 4},
-    )
-
-    return data
+def fixture_ds1(sample_dataset_fof):
+    return sample_dataset_fof
 
 
 def test_get_report_variables(ds1):
@@ -122,106 +70,62 @@ def test_get_observation_variable(ds1):
 
 
 @pytest.fixture(name="ds_report", scope="function")
-def sample_dataset_report():
-    n_hdr_size = 5
-    n_body_size = 6
+def fixture_sample_dataset_report(sample_dataset_fof):
 
-    lat = [1, 2, 3, 4, 5]
-    lon = [5, 7, 9, 8, 3]
-    statid = ["a", "c", "b", "d", "e"]
-    time_nomi = [0, 0, 30, 30, 60]
-    codetype = [5, 5, 5, 5, 5]
-    l_body = [1, 1, 1, 1, 2]
-    i_body = [1, 3, 2, 4, 5]
+    ds = sample_dataset_fof
+    ds_report = ds[
+        ["lat", "lon", "statid", "time_nomi", "codetype", "l_body", "i_body"]
+    ].copy()
+    ds_report = ds_report.assign_coords(y=np.arange(ds_report.sizes["d_hdr"]))
 
-    data = xr.Dataset(
-        {
-            "lat": (("y",), lat),
-            "lon": (("y",), lon),
-            "statid": (("y",), statid),
-            "time_nomi": (("y",), time_nomi),
-            "codetype": (("y",), codetype),
-            "l_body": (("y",), l_body),
-            "i_body": (("y",), i_body),
-        },
-        coords={"d_hdr": np.arange(n_hdr_size)},
-        attrs={"n_hdr": n_hdr_size, "n_body": n_body_size},
-    )
+    ds_report.attrs = {"n_hdr": ds.attrs["n_hdr"], "n_body": ds.attrs["n_body"]}
 
-    return data
+    return ds_report
 
 
 @pytest.fixture(name="ds_obs", scope="function")
-def sample_dataset_obs():
-    n_hdr_size = 6
-    n_body_size = 6
+def fixture_sample_dataset_obs(sample_dataset_fof):
 
-    lat = np.array([1, 2, 3, 4, 5, 5])
-    lon = np.array([5, 7, 9, 8, 3, 3])
-    statid = np.array(["a", "c", "b", "d", "e", "e"])
-    time_nomi = np.array([0, 0, 30, 30, 60, 60])
-    varno = np.array([3, 3, 4, 4, 4, 4])
-    level = np.array([950, 1000, 750, 800, 850, 900])
+    ds = sample_dataset_fof
 
-    state = np.array([0.456, 0.785, 0.199, 0.514, 0.592, 0.046])
-    flags = np.array([0.607, 0.170, 0.065, 0.948, 0.965, 0.808])
-    check = np.array([0.304, 0.097, 0.684, 0.440, 0.122, 0.495])
-    e_o = np.array([0.034, 0.909, 0.258, 0.662, 0.311, 0.520])
-    qual = np.array([0.796, 0.509, 0.810, 0.163, 0.425, 0.138])
-    plevel = np.array([0.801, 0.406, 0.077, 0.847, 0.320, 0.755])
+    ds_observation = ds[
+        [
+            "lat",
+            "lon",
+            "statid",
+            "time_nomi",
+            "varno",
+            "level",
+            "state",
+            "flags",
+            "check",
+            "e_o",
+            "qual",
+            "plevel",
+        ]
+    ].copy()
 
-    ds = xr.Dataset(
-        {
-            "lat": (("d_hdr",), lat),
-            "lon": (("d_hdr",), lon),
-            "varno": (("d_body",), varno),
-            "statid": (("d_hdr",), statid),
-            "time_nomi": (("d_hdr",), time_nomi),
-            "level": (("d_body",), level),
-            "state": (("d_body",), state),
-            "flags": (("d_body",), flags),
-            "check": (("d_body",), check),
-            "e_o": (("d_body",), e_o),
-            "qual": (("d_body",), qual),
-            "plevel": (("d_body",), plevel),
-        },
-        coords={"d_hdr": np.arange(n_hdr_size), "d_body": np.arange(n_body_size)},
-        attrs={"n_hdr": n_hdr_size, "n_body": n_body_size},
+    ds_observation = ds_observation.assign_coords(
+        y=np.arange(ds_observation.sizes["d_body"])
     )
-    return ds
+    ds_observation.attrs = {"n_hdr": ds.attrs["n_hdr"], "n_body": ds.attrs["n_body"]}
+
+    return ds_observation
 
 
 @pytest.fixture(name="ds_veri", scope="function")
-def sample_dataset_veri():
-    n_hdr_size = 6
-    n_body_size = 6
+def fixture_sample_dataset_veri(sample_dataset_fof):
 
-    lat = np.array([1, 2, 3, 4, 5, 5])
-    lon = np.array([5, 7, 9, 8, 3, 3])
-    statid = np.array(["a", "c", "b", "d", "e", "e"])
-    time_nomi = np.array([0, 0, 30, 30, 60, 60])
-    varno = np.array([3, 3, 4, 4, 4, 4])
-    level = np.array([950, 1000, 750, 800, 850, 900])
-    veri_data = np.array([34, 45, 78, 67, 56, 45])
+    ds = sample_dataset_fof
 
-    ds = xr.Dataset(
-        {
-            "lat": (("d_hdr",), lat),
-            "lon": (("d_hdr",), lon),
-            "varno": (("d_body",), varno),
-            "statid": (("d_hdr",), statid),
-            "time_nomi": (("d_hdr",), time_nomi),
-            "level": (("d_body",), level),
-            "veri_data": (("d_body",), veri_data),
-        },
-        coords={
-            "d_hdr": np.arange(n_hdr_size),
-            "d_body": np.arange(n_body_size),
-        },
-        attrs={"n_hdr": n_hdr_size, "n_body": n_body_size},
-    )
+    ds_veri = ds[
+        ["lat", "lon", "statid", "time_nomi", "varno", "level", "veri_data"]
+    ].copy()
 
-    return ds
+    ds_veri = ds_veri.assign_coords(y=np.arange(ds_veri.sizes["d_body"]))
+    ds_veri.attrs = {"n_hdr": ds.attrs["n_hdr"], "n_body": ds.attrs["n_body"]}
+
+    return ds_veri
 
 
 def test_split_report(ds1, ds_report, ds_obs, ds_veri):
@@ -327,58 +231,14 @@ def test_clean_value(arr_with_spaces):
 
 
 @pytest.fixture(name="ds2", scope="function")
-def sample_dataset_2():
-    n_hdr_size = 5
-    n_body_size = 6
+def fixture_sample_dataset_2(sample_dataset_fof):
+    """
+    Sample fof dataset slightly modified.
+    """
+    data = sample_dataset_fof.copy(deep=True)
 
-    lat = [1, 3, 2, 4, 5]
-    lon = [5, 9, 7, 8, 3]
-    varno = [3, 3, 4, 4, 4, 4]
-    statid = ["a", "b", "c", "d", "e"]
-    time_nomi = [0, 30, 0, 30, 60]
-    codetype = [5, 5, 5, 5, 3]
-    lbody = np.array([1, 1, 1, 1, 2])
-    ibody = [1, 2, 3, 4, 5]
-    level = [1000, 950, 900, 850, 800, 750]
-    veri_data = [45, 34, 45, 56, 67, 78]
-    obs = np.array([0.374, 0.950, 0.731, 0.598, 0.156, 0.155])
-    bcor = np.array([0.058, 0.866, 0.601, 0.708, 0.020, 0.969])
-    level_typ = np.array([0.832, 0.212, 0.181, 0.183, 0.304, 0.524])
-    level_sig = np.array([0.431, 0.291, 0.611, 0.139, 0.292, 0.366])
-    state = np.array([0.456, 0.785, 0.199, 0.514, 0.592, 0.046])
-    flags = np.array([0.607, 0.170, 0.065, 0.948, 0.965, 0.808])
-    check = np.array([0.304, 0.097, 0.684, 0.440, 0.122, 0.495])
-    e_o = np.array([0.034, 0.909, 0.258, 0.662, 0.311, 0.520])
-    qual = np.array([0.796, 0.509, 0.810, 0.163, 0.425, 0.138])
-    plevel = np.array([0.801, 0.406, 0.077, 0.847, 0.320, 0.755])
-
-    data = xr.Dataset(
-        {
-            "lat": (("d_hdr",), lat),
-            "lon": (("d_hdr",), lon),
-            "varno": (("d_body",), varno),
-            "statid": (("d_hdr",), statid),
-            "time_nomi": (("d_hdr",), time_nomi),
-            "codetype": (("d_hdr",), codetype),
-            "level": (("d_body",), level),
-            "l_body": (("d_hdr",), lbody),
-            "i_body": (("d_hdr",), ibody),
-            "veri_data": (("d_body",), veri_data),
-            "obs": (("d_body",), obs),
-            "bcor": (("d_body",), bcor),
-            "level_typ": (("d_body",), level_typ),
-            "level_sig": (("d_body",), level_sig),
-            "state": (("d_body",), state),
-            "flags": (("d_body",), flags),
-            "check": (("d_body",), check),
-            "e_o": (("d_body",), e_o),
-            "qual": (("d_body",), qual),
-            "plevel": (("d_body",), plevel),
-        },
-        coords={"d_hdr": np.arange(n_hdr_size), "d_body": np.arange(n_body_size)},
-        attrs={"n_hdr": n_hdr_size, "n_body": n_body_size, "plevel": 4},
-    )
-
+    # only last value of codetype slightly changes
+    data["codetype"] = (("d_hdr",), [5, 5, 5, 5, 3])
     return data
 
 
@@ -473,64 +333,15 @@ def test_compare_var_and_attr_ds(ds1, ds2, tmp_path):
     assert (total2, equal2) == (104, 103)
 
 
-@pytest.fixture(name="ds3", scope="function")
-def sample_dataset_3():
-    n_hdr_size = 5
-    n_body_size = 5
+@pytest.fixture(name="ds3")
+def fixture_sample_dataset_3(sample_dataset_fof):
 
-    lat = [1, 3, 2, 4, 5]
-    lon = [5, 9, 7, 8, 3]
-    varno = [3, 3, 4, 4, 4]
-    statid = ["a", "b", "c", "d", "e"]
-    time_nomi = [0, 30, 0, 30, 60]
-    codetype = [5, 5, 5, 5, 3]
-    lbody = np.array([1, 1, 1, 1, 2])
-    ibody = [1, 2, 3, 4, 5]
-    level = [1000, 950, 900, 850, 800]
-    veri_data = [45, 34, 45, 56, 67]
-    obs = np.array([0.374, 0.950, 0.731, 0.598, 0.156])
-    bcor = np.array([0.058, 0.866, 0.601, 0.708, 0.020])
-    level_typ = np.array([0.832, 0.212, 0.181, 0.183, 0.304])
-    level_sig = np.array([0.431, 0.291, 0.611, 0.139, 0.292])
-    state = np.array([0.456, 0.785, 0.199, 0.514, 0.592])
-    flags = np.array([0.607, 0.170, 0.065, 0.948, 0.965])
-    check = np.array([0.304, 0.097, 0.684, 0.440, 0.122])
-    e_o = np.array([0.034, 0.909, 0.258, 0.662, 0.311])
-    qual = np.array([0.796, 0.509, 0.810, 0.163, 0.425])
-    plevel = np.array([0.801, 0.406, 0.077, 0.847, 0.320])
+    ds = sample_dataset_fof.isel(d_body=slice(0, 5))
+    ds["codetype"] = (("d_hdr",), [5, 5, 5, 5, 3])
+    ds.attrs["n_body"] = 5
+    ds.attrs["plevel"] = np.array([0.374, 0.950, 0.731, 0.598, 0.156])
 
-    data = xr.Dataset(
-        {
-            "lat": (("d_hdr",), lat),
-            "lon": (("d_hdr",), lon),
-            "varno": (("d_body",), varno),
-            "statid": (("d_hdr",), statid),
-            "time_nomi": (("d_hdr",), time_nomi),
-            "codetype": (("d_hdr",), codetype),
-            "level": (("d_body",), level),
-            "l_body": (("d_hdr",), lbody),
-            "i_body": (("d_hdr",), ibody),
-            "veri_data": (("d_body",), veri_data),
-            "obs": (("d_body",), obs),
-            "bcor": (("d_body",), bcor),
-            "level_typ": (("d_body",), level_typ),
-            "level_sig": (("d_body",), level_sig),
-            "state": (("d_body",), state),
-            "flags": (("d_body",), flags),
-            "check": (("d_body",), check),
-            "e_o": (("d_body",), e_o),
-            "qual": (("d_body",), qual),
-            "plevel": (("d_body",), plevel),
-        },
-        coords={"d_hdr": np.arange(n_hdr_size), "d_body": np.arange(n_body_size)},
-        attrs={
-            "n_hdr": n_hdr_size,
-            "n_body": n_body_size,
-            "plevel": np.array([0.374, 0.950, 0.731, 0.598, 0.156]),
-        },
-    )
-
-    return data
+    return ds
 
 
 def test_compare_var_and_attr_ds_different_attr(ds2, ds3):

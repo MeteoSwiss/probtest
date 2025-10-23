@@ -9,15 +9,15 @@ data, and provide setup and teardown mechanisms for efficient testing.
 """
 
 import os
+import random
 import shutil
+import string
 import tempfile
 
 import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-import random
-import string
 
 from tests.helpers import create_random_stats_file, generate_ensemble, load_pandas
 from util.tree import TimingTree
@@ -242,6 +242,63 @@ def fixture_setup_csv_files(tmp_path):
         "cur_file": cur_file,
     }
 
+
+@pytest.fixture(name="sample_dataset_fof")
+def fixture_sample_dataset_fof():
+    n_hdr_size = 5
+    n_body_size = 6
+
+    lat = [1, 3, 2, 4, 5]
+    lon = [5, 9, 7, 8, 3]
+    varno = [3, 3, 4, 4, 4, 4]
+    statid = ["a", "b", "c", "d", "e"]
+    time_nomi = [0, 30, 0, 30, 60]
+    codetype = [5, 5, 5, 5, 5]
+    lbody = np.array([1, 1, 1, 1, 2])
+    ibody = [1, 2, 3, 4, 5]
+    level = [1000, 950, 900, 850, 800, 750]
+    veri_data = [45, 34, 45, 56, 67, 78]
+    obs = np.array([0.374, 0.950, 0.731, 0.598, 0.156, 0.155])
+    bcor = np.array([0.058, 0.866, 0.601, 0.708, 0.020, 0.969])
+    level_typ = np.array([0.832, 0.212, 0.181, 0.183, 0.304, 0.524])
+    level_sig = np.array([0.431, 0.291, 0.611, 0.139, 0.292, 0.366])
+    state = np.array([0.456, 0.785, 0.199, 0.514, 0.592, 0.046])
+    flags = np.array([0.607, 0.170, 0.065, 0.948, 0.965, 0.808])
+    check = np.array([0.304, 0.097, 0.684, 0.440, 0.122, 0.495])
+    e_o = np.array([0.034, 0.909, 0.258, 0.662, 0.311, 0.520])
+    qual = np.array([0.796, 0.509, 0.810, 0.163, 0.425, 0.138])
+    plevel = np.array([0.801, 0.406, 0.077, 0.847, 0.320, 0.755])
+
+    data = xr.Dataset(
+        {
+            "lat": (("d_hdr",), lat),
+            "lon": (("d_hdr",), lon),
+            "varno": (("d_body",), varno),
+            "statid": (("d_hdr",), statid),
+            "time_nomi": (("d_hdr",), time_nomi),
+            "codetype": (("d_hdr",), codetype),
+            "level": (("d_body",), level),
+            "l_body": (("d_hdr",), lbody),
+            "i_body": (("d_hdr",), ibody),
+            "veri_data": (("d_body",), veri_data),
+            "obs": (("d_body",), obs),
+            "bcor": (("d_body",), bcor),
+            "level_typ": (("d_body",), level_typ),
+            "level_sig": (("d_body",), level_sig),
+            "state": (("d_body",), state),
+            "flags": (("d_body",), flags),
+            "check": (("d_body",), check),
+            "e_o": (("d_body",), e_o),
+            "qual": (("d_body",), qual),
+            "plevel": (("d_body",), plevel),
+        },
+        coords={"d_hdr": np.arange(n_hdr_size), "d_body": np.arange(n_body_size)},
+        attrs={"n_hdr": n_hdr_size, "n_body": n_body_size, "plevel": 4},
+    )
+
+    return data
+
+
 def create_random_sample_dataset(seed=None):
     n_hdr_size = 5
     n_body_size = 6
@@ -253,7 +310,9 @@ def create_random_sample_dataset(seed=None):
     # --- Header-level variables ---
     lat = np.random.uniform(0, 90, size=n_hdr_size)
     lon = np.random.uniform(0, 180, size=n_hdr_size)
-    statid = ["".join(random.choices(string.ascii_lowercase, k=1)) for _ in range(n_hdr_size)]
+    statid = [
+        "".join(random.choices(string.ascii_lowercase, k=1)) for _ in range(n_hdr_size)
+    ]
     time_nomi = np.random.choice([0, 30, 60, 90], size=n_hdr_size)
     codetype = np.full(n_hdr_size, 5)
     lbody = np.random.randint(1, 3, size=n_hdr_size)
@@ -284,7 +343,6 @@ def create_random_sample_dataset(seed=None):
             "codetype": (("d_hdr",), codetype),
             "l_body": (("d_hdr",), lbody),
             "i_body": (("d_hdr",), ibody),
-
             "varno": (("d_body",), varno),
             "level": (("d_body",), level),
             "veri_data": (("d_body",), veri_data),
@@ -306,7 +364,6 @@ def create_random_sample_dataset(seed=None):
         attrs={"n_hdr": n_hdr_size, "n_body": n_body_size},
     )
 
-
     return data
 
 
@@ -325,15 +382,12 @@ def fof_file_set(tmp_dir):
         stats_pattern = os.path.join(tmp_dir, f"fof{fof_type}_{{member_id}}.nc")
         fof_patterns.append(stats_pattern)
 
-
         # crea il file di riferimento#
         ds_ref = create_random_sample_dataset(seed=seed)
 
         ds_ref.to_netcdf(stats_pattern.format(member_id="ref"))
 
-
-
-    #     # genera 20 membri con piccole variazioni
+        #     # genera 20 membri con piccole variazioni
         for i in range(1, 11):
             amp = 1.0e-3
             if i in {4, 9, 15}:
@@ -350,15 +404,14 @@ def fof_file_set(tmp_dir):
             print(ds)
 
         tol_file = os.path.join(tmp_dir, f"tolerance_{fof_type}.csv")
-        with open(tol_file, "w") as f:
+        with open(tol_file, "w", encoding="utf-8") as f:
             f.write("variable,tolerance\nveri_data,0.01\n")
         tol_patterns.append(tol_file)
 
-    #print(tol_patterns)
+    # print(tol_patterns)
     files["fof"] = fof_patterns
     files["members"] = os.path.join(tmp_dir, "selected_members.csv")
     files["tol"] = tol_patterns
-
 
     yield files
 
