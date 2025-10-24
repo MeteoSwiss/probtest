@@ -308,7 +308,6 @@ def check_file_with_tolerances(
     if file_type == FileType.FOF:
         ds_tol = pd.read_csv(tolerance_file_name, index_col=0)
         df_tol = ds_tol * factor
-        print(df_tol)
 
         df_ref = parse_probtest_fof(input_file_ref)
 

@@ -95,10 +95,11 @@ def run_tolerance_cli(
     ensemble_files,
     tolerance_files,
     member_type=None,
-    member_ids="1,2,5,9,10,15,27,33,45,47",
-    fof_type = "AIREP,PILOT",
+    member_ids="1,2,3,4,5,6,7,8,9,10",
+    fof_type="AIREP",
     minimum_tolerance=0.0,
-    ):
+):  # pylint: disable=too-many-positional-arguments
+
     args = [
         "--ensemble_files",
         ensemble_files,
@@ -235,7 +236,6 @@ def run_select_members_cli(
     ]
     if enable_check_only:
         args.append("--enable-check-only")
-    print(args)
     return run_cli(select_members, args, log)
 
 

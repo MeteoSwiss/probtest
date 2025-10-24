@@ -11,7 +11,7 @@ import sys
 
 import click
 
-from util.click_util import CommaSeperatedStrings, cli_help
+from util.click_util import CommaSeparatedStrings, cli_help
 from util.dataframe_ops import check_file_with_tolerances, compute_division
 from util.fof_utils import expand_zip
 from util.log_handler import logger
@@ -20,26 +20,26 @@ from util.log_handler import logger
 @click.command()
 @click.option(
     "--reference_files",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     help=cli_help["reference_files"],
     default=None,
 )
 @click.option(
     "--current_files",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     help=cli_help["current_files"],
     default=None,
 )
 @click.option(
     "--tolerance-files",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     help=cli_help["tolerance_files_input"],
     default=None,
 )
 @click.option("--factor", type=float, help=cli_help["factor"])
 @click.option(
     "--fof-types",
-    type=CommaSeperatedStrings(),
+    type=CommaSeparatedStrings(),
     default="",
     help=cli_help["fof_types"],
 )

@@ -6,7 +6,6 @@ selection and tolerance testing CLI commands.
 import os
 import re
 
-
 from tests.helpers import run_select_members_cli, run_tolerance_cli
 
 
@@ -65,8 +64,6 @@ def test_tolerance(stats_file_set, caplog):
     run_tolerance_cli(
         stats_file_set["stats"], stats_file_set["tol"], member_ids="1,2,3,4,5"
     )
-
-
 
     log = run_select_members_cli(
         stats_file_set["stats"],

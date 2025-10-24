@@ -9,9 +9,7 @@ data, and provide setup and teardown mechanisms for efficient testing.
 """
 
 import os
-import random
 import shutil
-import string
 import tempfile
 
 import numpy as np
@@ -89,6 +87,14 @@ def df_ref_tolerance(ref_data) -> pd.DataFrame:
     return load_pandas(
         os.path.join(ref_data, "tolerance.csv"), index_col=[0, 1], header=[0, 1]
     )
+
+
+@pytest.fixture()
+def df_ref_tolerance_fof():
+    index = [0, 1, 2, 3, 4, 5]
+    values = [0, 1, 1e-3, 3, 0.5, 0]
+    df = pd.DataFrame({"value": values}, index=index)
+    return df
 
 
 @pytest.fixture()
@@ -299,122 +305,58 @@ def fixture_sample_dataset_fof():
     return data
 
 
-def create_random_sample_dataset(seed=None):
-    n_hdr_size = 5
-    n_body_size = 6
+@pytest.fixture(scope="function")
+def fof_file_set(tmp_dir, sample_dataset_fof):
+    """
+    Create a set of FOF files from sample_dataset_fof,
+    modifying only veri_data and returning the actual paths
+    of the files created (ref + members).
+    """
 
-    if seed is not None:
-        np.random.seed(seed)
-        random.seed(seed)
+    fof_types = ["AIREP"]
+    files = {"fof": [], "tol": [], "path": []}
 
-    # --- Header-level variables ---
-    lat = np.random.uniform(0, 90, size=n_hdr_size)
-    lon = np.random.uniform(0, 180, size=n_hdr_size)
-    statid = [
-        "".join(random.choices(string.ascii_lowercase, k=1)) for _ in range(n_hdr_size)
+    veri_data_sets = [
+        [45, 34, 45 + 1e-3, 56, 67, 78],
+        [45, 34, 45 + 1e-3, 57, 67, 78.5],
+        [45, 34, 45 + 1e-4, 58, 67, 78.4],
+        [45, 35, 45 + 1e-6, 59, 67, 78.1],
     ]
-    time_nomi = np.random.choice([0, 30, 60, 90], size=n_hdr_size)
-    codetype = np.full(n_hdr_size, 5)
-    lbody = np.random.randint(1, 3, size=n_hdr_size)
-    ibody = np.arange(1, n_hdr_size + 1)
-
-    # --- Body-level variables ---
-    varno = np.random.randint(1, 10, size=n_body_size)
-    level = np.linspace(1000, 700, n_body_size)
-    veri_data = np.random.uniform(0, 100, size=n_body_size)
-    obs = np.random.rand(n_body_size)
-    bcor = np.random.rand(n_body_size)
-    level_typ = np.random.rand(n_body_size)
-    level_sig = np.random.rand(n_body_size)
-    state = np.random.rand(n_body_size)
-    flags = np.random.rand(n_body_size)
-    check = np.random.rand(n_body_size)
-    e_o = np.random.rand(n_body_size)
-    qual = np.random.rand(n_body_size)
-    plevel = np.random.rand(n_body_size)
-
-    # --- Assemble dataset ---
-    data = xr.Dataset(
-        {
-            "lat": (("d_hdr",), lat),
-            "lon": (("d_hdr",), lon),
-            "statid": (("d_hdr",), statid),
-            "time_nomi": (("d_hdr",), time_nomi),
-            "codetype": (("d_hdr",), codetype),
-            "l_body": (("d_hdr",), lbody),
-            "i_body": (("d_hdr",), ibody),
-            "varno": (("d_body",), varno),
-            "level": (("d_body",), level),
-            "veri_data": (("d_body",), veri_data),
-            "obs": (("d_body",), obs),
-            "bcor": (("d_body",), bcor),
-            "level_typ": (("d_body",), level_typ),
-            "level_sig": (("d_body",), level_sig),
-            "state": (("d_body",), state),
-            "flags": (("d_body",), flags),
-            "check": (("d_body",), check),
-            "e_o": (("d_body",), e_o),
-            "qual": (("d_body",), qual),
-            "plevel": (("d_body",), plevel),
-        },
-        coords={
-            "d_hdr": np.arange(n_hdr_size),
-            "d_body": np.arange(n_body_size),
-        },
-        attrs={"n_hdr": n_hdr_size, "n_body": n_body_size},
-    )
-
-    return data
-
-
-@pytest.fixture(scope="module")
-def fof_file_set(tmp_dir):
-    fof_types = ["AIREP", "PILOT"]  # i tipi di FOF da creare
-    seed = 42
-    files = {}
-
-    fof_patterns = []
-    tol_patterns = []
-
-    print("FFFF")
 
     for fof_type in fof_types:
-        stats_pattern = os.path.join(tmp_dir, f"fof{fof_type}_{{member_id}}.nc")
-        fof_patterns.append(stats_pattern)
+        fof_files_for_type = []
 
-        # crea il file di riferimento#
-        ds_ref = create_random_sample_dataset(seed=seed)
+        ref_path = os.path.join(tmp_dir, f"fof{fof_type}_ref.nc")
+        files["path"] = os.path.join(tmp_dir, f"fof{fof_type}_{{member_id}}.nc")
+        ds_ref = sample_dataset_fof.copy(deep=True)
+        ds_ref.to_netcdf(ref_path)
+        fof_files_for_type.append(ref_path)
 
-        ds_ref.to_netcdf(stats_pattern.format(member_id="ref"))
+        for i, veri_data_values in enumerate(veri_data_sets, start=1):
+            ds_member = sample_dataset_fof.copy(deep=True)
+            ds_member["veri_data"] = (
+                ("d_body",),
+                veri_data_values[: ds_member.sizes["d_body"]],
+            )
 
-        #     # genera 20 membri con piccole variazioni
-        for i in range(1, 11):
-            amp = 1.0e-3
-            if i in {4, 9, 15}:
-                amp = 1.0e1
+            member_path = os.path.join(tmp_dir, f"fof{fof_type}_{i}.nc")
+            ds_member.to_netcdf(member_path)
+            fof_files_for_type.append(member_path)
 
-            ds = create_random_sample_dataset(seed=i)
-
-            # applica rumore solo a "veri_data"
-            if "veri_data" in ds.data_vars:
-                noise = np.random.normal(0, amp, ds["veri_data"].shape)
-                ds["veri_data"] = ds["veri_data"] * (1 + noise)
-
-            ds.to_netcdf(stats_pattern.format(member_id=i))
-            print(ds)
+        files["fof"].extend(fof_files_for_type)
 
         tol_file = os.path.join(tmp_dir, f"tolerance_{fof_type}.csv")
         with open(tol_file, "w", encoding="utf-8") as f:
             f.write("variable,tolerance\nveri_data,0.01\n")
-        tol_patterns.append(tol_file)
+        files["tol"].append(tol_file)
 
-    # print(tol_patterns)
-    files["fof"] = fof_patterns
-    files["members"] = os.path.join(tmp_dir, "selected_members.csv")
-    files["tol"] = tol_patterns
+    members_csv = os.path.join(tmp_dir, "selected_members.csv")
+    with open(members_csv, "w", encoding="utf-8") as f:
+        f.write("member_id\n1\n2\n3\n4\n")
+    files["members"] = members_csv
 
     yield files
 
-    # cleanup
-    if os.path.exists(files["tol"]):
-        os.remove(files["tol"])
+    for path in files["fof"] + files["tol"] + [files["members"]]:
+        if os.path.exists(path):
+            os.remove(path)

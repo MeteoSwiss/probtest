@@ -60,12 +60,16 @@ from util.log_handler import logger
     help=cli_help["minimum_tolerance"],
 )
 def tolerance(
-    ensemble_files, tolerance_files, member_ids, member_type, fof_types, minimum_tolerance
-):
+    ensemble_files,
+    tolerance_files,
+    member_ids,
+    member_type,
+    fof_types,
+    minimum_tolerance,
+):  # pylint: disable=too-many-positional-arguments
 
     files_list = zip(ensemble_files, tolerance_files)
     expanded_zip = expand_zip(files_list, fof_types)
-    print(expanded_zip)
 
     for mem, tol in expanded_zip:
 
@@ -74,8 +78,9 @@ def tolerance(
         file_type = get_file_type(mem)
 
         dfs = [file_name_parser[file_type](file) for file in ensemble_files]
-        df_ref = file_name_parser[file_type](mem.format(member_id="ref", member_type = ""))
-
+        df_ref = file_name_parser[file_type](
+            mem.format(member_id="ref", member_type="")
+        )
 
         has_enough_data(dfs)
         df_ref = df_ref["veri_data"] if file_type is FileType.FOF else df_ref
@@ -86,20 +91,22 @@ def tolerance(
         if file_type is FileType.STATS:
             rdiff_max = [r.groupby(["file_ID", "variable"]).max() for r in rdiff]
             df_max = pd.concat(rdiff_max).groupby(["file_ID", "variable"]).max()
-            df_max = df_max.map(lambda x: minimum_tolerance if x < minimum_tolerance else x)
+            df_max = df_max.map(
+                lambda x: minimum_tolerance if x < minimum_tolerance else x
+            )
 
             force_monotonic(df_max)
 
         elif file_type is FileType.FOF:
             df_max = pd.concat(rdiff, axis=1).max(axis=1)
-            df_max = df_max.map(lambda x: minimum_tolerance if x < minimum_tolerance else x)
-
+            df_max = df_max.map(
+                lambda x: minimum_tolerance if x < minimum_tolerance else x
+            )
 
         tolerance_dir = os.path.dirname(tol)
 
         if tolerance_dir and not os.path.exists(tol):
             os.makedirs(tolerance_dir, exist_ok=True)
-
 
         logger.info("writing tolerance file to %s", tol)
         df_max.to_csv(tol)

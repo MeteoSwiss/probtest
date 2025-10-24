@@ -62,7 +62,6 @@ def test_stats_cli_ensemble_for_member(
     tmp_dir, ensemble, df_ref_ensemble_stats, new_ref, member
 ):
     stats_file = os.path.join(tmp_dir, "stats_{member_id}.csv")
-    print(stats_file)
 
     run_stats_cli(
         tmp_dir, stats_file, ensemble=True, perturbed_model_output_dir=ensemble
