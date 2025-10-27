@@ -18,8 +18,6 @@ from tests.helpers import (
     store_as_potential_new_ref,
 )
 
-# pylint: disable=too-many-arguments
-
 
 @pytest.mark.parametrize(
     "mode,use_minimum_tolerance",

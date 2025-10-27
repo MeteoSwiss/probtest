@@ -19,13 +19,13 @@ from util.log_handler import logger
 
 @click.command()
 @click.option(
-    "--reference_files",
+    "--reference-files",
     type=CommaSeparatedStrings(),
     help=cli_help["reference_files"],
     default=None,
 )
 @click.option(
-    "--current_files",
+    "--current-files",
     type=CommaSeparatedStrings(),
     help=cli_help["current_files"],
     default=None,
