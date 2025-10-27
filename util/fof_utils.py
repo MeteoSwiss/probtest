@@ -68,21 +68,22 @@ def split_feedback_dataset(ds):
     ds_veri = ds[observation_variables]
     ds_obs_sorted = ds_obs.sortby(sort_keys_obs)
     ds_veri_sorted = ds_veri.sortby(sort_keys_obs)
+    # print(ds_veri_sorted)
 
-    vars_to_drop = [
-        "obs",
-        "bcor",
-        "level_typ",
-        "level_sig",
-        "state",
-        "flags",
-        "check",
-        "e_o",
-        "qual",
-        "plevel",
-    ]
+    # vars_to_drop = [
+    #     "obs",
+    #     "bcor",
+    #     "level_typ",
+    #     "level_sig",
+    #     "state",
+    #     "flags",
+    #     "check",
+    #     "e_o",
+    #     "qual",
+    #     "plevel",
+    # ]
 
-    ds_veri = ds_obs_sorted.drop_vars(vars_to_drop)
+    # ds_veri = ds_obs_sorted.drop_vars(vars_to_drop)
 
     return ds_report_sorted, ds_obs_sorted, ds_veri_sorted
 
