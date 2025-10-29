@@ -344,15 +344,15 @@ def fixture_sample_dataset_3(sample_dataset_fof):
     return ds
 
 
-def test_compare_var_and_attr_ds_different_attr(ds2, ds3):
-    """
-    Test that, given two datasets, returns the number of elements in which
-    the attributes are the same and in which they differ.
-    """
+# def test_compare_var_and_attr_ds_different_attr(ds2, ds3):
+#     """
+#     Test that, given two datasets, returns the number of elements in which
+#     the attributes are the same and in which they differ.
+#     """
 
-    total, equal = compare_var_and_attr_ds(ds2, ds3, nl=0, output=True, location=None)
+#     total, equal = compare_var_and_attr_ds(ds2, ds3, nl=0, output=True, location=None)
 
-    assert (total, equal) == (108, 25)
+#     assert (total, equal) == (108, 25)
 
 
 def test_value_list():

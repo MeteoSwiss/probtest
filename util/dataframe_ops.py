@@ -312,6 +312,20 @@ def check_file_with_tolerances(
         df_ref = parse_probtest_fof(input_file_ref)
 
         df_cur = parse_probtest_fof(input_file_cur)
+        cols = ["check", "state", "r_state", "r_check"]
+        existing_cols = [c for c in cols if c in df_ref and c in df_cur]
+
+        if existing_cols:
+            ds1_multiple = df_ref[existing_cols]
+            ds2_multiple = df_cur[existing_cols]
+
+            out, diff = check_multiple_solutions(
+                ds1_multiple, ds2_multiple, existing_cols
+            )
+
+            if out == 1:
+                logger.error(f"RESULT: check FAILED. Errors at the lines {diff}")
+                sys.exit(1)
 
     else:
         df_tol, df_ref, df_cur = parse_check(
@@ -364,3 +378,63 @@ file_name_parser = {
     FileType.FOF: parse_probtest_fof,
     FileType.STATS: parse_probtest_stats,
 }
+
+
+def check_multiple_solutions(ds1, ds2, existing_cols):
+
+    allowed_checks = [13, 18, 32]
+    allowed_states = [1, 5, 7, 9]
+
+    df1 = ds1[existing_cols]
+    df2 = ds2[existing_cols]
+
+    diff = []
+
+    check_cols = ["check", "r_check"]
+    state_cols = ["state", "r_state"]
+    out = 0
+
+    for idx in df1.index:
+        check_col = next((c for c in check_cols if c in df1.columns), None)
+        state_col = next((c for c in state_cols if c in df1.columns), None)
+
+        if check_col is None or state_col is None:
+            raise KeyError("Colonne 'check' o 'state' non trovate nei dataset.")
+
+        check_ref = df1.at[idx, check_col]
+        check_cur = df2.at[idx, check_col]
+        state_ref = df1.at[idx, state_col]
+        state_cur = df2.at[idx, state_col]
+
+        # CASE 1: check does not change
+        if check_ref == check_cur:
+            # If check is not an accepted, state should not change
+            if check_ref not in allowed_checks:
+                if state_ref != state_cur:
+                    out = 1
+                    diff.append(idx)
+
+            # If is an admitted change, state can change, but only in the admitted cases
+            else:
+                if state_ref != state_cur:
+                    if (state_ref not in allowed_states) or (
+                        state_cur not in allowed_states
+                    ):
+                        out = 1
+                        diff.append(idx)
+
+        # CASE 2: check changes
+        else:
+            if (check_ref not in allowed_checks) and (check_cur not in allowed_checks):
+                out = 1
+                diff.append(idx)
+
+            # If check values are both admitted, also state should
+            # be in the admitted values
+            elif (state_ref not in allowed_states) or (state_cur not in allowed_states):
+                out = 1
+                diff.append(idx)
+
+    diff = np.array(diff)
+
+    return out, diff
