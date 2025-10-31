@@ -437,7 +437,7 @@ class FileType(Enum):
     """
 
     FOF = "fof"
-    STATS = "stats"
+    STATS = "csv"
 
 
 def get_file_type(filename: str) -> FileType:
@@ -448,7 +448,7 @@ def get_file_type(filename: str) -> FileType:
 
     if "fof" in name:
         return FileType.FOF
-    if "stats" in name:
+    if "csv" in name:
         return FileType.STATS
 
     raise ValueError(f"Unknown file type for '{filename}'")
