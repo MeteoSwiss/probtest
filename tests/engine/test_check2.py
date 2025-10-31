@@ -13,7 +13,7 @@ from click.testing import CliRunner
 from engine.check import check
 
 
-@pytest.fixture(name="dataframes", scope="function")
+@pytest.fixture(name="stats_dataframes", scope="function")
 def fixture_dataframes(tmp_dir):
     """
     Create stats dataframes and reference tolerances.
@@ -94,13 +94,13 @@ def fixture_fof_datasets(tmp_dir, sample_dataset_fof):
     yield ds1_file, ds2_file, tol_large_file, tol_small_file
 
 
-def test_check_cli_stats(dataframes):
+def test_check_cli_stats(stats_dataframes):
     """
     Test that is not validated in the case of large tolerances but
     is validated in the case of small tolerances.
     """
 
-    df1_stats, df2_stats, tol_large, tol_small = dataframes
+    df1_stats, df2_stats, tol_large, tol_small = stats_dataframes
 
     runner = CliRunner()
     result = runner.invoke(

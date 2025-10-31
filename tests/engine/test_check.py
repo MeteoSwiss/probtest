@@ -15,7 +15,7 @@ from util.dataframe_ops import (
 )
 
 
-@pytest.fixture(name="dataframes", scope="function")
+@pytest.fixture(name="stats_dataframes", scope="function")
 def fixture_dataframes():
     """
     Create stats dataframes and reference tolerances.
@@ -89,8 +89,8 @@ def _check(df1, df2, tol_large, tol_small, file_type):
     )
 
 
-def test_check(dataframes):
-    df1, df2, tol_large, tol_small = dataframes
+def test_check_stats(stats_dataframes):
+    df1, df2, tol_large, tol_small = stats_dataframes
     _check(df1, df2, tol_large, tol_small, file_type="stats")
 
 
@@ -109,7 +109,7 @@ def test_check_fof(fof_datasets):
     )
 
 
-def test_check_one_zero(dataframes):
+def test_check_one_zero_stats(dataframes):
     """
     Test that a null value in ds1 causes failure,
     and that a variation within tolerance is accepted.
@@ -122,7 +122,7 @@ def test_check_one_zero(dataframes):
     diff_df = diff_df.groupby(["variable"]).max()
     out, err, _ = check_variable(diff_df, tol_large)
 
-    assert not out, f"Check con 0-value reference ha validato erroneamente:\n{err}"
+    assert not out, f"Check with 0-value reference validated incorrectly:\n{err}"
 
     df2 = df2.copy()
     df2.loc[("NetCDF:*atm_3d*.nc", "var_1", 2), (0, "max")] = CHECK_THRESHOLD / 2
@@ -149,7 +149,7 @@ def test_check_one_zero_fof(fof_datasets):
 
     out, err, _ = check_variable(diff_df, tol_large)
 
-    assert not out, f"Check con 0-value reference ha validato erroneamente:\n{err}"
+    assert not out, f"Check with 0-value reference validated incorrectly:\n{err}"
 
     _, _, ds_veri2_copy = split_feedback_dataset(ds2_copy)
     ds_veri2_copy = ds_veri2_copy.copy(deep=True)
@@ -163,7 +163,7 @@ def test_check_one_zero_fof(fof_datasets):
     )
 
 
-def test_check_smalls(dataframes):
+def test_check_smalls_stats(dataframes):
     """
     Both values are close to 0 and should be accepted even though
     their relative difference is large.
