@@ -43,13 +43,8 @@ from util.log_handler import logger
     default="",
     help=cli_help["fof_types"],
 )
-def check(
-    reference_files,
-    current_files,
-    tolerance_files,
-    factor,
-    fof_types,
-):
+@click.option("--rules", default="")
+def check(reference_files, current_files, tolerance_files, factor, fof_types, rules):
 
     zipped = zip(reference_files, current_files, tolerance_files)
 
@@ -60,7 +55,7 @@ def check(
     for reference_file, current_file, tolerance_file in expanded_zip:
 
         out, err, tol = check_file_with_tolerances(
-            tolerance_file, reference_file, current_file, factor
+            tolerance_file, reference_file, current_file, factor, rules
         )
 
         if out:
