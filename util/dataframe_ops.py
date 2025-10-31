@@ -154,6 +154,7 @@ def df_from_file_ids(file_id, input_dir, file_specification):
                 file_name=f"{input_dir}/{f}",
                 specification=specification,
             )
+
             file_dfs.append(var_df)
 
         # same file IDs and file type specification will have same variables but
@@ -163,8 +164,8 @@ def df_from_file_ids(file_id, input_dir, file_specification):
     if len(fid_dfs) == 0:
         logger.error("Could not find any file.")
         sys.exit(2)
-
     fid_dfs = unify_time_index(fid_dfs)
+
     # different file IDs will have different variables but with same timestamps:
     # concatenate along variable axis
     df = pd.concat(fid_dfs, axis=0)
@@ -184,10 +185,12 @@ def unify_time_index(fid_dfs):
         # Find out number of time steps in the column MultiIndex.
         # Is there an easier way to do so without assuming the order of indices?
         time_multiindex_index = df.columns.names.index("time")
+
         ntime = len(df.columns.levels[time_multiindex_index])
 
         unique_times = list(df.columns.levels[time_multiindex_index])
         unique_times.sort()
+
         df = df.reindex(columns=unique_times, level=time_multiindex_index)
 
         df.columns = df.columns.set_levels(range(ntime), level="time")
@@ -324,7 +327,7 @@ def check_file_with_tolerances(
             )
 
             if out == 1:
-                logger.error(f"RESULT: check FAILED. Errors at the lines {diff}")
+                logger.error("RESULT: check FAILED. Errors at the lines %s", diff)
                 sys.exit(1)
 
     else:
@@ -399,7 +402,7 @@ def check_multiple_solutions(ds1, ds2, existing_cols):
         state_col = next((c for c in state_cols if c in df1.columns), None)
 
         if check_col is None or state_col is None:
-            raise KeyError("Colonne 'check' o 'state' non trovate nei dataset.")
+            raise KeyError("'Check' or “state” columns not found in datasets.")
 
         check_ref = df1.at[idx, check_col]
         check_cur = df2.at[idx, check_col]
