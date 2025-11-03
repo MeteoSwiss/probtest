@@ -448,7 +448,15 @@ def get_file_type(filename: str) -> FileType:
 
     if "fof" in name:
         return FileType.FOF
-    if "csv" in name:
+    if "csv" in name or "stats" in name:
         return FileType.STATS
+    
+    try:
+        with open(filename, "r") as f:
+            first_line = f.readline()
+            if "," in first_line or ";" in first_line:
+                return FileType.STATS 
+    except Exception:
+        pass
 
     raise ValueError(f"Unknown file type for '{filename}'")
