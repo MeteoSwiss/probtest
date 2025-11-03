@@ -393,7 +393,10 @@ file_name_parser = {
 
 def multiple_solutions_from_dict(df_ref, df_cur, rules):
 
-    rules_dict = ast.literal_eval(rules)
+    if isinstance(rules, str):
+        rules_dict = ast.literal_eval(rules)
+    else:
+        rules_dict = rules
 
     cols_present = [
         col
@@ -473,7 +476,8 @@ def multiple_solutions_from_dict(df_ref, df_cur, rules):
 #                     out = 1
 #                     diff.append(idx)
 
-#             # If is an admitted change, state can change, but only in the admitted cases
+#             # If is an admitted change, state can change,
+#               # but only in the admitted cases
 #             else:
 #                 if state_ref != state_cur:
 #                     if (state_ref not in allowed_states) or (
@@ -484,13 +488,13 @@ def multiple_solutions_from_dict(df_ref, df_cur, rules):
 
 #         # CASE 2: check changes
 #         else:
-#             if (check_ref not in allowed_checks) and (check_cur not in allowed_checks):
+#        if (check_ref not in allowed_checks) and (check_cur not in allowed_checks):
 #                 out = 1
 #                 diff.append(idx)
 
 #             # If check values are both admitted, also state should
 #             # be in the admitted values
-#             elif (state_ref not in allowed_states) or (state_cur not in allowed_states):
+#        elif (state_ref not in allowed_states) or (state_cur not in allowed_states):
 #                 out = 1
 #                 diff.append(idx)
 

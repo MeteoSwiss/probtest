@@ -156,6 +156,7 @@ def check_selection_by_ids(
     logging.getLogger().setLevel(logging.ERROR)
 
     variables = set()
+    rules = ""
 
     for mem in member_ids:
         m_id = str(mem) if not member_type else member_type + "_" + str(mem)
@@ -165,6 +166,7 @@ def check_selection_by_ids(
             stats_file_name.format(member_id="ref"),
             stats_file_name.format(member_id=m_id),
             factor,
+            rules,
         )
 
         if out:

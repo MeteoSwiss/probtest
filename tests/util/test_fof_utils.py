@@ -375,7 +375,7 @@ def test_get_file_type(tmp_path):
     str_fof = str(test_file_fof)
     file_type_fof = get_file_type(str_fof)
 
-    test_file_stats = tmp_path / "statsexample.nc"
+    test_file_stats = tmp_path / "statsexample.csv"
     str_stats = str(test_file_stats)
     file_type_stats = get_file_type(str_stats)
 

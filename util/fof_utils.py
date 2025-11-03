@@ -450,12 +450,12 @@ def get_file_type(filename: str) -> FileType:
         return FileType.FOF
     if "csv" in name or "stats" in name:
         return FileType.STATS
-    
+
     try:
         with open(filename, "r", encoding="utf-8") as f:
             first_line = f.readline()
             if "," in first_line or ";" in first_line:
-                return FileType.STATS 
+                return FileType.STATS
     except (OSError, FileNotFoundError):
         pass
 

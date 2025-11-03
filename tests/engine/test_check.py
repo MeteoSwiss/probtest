@@ -59,6 +59,8 @@ def fixture_fof_datasets(sample_dataset_fof):
     ds2 = ds1.copy(deep=True)
 
     ds2["veri_data"] = (("d_body",), ds2["veri_data"].values * 1.55)
+    print(ds1["veri_data"])
+    print(ds2["veri_data"])
 
     n_body_size = ds1.sizes["d_body"]
 
@@ -109,12 +111,12 @@ def test_check_fof(fof_datasets):
     )
 
 
-def test_check_one_zero_stats(dataframes):
+def test_check_one_zero_stats(stats_dataframes):
     """
     Test that a null value in ds1 causes failure,
     and that a variation within tolerance is accepted.
     """
-    df1, df2, tol_large, tol_small = dataframes
+    df1, df2, tol_large, tol_small = stats_dataframes
     df1 = df1.copy()
     df1.loc[("NetCDF:*atm_3d*.nc", "var_1", 2), (0, "max")] = 0
 
@@ -163,14 +165,14 @@ def test_check_one_zero_fof(fof_datasets):
     )
 
 
-def test_check_smalls_stats(dataframes):
+def test_check_smalls_stats(stats_dataframes):
     """
     Both values are close to 0 and should be accepted even though
     their relative difference is large.
     Close to 0 means < util.constants.CHECK_THRESHOLD.
     """
 
-    df1, df2, tol_large, tol_small = dataframes
+    df1, df2, tol_large, tol_small = stats_dataframes
     df1 = df1.copy()
     df2 = df2.copy()
 
