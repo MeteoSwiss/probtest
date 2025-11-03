@@ -452,11 +452,11 @@ def get_file_type(filename: str) -> FileType:
         return FileType.STATS
     
     try:
-        with open(filename, "r") as f:
+        with open(filename, "r", encoding="utf-8") as f:
             first_line = f.readline()
             if "," in first_line or ";" in first_line:
                 return FileType.STATS 
-    except Exception:
+    except (OSError, FileNotFoundError):
         pass
 
     raise ValueError(f"Unknown file type for '{filename}'")
