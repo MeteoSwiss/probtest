@@ -4,6 +4,7 @@ This module contains functions for handling fof files
 
 import os
 import shutil
+from dataclasses import dataclass
 from enum import Enum
 
 import numpy as np
@@ -440,23 +441,33 @@ class FileType(Enum):
     STATS = "csv"
 
 
-def get_file_type(filename: str) -> FileType:
+@dataclass
+class FileInfo:
     """
-    Determine the file type based on a substring contained in the filename.
+    Class that memorize the path and the type of a file.
     """
-    name = filename.lower()
 
-    if "fof" in name:
-        return FileType.FOF
-    if "csv" in name or "stats" in name:
-        return FileType.STATS
+    path: str
+    type: FileType = None
 
-    try:
-        with open(filename, "r", encoding="utf-8") as f:
-            first_line = f.readline()
-            if "," in first_line or ";" in first_line:
-                return FileType.STATS
-    except (OSError, FileNotFoundError):
-        pass
+    def __post_init__(self):
 
-    raise ValueError(f"Unknown file type for '{filename}'")
+        name = self.path.lower()
+
+        if "fof" in name:
+            self.type = FileType.FOF
+            return
+        if "csv" in name or "stats" in name:
+            self.type = FileType.STATS
+            return FileType.STATS
+
+        try:
+            with open(self.path, "r", encoding="utf-8") as f:
+                first_line = f.readline()
+                if "," in first_line or ";" in first_line:
+                    self.type = FileType.STATS
+                    return
+        except (OSError, FileNotFoundError):
+            pass
+
+        raise ValueError(f"Unknown file type for '{self.path}'")

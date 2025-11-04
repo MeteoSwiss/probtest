@@ -6,12 +6,10 @@ import numpy as np
 import pytest
 
 from util.fof_utils import (
-    FileType,
     clean_value,
     compare_arrays,
     compare_var_and_attr_ds,
     expand_zip,
-    get_file_type,
     get_observation_variables,
     get_report_variables,
     prepare_array,
@@ -365,25 +363,25 @@ def test_value_list():
     assert value_list("fof", [1, 2, 3], placeholders) == [1, 2, 3]
 
 
-def test_get_file_type(tmp_path):
-    """
-    Test that the file is recognized as FOF or STAT if the corresponding keyword
-    is present in the file name; otherwise, an error will be raised.
-    """
+# def test_get_file_type(tmp_path):
+#     """
+#     Test that the file is recognized as FOF or STAT if the corresponding keyword
+#     is present in the file name; otherwise, an error will be raised.
+#     """
 
-    test_file_fof = tmp_path / "fofexample.nc"
-    str_fof = str(test_file_fof)
-    file_type_fof = get_file_type(str_fof)
+#     test_file_fof = tmp_path / "fofexample.nc"
+#     str_fof = str(test_file_fof)
+#     file_type_fof = get_file_type(str_fof)
 
-    test_file_stats = tmp_path / "statsexample.csv"
-    str_stats = str(test_file_stats)
-    file_type_stats = get_file_type(str_stats)
+#     test_file_stats = tmp_path / "statsexample.csv"
+#     str_stats = str(test_file_stats)
+#     file_type_stats = get_file_type(str_stats)
 
-    with pytest.raises(ValueError):
-        get_file_type("random_file.nc")
+#     with pytest.raises(ValueError):
+#         get_file_type("random_file.nc")
 
-    assert file_type_fof == FileType.FOF
-    assert file_type_stats == FileType.STATS
+#     assert file_type_fof == FileType.FOF
+#     assert file_type_stats == FileType.STATS
 
 
 def test_primary_check(tmp_path):

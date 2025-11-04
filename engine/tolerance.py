@@ -13,12 +13,13 @@ import pandas as pd
 
 from util.click_util import CommaSeparatedInts, CommaSeparatedStrings, cli_help
 from util.dataframe_ops import (
+    FileInfo,
     compute_rel_diff_dataframe,
     file_name_parser,
     force_monotonic,
     has_enough_data,
 )
-from util.fof_utils import FileType, expand_zip, get_file_type
+from util.fof_utils import FileType, expand_zip
 from util.log_handler import logger
 
 
@@ -74,21 +75,20 @@ def tolerance(
     for mem, tol in expanded_zip:
 
         ensemble_files = expand_zip(mem, member_ids=member_ids, member_type=member_type)
+        file_info = FileInfo(mem)
 
-        file_type = get_file_type(mem)
-
-        dfs = [file_name_parser[file_type](file) for file in ensemble_files]
-        df_ref = file_name_parser[file_type](
+        dfs = [file_name_parser[file_info.type](file) for file in ensemble_files]
+        df_ref = file_name_parser[file_info.type](
             mem.format(member_id="ref", member_type="")
         )
 
         has_enough_data(dfs)
-        df_ref = df_ref["veri_data"] if file_type is FileType.FOF else df_ref
-        dfs = [df["veri_data"] for df in dfs] if file_type is FileType.FOF else dfs
+        df_ref = df_ref["veri_data"] if file_info.type is FileType.FOF else df_ref
+        dfs = [df["veri_data"] for df in dfs] if file_info.type is FileType.FOF else dfs
 
         rdiff = [compute_rel_diff_dataframe(df_ref, df) for df in dfs]
 
-        if file_type is FileType.STATS:
+        if file_info.type is FileType.STATS:
             rdiff_max = [r.groupby(["file_ID", "variable"]).max() for r in rdiff]
             df_max = pd.concat(rdiff_max).groupby(["file_ID", "variable"]).max()
             df_max = df_max.map(
@@ -97,7 +97,7 @@ def tolerance(
 
             force_monotonic(df_max)
 
-        elif file_type is FileType.FOF:
+        elif file_info.type is FileType.FOF:
             df_max = pd.concat(rdiff, axis=1).max(axis=1)
             df_max = df_max.map(
                 lambda x: minimum_tolerance if x < minimum_tolerance else x

@@ -15,7 +15,7 @@ import xarray as xr
 
 from util.constants import CHECK_THRESHOLD, compute_statistics
 from util.file_system import file_names_from_pattern
-from util.fof_utils import FileType, get_file_type, split_feedback_dataset
+from util.fof_utils import FileInfo, FileType, split_feedback_dataset
 from util.log_handler import logger
 from util.model_output_parser import model_output_parser
 
@@ -300,16 +300,17 @@ def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
 def check_file_with_tolerances(
     tolerance_file_name, input_file_ref, input_file_cur, factor, rules
 ):
-    file_type = get_file_type(input_file_ref)
 
-    if get_file_type(input_file_cur) != file_type:
+    file_info = FileInfo(input_file_ref)
+
+    if FileInfo(input_file_cur).type != file_info.type:
         logger.critical(
             "The current and the reference files are not of the same type; "
             "it is impossible to calculate the tolerances. Abort."
         )
         sys.exit(1)
 
-    if file_type == FileType.FOF:
+    if file_info.type == FileType.FOF:
         ds_tol = pd.read_csv(tolerance_file_name, index_col=0)
         df_tol = ds_tol * factor
 
@@ -357,7 +358,7 @@ def check_file_with_tolerances(
         logger.error("RESULT: check FAILED")
         sys.exit(1)
 
-    if file_type == FileType.FOF:
+    if file_info.type == FileType.FOF:
         df_ref = df_ref["veri_data"]
         df_cur = df_cur["veri_data"]
         df_tol.columns = ["veri_data"]
@@ -365,10 +366,10 @@ def check_file_with_tolerances(
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
     # if stats, take maximum over height
-    if file_type == FileType.STATS:
+    if file_info.type == FileType.STATS:
         diff_df = diff_df.groupby(["file_ID", "variable"]).max()
 
-    if file_type == FileType.FOF:
+    if file_info.type == FileType.FOF:
         diff_df = diff_df.to_frame()
 
     out, err, tol = check_variable(diff_df, df_tol)
