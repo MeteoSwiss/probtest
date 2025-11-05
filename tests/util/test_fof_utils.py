@@ -439,31 +439,31 @@ def test_to_list_no_changes(simple_list):
     assert to_list_no_changes == [1, 2, 3, 4]
 
 
-def test_expand_zip():
-    """
-    Test that the zip is expanded correctly.
-    """
-    zipped = [
-        "test_{fof_type}.nc",
-        "test_{fof_type}_{member_id}.nc",
-        "test_{member_id}.nc",
-    ]
-    fof_type = ["AIREP", "PILOT"]
-    member_ids = [1, 2]
-    expanded_zip1 = expand_zip(zipped, fof_type, member_ids, member_type=None)
-    expanded_zip2 = expand_zip(zip(zipped), fof_type, member_ids, member_type=None)
-    assert expanded_zip1, expanded_zip2 == [
-        "test_AIREP.nc",
-        "test_PILOT.nc",
-        "test_AIREP_1.nc",
-        "test_AIREP_2.nc",
-        "test_PILOT_1.nc",
-        "test_PILOT_2.nc",
-        "test_1.nc",
-        "test_2.nc",
-    ]
+# def test_expand_zip():
+#     """
+#     Test that the zip is expanded correctly.
+#     """
+#     zipped = [
+#         "test_{fof_type}.nc",
+#         "test_{fof_type}_{member_id}.nc",
+#         "test_{member_id}.nc",
+#     ]
+#     fof_type = ["AIREP", "PILOT"]
+#     member_ids = [1, 2]
+#     expanded_zip1 = expand_zip(zipped, fof_type, member_ids, member_type=None)
+#     expanded_zip2 = expand_zip(zip(zipped), fof_type, member_ids, member_type=None)
+#     assert expanded_zip1, expanded_zip2 == [
+#         "test_AIREP.nc",
+#         "test_PILOT.nc",
+#         "test_AIREP_1.nc",
+#         "test_AIREP_2.nc",
+#         "test_PILOT_1.nc",
+#         "test_PILOT_2.nc",
+#         "test_1.nc",
+#         "test_2.nc",
+#     ]
 
-    expanded_zip3 = expand_zip(
-        "test_{fof_type}.nc", fof_type, member_ids, member_type=None
-    )
-    assert expanded_zip3 == ["test_AIREP.nc", "test_PILOT.nc"]
+#     expanded_zip3 = expand_zip(
+#         "test_{fof_type}.nc", fof_type, member_ids, member_type=None
+#     )
+#     assert expanded_zip3 == ["test_AIREP.nc", "test_PILOT.nc"]

@@ -395,6 +395,7 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
     member_list = to_list(member_ids)
     member_type_list = to_list(member_type)
 
+
     if isinstance(zipped, zip):
         zipped = list(zipped)
     elif isinstance(zipped, (list, tuple)):
@@ -405,6 +406,8 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
     expanded = []
 
     for items in zipped:
+
+        file_info = FileInfo(items[0])
         placeholders = {
             key: any(f"{{{key}}}" in str(item) for item in items)
             for key in ("fof_type", "member_id", "member_type")
@@ -414,18 +417,26 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
         member_values = value_list("member_id", member_list, placeholders)
         member_type_values = value_list("member_type", member_type_list, placeholders)
 
+        member_values_expanded = []
+
+
+        if file_info.type is FileType.STATS and member_type_list:
+            for m_id in member_values:
+                for m_type in member_type_list:
+                    member_values_expanded.append(f"{m_type}_{m_id}")
+        else:
+            member_values_expanded = member_values.copy()
+
         for fof_val in fof_values:
-            for member_val in member_values:
-                for mtype_val in member_type_values:
-                    formatted = [
+            for member_val in member_values_expanded:
+                formatted = [
                         item.format(
                             fof_type=fof_val or "{fof_type}",
-                            member_id=member_val or "{member_id}",
-                            member_type=mtype_val or "{member_type}",
+                            member_id=member_val or "{member_id}"
                         )
                         for item in items
                     ]
-                    expanded.append(
+                expanded.append(
                         formatted[0] if len(formatted) == 1 else tuple(formatted)
                     )
 

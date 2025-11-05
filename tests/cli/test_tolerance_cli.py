@@ -39,14 +39,14 @@ def test_tolerance_cli_unified(
 ):  # pylint: disable=too-many-positional-arguments
 
     if mode == "stats":
-        stats_file_name = os.path.join(ref_data, "stats_{member_type}{member_id}.csv")
+        stats_file_name = os.path.join(ref_data, "stats_{member_id}.csv")
         tolerance_file_name = os.path.join(tmp_dir, "tolerance.csv")
 
         if use_minimum_tolerance:
             run_tolerance_cli(
                 stats_file_name,
                 tolerance_file_name,
-                member_type="dp_",
+                member_type="dp",
                 minimum_tolerance=1e-14,
             )
 
@@ -57,7 +57,7 @@ def test_tolerance_cli_unified(
             run_tolerance_cli(
                 stats_file_name,
                 tolerance_file_name,
-                member_type="dp_",
+                member_type="dp",
             )
 
             df_test = load_pandas(tolerance_file_name, index_col=[0, 1])
