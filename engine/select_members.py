@@ -18,6 +18,7 @@ from engine.tolerance import tolerance
 from util.click_util import cli_help
 from util.dataframe_ops import check_file_with_tolerances
 from util.log_handler import logger
+from util.utils import FileInfo
 
 
 def find_members_and_factor_validating_for_all_stats_files(
@@ -65,8 +66,8 @@ def find_members_and_factor_validating_for_all_stats_files(
             context = click.Context(tolerance)
             context.invoke(
                 tolerance,
-                ensemble_files=[str(stats_file_name)],
-                tolerance_files=[str(tolerance_file_name)],
+                ensemble_files=[stats_file_name],
+                tolerance_files=[tolerance_file_name],
                 member_ids=list(temp_member_selection),
                 member_type=member_type,
             )
@@ -105,8 +106,8 @@ def find_members_and_factor_validating_for_all_stats_files(
         context = click.Context(tolerance)
         context.invoke(
             tolerance,
-            ensemble_files=[str(stats_file_name)],
-            tolerance_files=[str(tolerance_file_name)],
+            ensemble_files=[stats_file_name],
+            tolerance_files=[tolerance_file_name],
             member_ids=member_selection,
             member_type=member_type,
         )
@@ -163,8 +164,8 @@ def check_selection_by_ids(
 
         out, err, _ = check_file_with_tolerances(
             tolerance_file_name,
-            stats_file_name.format(member_id="ref"),
-            stats_file_name.format(member_id=m_id),
+            FileInfo(stats_file_name.format(member_id="ref")),
+            FileInfo(stats_file_name.format(member_id=m_id)),
             factor,
             rules,
         )

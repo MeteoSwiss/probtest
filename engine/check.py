@@ -13,8 +13,8 @@ import click
 
 from util.click_util import CommaSeparatedStrings, cli_help
 from util.dataframe_ops import check_file_with_tolerances, compute_division
-from util.fof_utils import expand_zip
 from util.log_handler import logger
+from util.utils import FileInfo, expand_zip
 
 
 @click.command()
@@ -44,7 +44,9 @@ from util.log_handler import logger
     help=cli_help["fof_types"],
 )
 @click.option("--rules", default="")
-def check(reference_files, current_files, tolerance_files, factor, fof_types, rules):
+def check(
+    reference_files, current_files, tolerance_files, factor, fof_types, rules
+):  # pylint: disable=too-many-positional-arguments
 
     zipped = zip(reference_files, current_files, tolerance_files)
 
@@ -55,7 +57,11 @@ def check(reference_files, current_files, tolerance_files, factor, fof_types, ru
     for reference_file, current_file, tolerance_file in expanded_zip:
 
         out, err, tol = check_file_with_tolerances(
-            tolerance_file, reference_file, current_file, factor, rules
+            tolerance_file,
+            FileInfo(reference_file),
+            FileInfo(current_file),
+            factor,
+            rules,
         )
 
         if out:

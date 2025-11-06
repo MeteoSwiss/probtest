@@ -63,7 +63,6 @@ cli.add_command(performance_check)
 cli.add_command(cdo_table)
 cli.add_command(cdo_table_reader)
 cli.add_command(fof_compare)
-# cli.add_command(check_multiple)
 
 if __name__ == "__main__":
     cli()

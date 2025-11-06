@@ -15,9 +15,10 @@ import xarray as xr
 
 from util.constants import CHECK_THRESHOLD, compute_statistics
 from util.file_system import file_names_from_pattern
-from util.fof_utils import FileInfo, FileType, split_feedback_dataset
+from util.fof_utils import split_feedback_dataset
 from util.log_handler import logger
 from util.model_output_parser import model_output_parser
+from util.utils import FileType
 
 pd.set_option("display.max_colwidth", None)
 pd.set_option("display.max_columns", None)
@@ -300,23 +301,24 @@ def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
 def check_file_with_tolerances(
     tolerance_file_name, input_file_ref, input_file_cur, factor, rules
 ):
+    print(input_file_ref)
 
-    file_info = FileInfo(input_file_ref)
+    # file_info = FileInfo(input_file_ref)
 
-    if FileInfo(input_file_cur).type != file_info.type:
+    if input_file_ref.type != input_file_cur.type:
         logger.critical(
             "The current and the reference files are not of the same type; "
             "it is impossible to calculate the tolerances. Abort."
         )
         sys.exit(1)
 
-    if file_info.type == FileType.FOF:
+    if input_file_ref.type == FileType.FOF:
         ds_tol = pd.read_csv(tolerance_file_name, index_col=0)
         df_tol = ds_tol * factor
 
-        df_ref = parse_probtest_fof(input_file_ref)
+        df_ref = parse_probtest_fof(input_file_ref.path)
 
-        df_cur = parse_probtest_fof(input_file_cur)
+        df_cur = parse_probtest_fof(input_file_cur.path)
 
         errors = multiple_solutions_from_dict(df_ref, df_cur, rules)
 
@@ -341,14 +343,14 @@ def check_file_with_tolerances(
 
     else:
         df_tol, df_ref, df_cur = parse_check(
-            tolerance_file_name, input_file_ref, input_file_cur, factor
+            tolerance_file_name, input_file_ref.path, input_file_cur.path, factor
         )
 
     logger.info("applying a factor of %s to the spread", factor)
     logger.info(
         "checking %s against %s using tolerances from %s",
-        input_file_cur,
-        input_file_ref,
+        input_file_cur.path,
+        input_file_ref.path,
         tolerance_file_name,
     )
     # check if variables are available in reference file
@@ -358,7 +360,7 @@ def check_file_with_tolerances(
         logger.error("RESULT: check FAILED")
         sys.exit(1)
 
-    if file_info.type == FileType.FOF:
+    if input_file_ref.type == FileType.FOF:
         df_ref = df_ref["veri_data"]
         df_cur = df_cur["veri_data"]
         df_tol.columns = ["veri_data"]
@@ -366,10 +368,10 @@ def check_file_with_tolerances(
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
     # if stats, take maximum over height
-    if file_info.type == FileType.STATS:
+    if input_file_ref.type == FileType.STATS:
         diff_df = diff_df.groupby(["file_ID", "variable"]).max()
 
-    if file_info.type == FileType.FOF:
+    if input_file_ref.type == FileType.FOF:
         diff_df = diff_df.to_frame()
 
     out, err, tol = check_variable(diff_df, df_tol)
