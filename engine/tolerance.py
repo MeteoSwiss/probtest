@@ -69,7 +69,7 @@ def tolerance(
 ):  # pylint: disable=too-many-positional-arguments
 
     files_list = zip(ensemble_files, tolerance_files)
-    expanded_zip = expand_zip(files_list, fof_types)
+    expanded_zip = expand_zip(files_list, fof_types, member_type=None,)
 
     for mem, tol in expanded_zip:
 
