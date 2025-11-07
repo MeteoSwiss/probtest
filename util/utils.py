@@ -192,41 +192,41 @@ def value_list(placeholder, values, placeholders):
         return [""]
     return values or [None]
 
+from collections import defaultdict
 
-# def expand_fof(zipped, fof_type=None):
-#     """
-#     """
-#     fof_list = to_list(fof_type)
+def expand_fof(zipped, fof_type=None):
+    """
+    Espande una lista di tuple (zip) sostituendo il placeholder {fof_type}
+    con i valori forniti. Altri placeholder (es. {member_id}, {member_type})
+    vengono lasciati invariati.
+    """
 
-#     if isinstance(zipped, zip):
-#         zipped = list(zipped)
-#     elif isinstance(zipped, (list, tuple)):
-#         zipped = [(z,) if not isinstance(z, tuple) else z for z in zipped]
-#     else:
-#         zipped = [(zipped,)]
+    fof_list = to_list(fof_type)
 
-#     expanded = []
+    if isinstance(zipped, zip):
+        zipped = list(zipped)
+    elif isinstance(zipped, (list, tuple)):
+        zipped = [(z,) if not isinstance(z, tuple) else z for z in zipped]
+    else:
+        zipped = [(zipped,)]
 
-#     for items in zipped:
-#         placeholders = {
-#             key: any(f"{{{key}}}" in str(item) for item in items)
-#             for key in ("fof_type",)
-#         }
+    expanded = []
 
-#         fof_values = value_list("fof_type", fof_list, placeholders)
+    for items in zipped:
+        fof_values = value_list("fof_type", fof_list, {"fof_type": True})
 
-#         for fof_val in fof_values:
-#             formatted = [
-#                 item.format(
-#                     fof_type=fof_val or "{fof_type}",
-#                 )
-#                 for item in items
-#             ]
-#             expanded.append(
-#                 formatted[0] if len(formatted) == 1 else tuple(formatted)
-#             )
+        for fof_val in fof_values:
+            safe_dict = defaultdict(lambda: "{%s}" % _placeholder, {"fof_type": fof_val})
 
-#     return expanded
+            formatted = []
+            for item in items:
+                for _placeholder in ("member_id", "member_type"):
+                    safe_dict[_placeholder] = "{%s}" % _placeholder
+                formatted.append(item.format_map(safe_dict))
+
+            expanded.append(formatted[0] if len(formatted) == 1 else tuple(formatted))
+
+    return expanded
 
 
 # def expand_members(zipped, member_ids=None, member_type=None):
@@ -316,12 +316,24 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
         fof_values = value_list("fof_type", fof_list, placeholders)
         member_values = value_list("member_id", member_list, placeholders)
 
+        if file_type is FileType.FOF:
+            if member_type_list:
+                member_type_list = [f"_member_id_{mtype}_" for mtype in member_type_list]
+            else:
+                if not (member_list and all(m == "ref" for m in member_list)):
+                    member_type_list = ["_member_id_"]
+                else:
+                    member_type_list = []
+
         member_values_expanded = []
 
         if file_type is FileType.STATS and member_type_list:
-            for m_id in member_values:
-                for m_type in member_type_list:
-                    member_values_expanded.append(f"{m_type}_{m_id}")
+            if member_values:
+                for m_id in member_values:
+                    for m_type in member_type_list:
+                        member_values_expanded.append(f"{m_type}_{m_id}")
+            else:
+                member_values_expanded = member_type_list.copy()
         else:
             member_values_expanded = member_values.copy()
 
@@ -331,6 +343,7 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
                     item.format(
                         fof_type=fof_val or "{fof_type}",
                         member_id=member_val or "{member_id}",
+                        member_type=member_type_list[0] if member_type_list else "{member_type}",
                     )
                     for item in items
                 ]

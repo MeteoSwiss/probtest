@@ -19,7 +19,7 @@ from util.dataframe_ops import (
     has_enough_data,
 )
 from util.log_handler import logger
-from util.utils import FileInfo, FileType, expand_zip
+from util.utils import FileInfo, FileType, expand_zip, expand_fof
 
 
 @click.command()
@@ -69,11 +69,12 @@ def tolerance(
 ):  # pylint: disable=too-many-positional-arguments
 
     files_list = zip(ensemble_files, tolerance_files)
-    expanded_zip = expand_zip(files_list, fof_types, member_type=None,)
+    expanded_zip = expand_fof(files_list, fof_types)
 
     for mem, tol in expanded_zip:
 
         ensemble_files = expand_zip(mem, member_ids=member_ids, member_type=member_type)
+
         dfs = [
             file_name_parser[info.type](info.path)
             for file in ensemble_files
@@ -81,7 +82,10 @@ def tolerance(
         ]
 
         ref_info = FileInfo(mem.format(member_id="ref", member_type=""))
+        if ref_info.type is FileType.FOF:
+            ref_info.path = ref_info.path.replace("ref", "")
         df_ref = file_name_parser[ref_info.type](ref_info.path)
+       # print(df_ref)
 
         has_enough_data(dfs)
         df_ref = df_ref["veri_data"] if ref_info.type is FileType.FOF else df_ref
