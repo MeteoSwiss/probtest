@@ -301,6 +301,7 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
     expanded = []
 
     for items in zipped:
+
         try:
             file_info = FileInfo(items[0])
             file_type = getattr(file_info, "type", None)
@@ -317,30 +318,12 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
 
         member_values_expanded = []
 
-
         if file_type is FileType.STATS and member_type_list:
-            if member_values:
-                for m_id in member_values:
-                    for m_type in member_type_list:
-                        member_values_expanded.append(f"{m_type}_{m_id}")
-            else:
-
-                member_values_expanded = member_values.copy()
-
-
-        elif file_type is FileType.FOF and member_type_list:
-            if member_values:
-
-                for m_id in member_values:
-                    for m_type in member_type_list:
-                        member_values_expanded.append(f"{m_type}_{m_id}")
-            else:
-
-                member_values_expanded = member_type_list.copy()
-
+            for m_id in member_values:
+                for m_type in member_type_list:
+                    member_values_expanded.append(f"{m_type}_{m_id}")
         else:
-            member_values_expanded = member_values.copy() or member_type_list.copy()
-
+            member_values_expanded = member_values.copy()
 
         for fof_val in fof_values:
             for member_val in member_values_expanded:
@@ -348,7 +331,6 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
                     item.format(
                         fof_type=fof_val or "{fof_type}",
                         member_id=member_val or "{member_id}",
-                        member_type="{member_type}",
                     )
                     for item in items
                 ]
@@ -357,7 +339,6 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
                 )
 
     return expanded
-
 
 
 class FileType(Enum):
