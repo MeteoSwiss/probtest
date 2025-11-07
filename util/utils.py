@@ -317,7 +317,18 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
 
         member_values_expanded = []
 
+
         if file_type is FileType.STATS and member_type_list:
+            if member_values:
+                for m_id in member_values:
+                    for m_type in member_type_list:
+                        member_values_expanded.append(f"{m_type}_{m_id}")
+            else:
+
+                member_values_expanded = member_values.copy()
+
+
+        elif file_type is FileType.FOF and member_type_list:
             if member_values:
 
                 for m_id in member_values:
@@ -326,8 +337,10 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
             else:
 
                 member_values_expanded = member_type_list.copy()
+
         else:
             member_values_expanded = member_values.copy() or member_type_list.copy()
+
 
         for fof_val in fof_values:
             for member_val in member_values_expanded:
@@ -344,6 +357,7 @@ def expand_zip(zipped, fof_type=None, member_ids=None, member_type=None):
                 )
 
     return expanded
+
 
 
 class FileType(Enum):
