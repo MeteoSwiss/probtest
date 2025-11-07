@@ -14,7 +14,7 @@ import click
 from util.click_util import CommaSeparatedStrings, cli_help
 from util.dataframe_ops import check_file_with_tolerances, compute_division
 from util.log_handler import logger
-from util.utils import FileInfo, expand_zip
+from util.utils import FileInfo, expand_fof
 
 
 @click.command()
@@ -50,7 +50,7 @@ def check(
 
     zipped = zip(reference_files, current_files, tolerance_files)
 
-    expanded_zip = expand_zip(zipped, fof_types)
+    expanded_zip = expand_fof(zipped, fof_types)
 
     all_out = True
 

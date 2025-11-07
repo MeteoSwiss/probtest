@@ -19,7 +19,7 @@ from util.dataframe_ops import (
     has_enough_data,
 )
 from util.log_handler import logger
-from util.utils import FileInfo, FileType, expand_zip, expand_fof
+from util.utils import FileInfo, FileType, expand_fof, expand_members
 
 
 @click.command()
@@ -73,7 +73,9 @@ def tolerance(
 
     for mem, tol in expanded_zip:
 
-        ensemble_files = expand_zip(mem, member_ids=member_ids, member_type=member_type)
+        ensemble_files = expand_members(
+            mem, member_ids=member_ids, member_type=member_type
+        )
 
         dfs = [
             file_name_parser[info.type](info.path)
@@ -85,7 +87,6 @@ def tolerance(
         if ref_info.type is FileType.FOF:
             ref_info.path = ref_info.path.replace("ref", "")
         df_ref = file_name_parser[ref_info.type](ref_info.path)
-       # print(df_ref)
 
         has_enough_data(dfs)
         df_ref = df_ref["veri_data"] if ref_info.type is FileType.FOF else df_ref

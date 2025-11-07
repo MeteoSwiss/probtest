@@ -76,8 +76,10 @@ def test_tolerance_cli_unified(
         member_ids = "1,2,3,4"
 
         for fof_file in fof_file_set["fof"]:
-            assert os.path.exists(fof_file), f"File FOF missing: {fof_file}"
 
+            assert os.path.exists(fof_file), f"File FOF missing: {fof_file}"
+        print(fof_pattern)
+        print(tolerance_files)
         run_tolerance_cli(fof_pattern, tolerance_files, member_ids=member_ids)
 
         df_test = pd.read_csv(tolerance_files[0], index_col=[0])

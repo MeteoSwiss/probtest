@@ -326,7 +326,7 @@ def fof_file_set(tmp_dir, sample_dataset_fof):
     for fof_type in fof_types:
         fof_files_for_type = []
 
-        ref_path = os.path.join(tmp_dir, f"fof{fof_type}_ref.nc")
+        ref_path = os.path.join(tmp_dir, f"fof{fof_type}_.nc")
         files["path"] = os.path.join(tmp_dir, f"fof{fof_type}_{{member_id}}.nc")
         ds_ref = sample_dataset_fof.copy(deep=True)
         ds_ref.to_netcdf(ref_path)
