@@ -187,6 +187,8 @@ To prepare a new release, use the provided script:
 ./scripts/release.sh <new_version>
 ```
 
+> Note: Do **not** include a leading `v` in the version (e.g. use `1.1`, **not** `v1.1`)
+
 The script automates creating a release branch, bumping the version in
 `pyproject.toml`, and updating the lock file.
 Open a PR with the release branch.
