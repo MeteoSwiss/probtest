@@ -177,7 +177,7 @@ This will:
 - Export `requirements.txt` (production)
 - Export `requirements_dev.txt` (dev/test)
 
-> **Note:**  
+> **Note:**
 > The `export` command in `poetry_lock.sh` is provided by the optional plugin
 > `poetry-plugin-export`.
 > If you see  `The requested command export does not exist`, install the plugin
