@@ -205,8 +205,8 @@ After the PR is merged, create a Git tag manually to finalize the release.
 > - The release script automatically updates the version in `pyproject.toml` and
 >   regenerates dependency files.
 >   Ensure that Poetry is correctly set up and that the
-    `./scripts/poetry_lock.sh` script runs successfully (see [Regenerate
-    requirements files](#regenerate-requirements-files)).
+>   `./scripts/poetry_lock.sh` script runs successfully (see [Regenerate
+>   requirements files](#regenerate-requirements-files)).
 > - Do **not** include a leading `v` in the version number — use `1.1`, **not**
 >   `v1.1`.
 
