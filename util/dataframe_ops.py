@@ -299,11 +299,15 @@ def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
 
 
 def check_file_with_tolerances(
-    tolerance_file_name, input_file_ref, input_file_cur, factor, rules
+    tolerance_file_name, input_file_ref, input_file_cur, factor, rules=""
 ):
-    print(input_file_ref)
-
-    # file_info = FileInfo(input_file_ref)
+    """
+    This function calculates the relative difference between the current file and
+    the reference file, ensuring that the results fall within the limits specified
+    in the tolerance file.
+    For FOF-type files, it also performs an additional check on variables with multiple
+    possible values to ensure that any variations remain within the allowed range.
+    """
 
     if input_file_ref.type != input_file_cur.type:
         logger.critical(
@@ -325,21 +329,6 @@ def check_file_with_tolerances(
         if errors:
             logger.error("RESULT: check FAILED")
             sys.exit(1)
-
-        # cols = ["check", "state", "r_state", "r_check"]
-        # existing_cols = [c for c in cols if c in df_ref and c in df_cur]
-
-        # if existing_cols:
-        #     ds1_multiple = df_ref[existing_cols]
-        #     ds2_multiple = df_cur[existing_cols]
-
-        #     out, diff = check_multiple_solutions(
-        #         ds1_multiple, ds2_multiple, existing_cols
-        #     )
-
-        #     if out == 1:
-        #         logger.error("RESULT: check FAILED. Errors at the lines %s", diff)
-        #         sys.exit(1)
 
     else:
         df_tol, df_ref, df_cur = parse_check(

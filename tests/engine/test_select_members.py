@@ -10,9 +10,6 @@ from tests.helpers import run_select_members_cli, run_tolerance_cli
 
 
 def test_select_members(stats_file_set):
-    print(stats_file_set["stats"])
-    print(stats_file_set["members"])
-    print(stats_file_set["tol"])
 
     run_select_members_cli(
         stats_file_set["stats"],

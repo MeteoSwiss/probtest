@@ -11,8 +11,6 @@ import matplotlib
 
 from engine.cdo_table import cdo_table
 from engine.check import check
-
-# from engine.check_multiple import check_multiple
 from engine.fof_compare import fof_compare
 from engine.init import init
 from engine.performance import performance
