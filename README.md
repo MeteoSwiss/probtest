@@ -190,7 +190,6 @@ To prepare a new release, use the provided script:
 The script automates creating a release branch, bumping the version in
 `pyproject.toml`, and updating the lock file.
 Open a PR with the release branch.
-Open a PR with the release branch.
 After the PR is merged, create a Git tag manually to finalize the release.
 
 ### The init command
