@@ -210,24 +210,22 @@ def expand_fof(zipped, fof_type=None):
     are left unchanged.
     """
 
-    fof_list = to_list(fof_type)
     zipped = normalize_zipped(zipped)
     expanded = []
+    fof_values = value_list("fof_type", to_list(fof_type), {"fof_type": True})
 
     for items in zipped:
-        fof_values = value_list("fof_type", fof_list, {"fof_type": True})
+        if not any("{fof_type}" in item for item in items):
+            expanded.append(items[0] if len(items) == 1 else tuple(items))
+            continue
 
         for fof_val in fof_values:
-            safe_dict = defaultdict(
-                lambda: "{%s}" % _placeholder, {"fof_type": fof_val}
-            )
-
-            formatted = []
-            for item in items:
-                for _placeholder in ("member_id", "member_type"):
-                    safe_dict[_placeholder] = "{%s}" % _placeholder
-                formatted.append(item.format_map(safe_dict))
-
+            safe_dict = defaultdict(lambda k=None: f"{{{k}}}", {
+                "fof_type": fof_val,
+                "member_id": "{member_id}",
+                "member_type": "{member_type}",
+            })
+            formatted = [item.format_map(safe_dict) for item in items]
             expanded.append(formatted[0] if len(formatted) == 1 else tuple(formatted))
 
     return expanded
@@ -249,8 +247,7 @@ def expand_members(zipped, member_ids=None, member_type=None):
 
     for items in zipped:
         try:
-            file_info = FileInfo(items[0])
-            file_type = getattr(file_info, "type", None)
+            file_type = (FileInfo(items[0])).type
         except (TypeError, ValueError):
             file_type = None
 
@@ -259,18 +256,17 @@ def expand_members(zipped, member_ids=None, member_type=None):
             for key in ("member_id", "member_type")
         }
 
-        member_values = value_list("member_id", member_list, placeholders)
+        member_values = value_list("member_id", to_list(member_ids), placeholders)
 
         if file_type is FileType.FOF:
             if member_type_list:
                 member_type_list = [
                     f"_member_id_{mtype}_" for mtype in member_type_list
                 ]
-            else:
-                if not (member_list and all(m == "ref" for m in member_list)):
+            elif not (member_list and all(m == "ref" for m in member_list)):
                     member_type_list = ["_member_id_"]
-                else:
-                    member_type_list = []
+            else:
+                member_type_list = []
 
         member_values_expanded = []
 
