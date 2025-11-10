@@ -178,9 +178,10 @@ This will:
 - Export `requirements_dev.txt` (dev/test)
 
 > **Note:**  
-> In Poetry 2.0 and later, the `export` command is provided by the optional  
-> plugin `poetry-plugin-export`. If you see  
-> `The requested command export does not exist`, install the plugin with:
+> The `export` command is provided by the optional  plugin
+> `poetry-plugin-export`.
+> If you see  `The requested command export does not exist`, install the plugin
+> with:
 > ```console
 > poetry self add poetry-plugin-export
 > ```
