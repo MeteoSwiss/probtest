@@ -265,7 +265,7 @@ two files from the ensemble as a sanity check.
 
 ## Developing probtest
 
-#### Testing with [pytest](https://docs.pytest.org/en/8.2.x/)
+### Testing with [pytest](https://docs.pytest.org/en/8.2.x/)
 
 Our tests are executed using `pytest`, ensuring a consistent and efficient testing process. Each test dynamically generates its necessary test data, allowing for flexible and isolated testing scenarios.
 
