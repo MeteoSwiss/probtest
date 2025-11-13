@@ -220,11 +220,14 @@ def expand_fof(zipped, fof_type=None):
             continue
 
         for fof_val in fof_values:
-            safe_dict = defaultdict(lambda k=None: f"{{{k}}}", {
-                "fof_type": fof_val,
-                "member_id": "{member_id}",
-                "member_type": "{member_type}",
-            })
+            safe_dict = defaultdict(
+                lambda k=None: f"{{{k}}}",
+                {
+                    "fof_type": fof_val,
+                    "member_id": "{member_id}",
+                    "member_type": "{member_type}",
+                },
+            )
             formatted = [item.format_map(safe_dict) for item in items]
             expanded.append(formatted[0] if len(formatted) == 1 else tuple(formatted))
 
@@ -264,7 +267,7 @@ def expand_members(zipped, member_ids=None, member_type=None):
                     f"_member_id_{mtype}_" for mtype in member_type_list
                 ]
             elif not (member_list and all(m == "ref" for m in member_list)):
-                    member_type_list = ["_member_id_"]
+                member_type_list = ["_member_id_"]
             else:
                 member_type_list = []
 
