@@ -70,7 +70,7 @@ def parse_probtest_stats(path, index_col=None):
 
 
 def parse_probtest_fof(path):
-    ds = xr.open_dataset(path)
+    ds = xr.open_dataset(path, engine="netcdf4")
     _, _, ds_veri = split_feedback_dataset(ds)
     df_veri = ds_veri.to_dataframe().reset_index()
     return pd.DataFrame(df_veri)
@@ -384,7 +384,7 @@ file_name_parser = {
 
 
 def multiple_solutions_from_dict(df_ref, df_cur, rules):
-
+    
     if isinstance(rules, str):
         rules_dict = ast.literal_eval(rules)
     else:
