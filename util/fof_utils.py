@@ -193,83 +193,14 @@ def write_lines(ds1, ds2, diff, path_name):
                 f.write(f"diff : {row_diff}" + "\n")
 
 
-def check_multiple_solutions(ds1, ds2, existing_cols):
-
-    allowed_checks = [13, 18, 32]
-    allowed_states = [1, 5, 7, 9]
-
-    df1 = ds1[existing_cols].to_dataframe().reset_index()
-    df2 = ds2[existing_cols].to_dataframe().reset_index()
-
-    total_rows = df1[existing_cols].size
-    errors = 0
-    diff = []
-
-    check_cols = ["check", "r_check"]
-    state_cols = ["state", "r_state"]
-
-    for idx in df1.index:
-        check_col = next((c for c in check_cols if c in df1.columns), None)
-        state_col = next((c for c in state_cols if c in df1.columns), None)
-
-        if check_col is None or state_col is None:
-            raise KeyError("Colonne 'check' o 'state' non trovate nei dataset.")
-
-        check_ref = df1.at[idx, check_col]
-        check_cur = df2.at[idx, check_col]
-        state_ref = df1.at[idx, state_col]
-        state_cur = df2.at[idx, state_col]
-
-        # CASE 1: check does not change
-        if check_ref == check_cur:
-            # If is not an accepted check, state should not change
-            if check_ref not in allowed_checks:
-                if state_ref != state_cur:
-                    errors += 1
-                    diff.append(idx)
-
-            # If is an admitted change, state can change, but only in the admitted cases
-            else:
-                if state_ref != state_cur:
-                    if (state_ref not in allowed_states) or (
-                        state_cur not in allowed_states
-                    ):
-                        errors += 1
-                        diff.append(idx)
-
-        # CASE 2: check changes
-        else:
-            if (check_ref not in allowed_checks) and (check_cur not in allowed_checks):
-                errors += 1
-                diff.append(idx)
-
-            # If check values are both admitted, also state should
-            # be in the admitted values
-            elif (state_ref not in allowed_states) or (state_cur not in allowed_states):
-                errors += 1
-                diff.append(idx)
-
-    diff = np.array(diff)
-
-    return total_rows, errors, diff
-
-
-def compare_var_and_attr_ds(ds1, ds2, nl, output, location):  # noqa: C901
+def compare_var_and_attr_ds(ds1, ds2, nl, output, location):
     """
     Variable by variable and attribute by attribute,
     comparison of the two files.
     """
 
     total_all, equal_all = 0, 0
-    list_to_skip = [
-        "source",
-        "i_body",
-        "l_body",
-        "state",
-        "check",
-        "r_state",
-        "r_check",
-    ]
+    list_to_skip = ["source", "i_body", "l_body"]
 
     if output:
         if location:
@@ -280,27 +211,6 @@ def compare_var_and_attr_ds(ds1, ds2, nl, output, location):  # noqa: C901
 
         with open(path_name, "w", encoding="utf-8") as f:
             f.write("Differences\n")
-
-    cols = ["check", "state", "r_state", "r_check"]
-    existing_cols = [c for c in cols if c in ds1 and c in ds2]
-
-    if existing_cols:
-        ds1_multiple = ds1[existing_cols]
-        ds2_multiple = ds2[existing_cols]
-
-        total_rows, errors, diff = check_multiple_solutions(
-            ds1_multiple, ds2_multiple, existing_cols
-        )
-
-        total_all += total_rows
-        equal_all += total_rows - errors
-
-        if output:
-            write_lines(ds1, ds2, diff, path_name)
-
-        if nl != 0:
-            diff = diff[:nl]
-            print_entire_line(ds1, ds2, diff)
 
     for var in set(ds1.data_vars).union(ds2.data_vars):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
