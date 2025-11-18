@@ -70,7 +70,7 @@ def parse_probtest_stats(path, index_col=None):
 
 
 def parse_probtest_fof(path):
-    ds = xr.open_dataset(path, engine="netcdf4")
+    ds = xr.open_dataset(path)
     _, _, ds_veri = split_feedback_dataset(ds)
     df_veri = ds_veri.to_dataframe().reset_index()
     return pd.DataFrame(df_veri)
