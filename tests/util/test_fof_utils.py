@@ -339,38 +339,6 @@ def fixture_sample_dataset_3(sample_dataset_fof):
     return ds
 
 
-# def test_compare_var_and_attr_ds_different_attr(ds2, ds3):
-#     """
-#     Test that, given two datasets, returns the number of elements in which
-#     the attributes are the same and in which they differ.
-#     """
-
-#     total, equal = compare_var_and_attr_ds(ds2, ds3, nl=0, output=True, location=None)
-
-#     assert (total, equal) == (108, 25)
-
-
-# def test_get_file_type(tmp_path):
-#     """
-#     Test that the file is recognized as FOF or STAT if the corresponding keyword
-#     is present in the file name; otherwise, an error will be raised.
-#     """
-
-#     test_file_fof = tmp_path / "fofexample.nc"
-#     str_fof = str(test_file_fof)
-#     file_type_fof = get_file_type(str_fof)
-
-#     test_file_stats = tmp_path / "statsexample.csv"
-#     str_stats = str(test_file_stats)
-#     file_type_stats = get_file_type(str_stats)
-
-#     with pytest.raises(ValueError):
-#         get_file_type("random_file.nc")
-
-#     assert file_type_fof == FileType.FOF
-#     assert file_type_stats == FileType.STATS
-
-
 def test_primary_check(tmp_path):
     """
     Note that if two fof files are not of the same type, then the primary_check fails.

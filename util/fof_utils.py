@@ -244,7 +244,6 @@ def compare_var_and_attr_ds(ds1, ds2, nl, output, location):
 
             else:
                 t, e = max(arr1.size, arr2.size), 0
-
                 write_different_size(output, nl, path_name, var, [arr1.size, arr2.size])
 
             total_all += t
@@ -265,6 +264,8 @@ def compare_var_and_attr_ds(ds1, ds2, nl, output, location):
 
             else:
                 t, e = max(arr1.size, arr2.size), 0
+                write_different_size(output, nl, path_name, var, [arr1.size, arr2.size])
+
             total_all += t
             equal_all += e
 

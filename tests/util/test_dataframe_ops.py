@@ -28,7 +28,7 @@ from util.dataframe_ops import (
 )
 
 
-@pytest.fixture(name="tmp_netcdf_files", scope="function")
+@pytest.fixture(name="_tmp_netcdf_files", scope="function")
 def fixture_tmp_netcdf_files(tmp_dir):
     file_id = [("netcdf", "*atm_3d_ml*.nc")]
 
@@ -82,7 +82,11 @@ def fixture_tmp_netcdf_files(tmp_dir):
     return created_files
 
 
-def test_df_from_file_ids(tmp_netcdf_files, tmp_dir):  # pylint: disable=unused-argument
+def test_df_from_file_ids(_tmp_netcdf_files, tmp_dir):
+    """
+    Test that the function collects the dataframes for each combination of file
+    ID and specification.
+    """
 
     file_id1 = [("netcdf", "*atm_3d_ml*.nc")]
     file_id2 = [("netcdf", "*atm_3d_ml*wrong.nc")]
@@ -115,6 +119,9 @@ def test_df_from_file_ids(tmp_netcdf_files, tmp_dir):  # pylint: disable=unused-
 
 
 def test_read_input_file(tmp_dir):
+    """
+    Test that the file's name is correctly read using the specification.
+    """
     file_id = [("netcdf", "*atm_3d_ml*.nc")]
 
     input_dir = tmp_dir
