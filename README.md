@@ -77,6 +77,10 @@ Reads some data from a series of performance databases generated with `performan
 
 Visualize the performance database generated with `performance`.
 
+### fof-compare
+
+Compare two fof files variable by variable and line by line and indicate whether the files are consistent. If they are not consistent, indicate the percentage of inconsistent data. There are also options to print the lines with errors or save them in a separate file.
+
 ## Quick start guide
 
 Even though probtest is used exclusively with ICON at the moment, it does not contain any information about the model or its directory structure. This makes it very flexible and applicable to any circumstance (e.g. usable by Buildbot, Jenkins and human users alike). However, it also requires a lot of information about the model and the data to be processed upon invocation. Since a typical probtest usage involves multiple commands (e.g. run-ensemble -> stats -> tolerance -> check) this leads to a lot of redundancy in the invocation. Therefore, probtest can read commonly used input variables (e.g. the model output directory, the experiment name, the name of the submit script, ...) from a configuration file in json format. To further ease the process, these configuration files can be created from templates using the `init` command. A template for ICON is contained in this repository in the `templates` subdirectory.
