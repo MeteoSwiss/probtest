@@ -323,12 +323,13 @@ def check_file_with_tolerances(
         df_ref = parse_probtest_fof(input_file_ref.path)
 
         df_cur = parse_probtest_fof(input_file_cur.path)
+        if rules != "":
 
-        errors = multiple_solutions_from_dict(df_ref, df_cur, rules)
+            errors = multiple_solutions_from_dict(df_ref, df_cur, rules)
 
-        if errors:
-            logger.error("RESULT: check FAILED")
-            sys.exit(1)
+            if errors:
+                logger.error("RESULT: check FAILED")
+                sys.exit(1)
 
     else:
         df_tol, df_ref, df_cur = parse_check(
