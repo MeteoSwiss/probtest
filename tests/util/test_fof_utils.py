@@ -9,9 +9,9 @@ from util.fof_utils import (
     clean_value,
     compare_arrays,
     compare_var_and_attr_ds,
+    fill_nans_for_float32,
     get_observation_variables,
     get_report_variables,
-    prepare_array,
     primary_check,
     print_entire_line,
     split_feedback_dataset,
@@ -191,22 +191,22 @@ def fixture_arr():
     return np.array([1.0, np.nan, 3.0, 4.0, np.nan], dtype=np.float32)
 
 
-def test_prepare_array_nan(arr_nan):
+def test_fill_nans_for_float32_nan(arr_nan):
     """
     Test that if an array containign nan is given, these values are replaced
     by -9.99999e05.
     """
-    array = prepare_array(arr_nan)
+    array = fill_nans_for_float32(arr_nan)
     expected = np.array([1.0, -9.99999e05, 3.0, 4.0, -9.99999e05], dtype=np.float32)
     assert np.array_equal(array, expected)
 
 
-def test_prepare_array(arr1):
+def test_fill_nans_for_float32(arr1):
     """
     Test that if an array without nan is given, the output of the function
     is the same as the input.
     """
-    array = prepare_array(arr1)
+    array = fill_nans_for_float32(arr1)
     assert np.array_equal(array, arr1)
 
 

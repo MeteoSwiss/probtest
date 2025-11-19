@@ -2,7 +2,7 @@
 CLI for checking two fof files
 
 This module provides a command-line interface (CLI) to check that
-two given fof files are conistent.
+two given fof files are consistent.
 Veri data are not considered, only reports and observations are compared.
 """
 
@@ -82,6 +82,8 @@ def fof_compare(
         print(f"Total percentage of difference: {percent_diff_all:.2f}%")
         if equal_elements_all == total_elements_all:
             print("Files are consistent!")
+        else:
+            print("Files are NOT consistent!")
 
 
 if __name__ == "__main__":

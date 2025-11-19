@@ -385,6 +385,12 @@ file_name_parser = {
 
 
 def multiple_solutions_from_dict(df_ref, df_cur, rules):
+    """
+    This function compares two DataFrames row by row and column by column according to
+    rules defined in a dictionary (rules). If the corresponding cells are different and
+    the values are not allowed by the rules, it records an error.
+    It returns a list of errors.
+    """
 
     if isinstance(rules, str):
         rules_dict = ast.literal_eval(rules)

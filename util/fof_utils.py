@@ -40,7 +40,7 @@ def get_observation_variables(ds):
 
 def split_feedback_dataset(ds):
     """
-    Split feedback file according to reports and oservations dimensions,
+    Split feedback file according to reports and observations dimensions,
     expand lat, lon, statid and time_nomi according to l_body
     and sort them to assure unique order.
     """
@@ -104,7 +104,7 @@ def compare_arrays(arr1, arr2, var_name):
     return total, equal, diff
 
 
-def prepare_array(arr):
+def fill_nans_for_float32(arr):
     """
     To make sure nan values are recognised.
     """
@@ -193,6 +193,20 @@ def write_lines(ds1, ds2, diff, path_name):
                 f.write(f"diff : {row_diff}" + "\n")
 
 
+def write_different_size(output, nl, path_name, var, sizes):
+    if output:
+        with open(path_name, "a", encoding="utf-8") as f:
+            f.write(
+                f"variable  : {var} -> datasets have different lengths "
+                f"({sizes[0]} vs. {sizes[1]} ), comparison not possible" + "\n"
+            )
+        if nl != 0:
+            print(
+                f"\033[1mvar\033[0m : {var} -> datasets have different lengths "
+                f"({sizes[0]} vs. {sizes[1]} ), comparison not possible"
+            )
+
+
 def compare_var_and_attr_ds(ds1, ds2, nl, output, location):
     """
     Variable by variable and attribute by attribute,
@@ -215,8 +229,8 @@ def compare_var_and_attr_ds(ds1, ds2, nl, output, location):
     for var in set(ds1.data_vars).union(ds2.data_vars):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
 
-            arr1 = prepare_array(ds1[var].values)
-            arr2 = prepare_array(ds2[var].values)
+            arr1 = fill_nans_for_float32(ds1[var].values)
+            arr2 = fill_nans_for_float32(ds2[var].values)
 
             if arr1.size == arr2.size:
                 t, e, diff = compare_arrays(arr1, arr2, var)
@@ -230,6 +244,8 @@ def compare_var_and_attr_ds(ds1, ds2, nl, output, location):
 
             else:
                 t, e = max(arr1.size, arr2.size), 0
+
+                write_different_size(output, nl, path_name, var, [arr1.size, arr2.size])
 
             total_all += t
             equal_all += e
