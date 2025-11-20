@@ -78,23 +78,27 @@ def tolerance(
         )
 
         dfs = [
-            file_name_parser[info.type](info.path)
+            file_name_parser[info.file_type](info.path)
             for file in ensemble_files
             for info in [FileInfo(file)]
         ]
 
         ref_info = FileInfo(mem.format(member_id="ref", member_type=""))
-        if ref_info.type is FileType.FOF:
+        if ref_info.file_type is FileType.FOF:
             ref_info.path = ref_info.path.replace("ref", "")
-        df_ref = file_name_parser[ref_info.type](ref_info.path)
+        df_ref = file_name_parser[ref_info.file_type](ref_info.path)
 
         has_enough_data(dfs)
-        df_ref = df_ref["veri_data"] if ref_info.type is FileType.FOF else df_ref
-        dfs = [df["veri_data"] for df in dfs] if ref_info.type is FileType.FOF else dfs
+        df_ref = df_ref["veri_data"] if ref_info.file_type is FileType.FOF else df_ref
+        dfs = (
+            [df["veri_data"] for df in dfs]
+            if ref_info.file_type is FileType.FOF
+            else dfs
+        )
 
         rdiff = [compute_rel_diff_dataframe(df_ref, df) for df in dfs]
 
-        if ref_info.type is FileType.STATS:
+        if ref_info.file_type is FileType.STATS:
             rdiff_max = [r.groupby(["file_ID", "variable"]).max() for r in rdiff]
             df_max = pd.concat(rdiff_max).groupby(["file_ID", "variable"]).max()
             df_max = df_max.map(
@@ -103,7 +107,7 @@ def tolerance(
 
             force_monotonic(df_max)
 
-        elif ref_info.type is FileType.FOF:
+        elif ref_info.file_type is FileType.FOF:
             df_max = pd.concat(rdiff, axis=1).max(axis=1)
             df_max = df_max.map(
                 lambda x: minimum_tolerance if x < minimum_tolerance else x

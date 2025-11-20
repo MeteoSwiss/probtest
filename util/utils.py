@@ -250,7 +250,7 @@ def expand_members(zipped, member_ids=None, member_type=None):
 
     for items in zipped:
         try:
-            file_type = (FileInfo(items[0])).type
+            file_type = (FileInfo(items[0])).file_type
         except (TypeError, ValueError):
             file_type = None
 
@@ -317,24 +317,24 @@ class FileInfo:
     """
 
     path: str
-    type: FileType = None
+    file_type: FileType = None
 
     def __post_init__(self):
 
         name = self.path.lower()
 
         if "fof" in name:
-            self.type = FileType.FOF
+            self.file_type = FileType.FOF
             return
         if "csv" in name or "stats" in name:
-            self.type = FileType.STATS
+            self.file_type = FileType.STATS
             return FileType.STATS
 
         try:
             with open(self.path, "r", encoding="utf-8") as f:
                 first_line = f.readline()
                 if "," in first_line or ";" in first_line:
-                    self.type = FileType.STATS
+                    self.file_type = FileType.STATS
                     return
         except (OSError, FileNotFoundError):
             pass

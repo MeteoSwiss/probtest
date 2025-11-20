@@ -5,6 +5,8 @@ This module contains unit tests for the `utils.py` module.
 import pytest
 
 from util.utils import (
+    expand_fof,
+    expand_members,
     get_seed_from_member_id,
     prepend_type_to_member_id,
     to_list,
@@ -98,31 +100,71 @@ def test_value_list():
     assert value_list("fof", [1, 2, 3], placeholders) == [1, 2, 3]
 
 
-# def test_expand_zip():
-#     """
-#     Test that the zip is expanded correctly.
-#     """
-#     zipped = [
-#         "test_{fof_type}.nc",
-#         "test_{fof_type}_{member_id}.nc",
-#         "test_{member_id}.nc",
-#     ]
-#     fof_type = ["AIREP", "PILOT"]
-#     member_ids = [1, 2]
-#     expanded_zip1 = expand_zip(zipped, fof_type, member_ids, member_type=None)
-#     expanded_zip2 = expand_zip(zip(zipped), fof_type, member_ids, member_type=None)
-#     assert expanded_zip1, expanded_zip2 == [
-#         "test_AIREP.nc",
-#         "test_PILOT.nc",
-#         "test_AIREP_1.nc",
-#         "test_AIREP_2.nc",
-#         "test_PILOT_1.nc",
-#         "test_PILOT_2.nc",
-#         "test_1.nc",
-#         "test_2.nc",
-#     ]
+def test_expand_fof():
+    """
+    Test that the fof zip is expanded correctly using the fof_type names.
+    {member_id} is left untouched.
+    """
+    zipped = [
+        "test_{fof_type}.nc",
+        "test_{fof_type}_{member_id}.nc",
+        "test_{member_id}.nc",
+    ]
 
-#     expanded_zip3 = expand_zip(
-#         "test_{fof_type}.nc", fof_type, member_ids, member_type=None
-#     )
-#     assert expanded_zip3 == ["test_AIREP.nc", "test_PILOT.nc"]
+    fof_type = ["AIREP", "PILOT"]
+    expanded_zip1 = expand_fof(zipped, fof_type)
+    expanded_zip2 = expand_fof(zip(zipped), fof_type)
+    assert expanded_zip1, expanded_zip2 == [
+        "test_AIREP.nc",
+        "test_PILOT.nc",
+        "test_AIREP_{member_id}.nc",
+        "test_PILOT_{member_id}.nc",
+        "test_{member_id}.nc",
+    ]
+
+
+def test_expand_members():
+    """
+    Test that the members zip is expanded correctly using the members_ids values.
+    {member_type} is left untouched.
+    """
+    zipped = [
+        "test_{member_type}.nc",
+        "stats_{member_type}_{member_id}.nc",
+        "test_{member_id}.nc",
+    ]
+    member_ids = [1, 2]
+    expanded_zip1 = expand_members(zipped, member_ids, member_type=None)
+    expanded_zip2 = expand_members(zip(zipped), member_ids, member_type=None)
+    assert expanded_zip1, expanded_zip2 == [
+        "test_{member_type}.nc",
+        "stats_{member_type}_1.nc",
+        "stats_{member_type}_2.nc",
+        "test_1.nc",
+        "test_2.nc",
+    ]
+
+
+def test_expand_members_member_type():
+    """
+    Test that the members zip is expanded correctly using the members_type name.
+    """
+    zipped = ["fof{member_type}.nc"]
+
+    expanded_zip1 = expand_members(zipped, member_type="dp")
+    assert expanded_zip1 == ["fof_member_id_dp_.nc"]
+
+
+def test_expand_members_full_fof():
+    """
+    Test that the members zip is expanded correctly using the member_id values
+    in case member_type is not defined but the placeholders is given.
+    """
+    zipped = ["fof{member_type}{member_id}.nc"]
+
+    expanded_zip1 = expand_members(zipped, member_ids=[1, 2], member_type=None)
+    assert expanded_zip1 == ["fof_member_id_1.nc", "fof_member_id_2.nc"]
+
+    zipped = ["fof_{member_id}.nc"]
+    expanded_zip2 = expand_members(zipped, member_ids=["ref"])
+    assert expanded_zip2 == ["fof_ref.nc"]

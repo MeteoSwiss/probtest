@@ -309,14 +309,14 @@ def check_file_with_tolerances(
     possible values to ensure that any variations remain within the allowed range.
     """
 
-    if input_file_ref.type != input_file_cur.type:
+    if input_file_ref.file_type != input_file_cur.file_type:
         logger.critical(
             "The current and the reference files are not of the same type; "
             "it is impossible to calculate the tolerances. Abort."
         )
         sys.exit(1)
 
-    if input_file_ref.type == FileType.FOF:
+    if input_file_ref.file_type == FileType.FOF:
         ds_tol = pd.read_csv(tolerance_file_name, index_col=0)
         df_tol = ds_tol * factor
 
@@ -350,7 +350,7 @@ def check_file_with_tolerances(
         logger.error("RESULT: check FAILED")
         sys.exit(1)
 
-    if input_file_ref.type == FileType.FOF:
+    if input_file_ref.file_type == FileType.FOF:
         df_ref = df_ref["veri_data"]
         df_cur = df_cur["veri_data"]
         df_tol.columns = ["veri_data"]
@@ -358,10 +358,10 @@ def check_file_with_tolerances(
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
     # if stats, take maximum over height
-    if input_file_ref.type == FileType.STATS:
+    if input_file_ref.file_type == FileType.STATS:
         diff_df = diff_df.groupby(["file_ID", "variable"]).max()
 
-    if input_file_ref.type == FileType.FOF:
+    if input_file_ref.file_type == FileType.FOF:
         diff_df = diff_df.to_frame()
 
     out, err, tol = check_variable(diff_df, df_tol)
