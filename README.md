@@ -79,7 +79,7 @@ Visualizes the performance database generated with `performance`.
 
 ### fof-compare
 
-Compares two fof files variable by variable and line by line and indicate whether the files are consistent. If they are not consistent, indicate the percentage of inconsistent data. There are also options to print the lines with errors or save them in a separate file.
+Compares two fof files variable by variable and line by line and indicates whether the files are consistent. If they are not consistent, indicates the percentage of inconsistent data. There are also options to print the lines with errors or save them in a separate file.
 
 ## Quick start guide
 
@@ -310,6 +310,12 @@ Providing these files to `check` will perform the check:
 
 ```console
 python ../externals/probtest/probtest.py check --reference-files stats_ref.csv --current-files stats_exp_name.csv --factor 5
+```
+
+Since `check` accepts also lists of filenames, applying it to the FOF files as well simply requires adding:
+
+```console
+python ../externals/probtest/probtest.py check --reference-files [stats_ref.csv, fof{fof_type}_ref.nc] --current-files [stats_exp_name.csv, ..experiments/exp/fof{fof_type}.nc] --factor 5
 ```
 
 This check can be also visualized by:

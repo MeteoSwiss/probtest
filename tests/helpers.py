@@ -101,7 +101,7 @@ def run_tolerance_cli(
 ):  # pylint: disable=too-many-positional-arguments
 
     args = [
-        "--ensemble_files",
+        "--ensemble-files",
         ensemble_files,
         "--tolerance-files",
         tolerance_files,

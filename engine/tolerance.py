@@ -24,7 +24,7 @@ from util.utils import FileInfo, FileType, expand_fof, expand_members
 
 @click.command()
 @click.option(
-    "--ensemble_files",
+    "--ensemble-files",
     type=CommaSeparatedStrings(),
     default=None,
     help=cli_help["ensemble_files"],
