@@ -4,6 +4,9 @@ a function to get fixed seeds based on the ensemble member number.
 """
 
 import re
+from collections import defaultdict
+from dataclasses import dataclass
+from enum import Enum
 
 
 def unique_elements(inlist):
@@ -166,3 +169,174 @@ def get_seed_from_member_id(member_id: int) -> int:
     seed = seeds[member_id - 1]
 
     return seed
+
+
+def to_list(value):
+    """
+    This function ensures that whatever value is passed to expand_zip,
+    one always gets something iterable and consistent.
+    """
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [v.strip() for v in value.split(",") if v.strip()]
+    return value
+
+
+def value_list(placeholder, values, placeholders):
+    """
+    Decide which values to use for a placeholder.
+    - If the placeholder is not present, returns [""]
+    - If placeholder is present but no values provided, returns [None]
+    """
+    if not placeholders.get(placeholder, False):
+        return [""]
+    return values or [None]
+
+
+def normalize_zipped(zipped):
+    """Ensure zipped is a list of tuples."""
+    if isinstance(zipped, zip):
+        return list(zipped)
+    if isinstance(zipped, (list, tuple)):
+        return [(z,) if not isinstance(z, tuple) else z for z in zipped]
+    return [(zipped,)]
+
+
+def expand_fof(zipped, fof_type=None):
+    """
+    Expands a list of tuples (zip) by replacing the placeholder {fof_type}
+    with the values provided. Other placeholders (e.g. {member_id}, {member_type})
+    are left unchanged.
+    """
+
+    zipped = normalize_zipped(zipped)
+    expanded = []
+    fof_values = value_list("fof_type", to_list(fof_type), {"fof_type": True})
+
+    for items in zipped:
+        if not any("{fof_type}" in item for item in items):
+            expanded.append(items[0] if len(items) == 1 else tuple(items))
+            continue
+
+        for fof_val in fof_values:
+            safe_dict = defaultdict(
+                lambda k=None: f"{{{k}}}",
+                {
+                    "fof_type": fof_val,
+                    "member_id": "{member_id}",
+                    "member_type": "{member_type}",
+                },
+            )
+            formatted = [item.format_map(safe_dict) for item in items]
+            expanded.append(formatted[0] if len(formatted) == 1 else tuple(formatted))
+
+    return expanded
+
+
+def expand_members(zipped, member_ids=None, member_type=None):
+    """
+    Expands a list of tuples (zip) by replacing the placeholders
+    {member_id} and {member_type} with the values provided.
+    If a placeholder is present but no corresponding value is given,
+    the placeholder is left unchanged.
+    """
+
+    member_list = to_list(member_ids)
+    member_type_list = to_list(member_type)
+    zipped = normalize_zipped(zipped)
+
+    expanded = []
+
+    for items in zipped:
+        try:
+            file_type = (FileInfo(items[0])).file_type
+        except (TypeError, ValueError):
+            file_type = None
+
+        placeholders = {
+            key: any(f"{{{key}}}" in str(item) for item in items)
+            for key in ("member_id", "member_type")
+        }
+
+        member_values = value_list("member_id", to_list(member_ids), placeholders)
+
+        if file_type is FileType.FOF:
+            if member_type_list:
+                member_type_list = [
+                    f"_member_id_{mtype}_" for mtype in member_type_list
+                ]
+            elif not (member_list and all(m == "ref" for m in member_list)):
+                member_type_list = ["_member_id_"]
+            else:
+                member_type_list = []
+
+        member_values_expanded = []
+
+        if file_type is FileType.STATS and member_type_list:
+            member_values_expanded = (
+                [
+                    f"{m_type}_{m_id}"
+                    for m_type in member_type_list
+                    for m_id in member_values
+                ]
+                if member_values
+                else member_type_list.copy()
+            )
+        else:
+            member_values_expanded = member_values.copy()
+
+        for member_val in member_values_expanded:
+            formatted = [
+                item.format(
+                    member_id=member_val or "{member_id}",
+                    member_type=(
+                        member_type_list[0] if member_type_list else "{member_type}"
+                    ),
+                )
+                for item in items
+            ]
+            expanded.append(formatted[0] if len(formatted) == 1 else tuple(formatted))
+
+    return expanded
+
+
+class FileType(Enum):
+    """
+    Class that memorizes the distinction between file types
+    """
+
+    FOF = "fof"
+    STATS = "csv"
+
+
+@dataclass
+class FileInfo:
+    """
+    Class that memorize the path and the type of a file.
+    """
+
+    path: str
+    file_type: FileType = None
+
+    def __post_init__(self):
+
+        name = self.path.lower()
+
+        if "fof" in name:
+            self.file_type = FileType.FOF
+            return
+        if "csv" in name or "stats" in name:
+            self.file_type = FileType.STATS
+            return FileType.STATS
+
+        try:
+            with open(self.path, "r", encoding="utf-8") as f:
+                first_line = f.readline()
+                if "," in first_line or ";" in first_line:
+                    self.file_type = FileType.STATS
+                    return
+        except (OSError, FileNotFoundError):
+            pass
+
+        raise ValueError(f"Unknown file type for '{self.path}'")

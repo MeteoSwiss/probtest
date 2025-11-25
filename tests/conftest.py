@@ -90,6 +90,14 @@ def df_ref_tolerance(ref_data) -> pd.DataFrame:
 
 
 @pytest.fixture()
+def df_ref_tolerance_fof():
+    index = [0, 1, 2, 3, 4, 5]
+    values = [0, 1, 1e-3, 3, 0.5, 0]
+    df = pd.DataFrame({"value": values}, index=index)
+    return df
+
+
+@pytest.fixture()
 def df_ref_cdo_table(ref_data) -> pd.DataFrame:
     return load_pandas(
         os.path.join(ref_data, "cdo_table.csv"), index_col=[0, 1], header=[0, 1]
@@ -239,3 +247,116 @@ def fixture_setup_csv_files(tmp_path):
         "ref_file": ref_file,
         "cur_file": cur_file,
     }
+
+
+@pytest.fixture(name="sample_dataset_fof")
+def fixture_sample_dataset_fof():
+    n_hdr_size = 5
+    n_body_size = 6
+
+    lat = [1, 3, 2, 4, 5]
+    lon = [5, 9, 7, 8, 3]
+    varno = [3, 3, 4, 4, 4, 4]
+    statid = ["a", "b", "c", "d", "e"]
+    time_nomi = [0, 30, 0, 30, 60]
+    codetype = [5, 5, 5, 5, 5]
+    lbody = np.array([1, 1, 1, 1, 2])
+    ibody = [1, 2, 3, 4, 5]
+    level = [1000, 950, 900, 850, 800, 750]
+    veri_data = [45, 34, 45, 56, 67, 78]
+    obs = np.array([0.374, 0.950, 0.731, 0.598, 0.156, 0.155])
+    bcor = np.array([0.058, 0.866, 0.601, 0.708, 0.020, 0.969])
+    level_typ = np.array([0.832, 0.212, 0.181, 0.183, 0.304, 0.524])
+    level_sig = np.array([0.431, 0.291, 0.611, 0.139, 0.292, 0.366])
+    state = np.array([0.456, 0.785, 0.199, 0.514, 0.592, 0.046])
+    flags = np.array([0.607, 0.170, 0.065, 0.948, 0.965, 0.808])
+    check = np.array([0.304, 0.097, 0.684, 0.440, 0.122, 0.495])
+    e_o = np.array([0.034, 0.909, 0.258, 0.662, 0.311, 0.520])
+    qual = np.array([0.796, 0.509, 0.810, 0.163, 0.425, 0.138])
+    plevel = np.array([0.801, 0.406, 0.077, 0.847, 0.320, 0.755])
+
+    data = xr.Dataset(
+        {
+            "lat": (("d_hdr",), lat),
+            "lon": (("d_hdr",), lon),
+            "varno": (("d_body",), varno),
+            "statid": (("d_hdr",), statid),
+            "time_nomi": (("d_hdr",), time_nomi),
+            "codetype": (("d_hdr",), codetype),
+            "level": (("d_body",), level),
+            "l_body": (("d_hdr",), lbody),
+            "i_body": (("d_hdr",), ibody),
+            "veri_data": (("d_body",), veri_data),
+            "obs": (("d_body",), obs),
+            "bcor": (("d_body",), bcor),
+            "level_typ": (("d_body",), level_typ),
+            "level_sig": (("d_body",), level_sig),
+            "state": (("d_body",), state),
+            "flags": (("d_body",), flags),
+            "check": (("d_body",), check),
+            "e_o": (("d_body",), e_o),
+            "qual": (("d_body",), qual),
+            "plevel": (("d_body",), plevel),
+        },
+        coords={"d_hdr": np.arange(n_hdr_size), "d_body": np.arange(n_body_size)},
+        attrs={"n_hdr": n_hdr_size, "n_body": n_body_size, "plevel": 4},
+    )
+
+    return data
+
+
+@pytest.fixture(scope="function")
+def fof_file_set(tmp_dir, sample_dataset_fof):
+    """
+    Create a set of FOF files from sample_dataset_fof,
+    modifying only veri_data and returning the actual paths
+    of the files created (ref + members).
+    """
+
+    fof_types = ["AIREP"]
+    files = {"fof": [], "tol": [], "path": []}
+
+    veri_data_sets = [
+        [45, 34, 45 + 1e-3, 56, 67, 78],
+        [45, 34, 45 + 1e-3, 57, 67, 78.5],
+        [45, 34, 45 + 1e-4, 58, 67, 78.4],
+        [45, 35, 45 + 1e-6, 59, 67, 78.1],
+    ]
+
+    for fof_type in fof_types:
+        fof_files_for_type = []
+
+        ref_path = os.path.join(tmp_dir, f"fof{fof_type}_.nc")
+        files["path"] = os.path.join(tmp_dir, f"fof{fof_type}_{{member_id}}.nc")
+        ds_ref = sample_dataset_fof.copy(deep=True)
+        ds_ref.to_netcdf(ref_path)
+        fof_files_for_type.append(ref_path)
+
+        for i, veri_data_values in enumerate(veri_data_sets, start=1):
+            ds_member = sample_dataset_fof.copy(deep=True)
+            ds_member["veri_data"] = (
+                ("d_body",),
+                veri_data_values[: ds_member.sizes["d_body"]],
+            )
+
+            member_path = os.path.join(tmp_dir, f"fof{fof_type}_{i}.nc")
+            ds_member.to_netcdf(member_path)
+            fof_files_for_type.append(member_path)
+
+        files["fof"].extend(fof_files_for_type)
+
+        tol_file = os.path.join(tmp_dir, f"tolerance_{fof_type}.csv")
+        with open(tol_file, "w", encoding="utf-8") as f:
+            f.write("variable,tolerance\nveri_data,0.01\n")
+        files["tol"].append(tol_file)
+
+    members_csv = os.path.join(tmp_dir, "selected_members.csv")
+    with open(members_csv, "w", encoding="utf-8") as f:
+        f.write("member_id\n1\n2\n3\n4\n")
+    files["members"] = members_csv
+
+    yield files
+
+    for path in files["fof"] + files["tol"] + [files["members"]]:
+        if os.path.exists(path):
+            os.remove(path)

@@ -3,52 +3,77 @@ CLI for Checking Data Files with Tolerances
 
 This module defines a CLI to compare two data files (reference and current)
 against specified tolerances.
-It utilizes utility functions for testing statistical files with tolerances and
-computing divergence between DataFrames.
+It utilizes utility functions for testing statistical and fof files with
+tolerances and computing divergence between DataFrames.
 """
 
 import sys
 
 import click
 
-from util.click_util import cli_help
-from util.dataframe_ops import check_stats_file_with_tolerances, compute_division
+from util.click_util import CommaSeparatedStrings, cli_help
+from util.dataframe_ops import check_file_with_tolerances, compute_division
 from util.log_handler import logger
+from util.utils import FileInfo, expand_fof
 
 
 @click.command()
 @click.option(
-    "--input-file-ref",
-    help=cli_help["input_file_ref"],
+    "--reference-files",
+    type=CommaSeparatedStrings(),
+    help=cli_help["reference_files"],
+    default=None,
 )
 @click.option(
-    "--input-file-cur",
-    help=cli_help["input_file_cur"],
+    "--current-files",
+    type=CommaSeparatedStrings(),
+    help=cli_help["current_files"],
+    default=None,
 )
 @click.option(
-    "--tolerance-file-name",
-    help=cli_help["tolerance_file_name"],
+    "--tolerance-files",
+    type=CommaSeparatedStrings(),
+    help=cli_help["tolerance_files_input"],
+    default=None,
 )
+@click.option("--factor", type=float, help=cli_help["factor"])
 @click.option(
-    "--factor",
-    type=float,
-    help=cli_help["factor"],
+    "--fof-types",
+    type=CommaSeparatedStrings(),
+    default="",
+    help=cli_help["fof_types"],
 )
-def check(input_file_ref, input_file_cur, tolerance_file_name, factor):
+@click.option("--rules", default="")
+def check(
+    reference_files, current_files, tolerance_files, factor, fof_types, rules
+):  # pylint: disable=too-many-positional-arguments
 
-    out, err, tol = check_stats_file_with_tolerances(
-        tolerance_file_name, input_file_ref, input_file_cur, factor
-    )
+    zipped = zip(reference_files, current_files, tolerance_files)
 
-    if out:
-        logger.info("RESULT: check PASSED!")
-    else:
-        logger.info("RESULT: check FAILED")
-        logger.info("Differences")
-        logger.info(err)
-        logger.info("\nTolerance")
-        logger.info(tol)
-        logger.info("\nError relative to tolerance")
-        logger.info(compute_division(err, tol))
+    expanded_zip = expand_fof(zipped, fof_types)
 
-    sys.exit(0 if out else 1)
+    all_out = True
+
+    for reference_file, current_file, tolerance_file in expanded_zip:
+
+        out, err, tol = check_file_with_tolerances(
+            tolerance_file,
+            FileInfo(reference_file),
+            FileInfo(current_file),
+            factor,
+            rules,
+        )
+
+        if out:
+            logger.info("RESULT: check PASSED for %s", current_file)
+        else:
+            logger.info("RESULT: check FAILED for %s", current_file)
+            logger.info("Differences")
+            logger.info(err)
+            logger.info("\nTolerance")
+            logger.info(tol)
+            logger.info("\nError relative to tolerance")
+            logger.info(compute_division(err, tol))
+            all_out = False
+
+    sys.exit(0 if all_out else 1)

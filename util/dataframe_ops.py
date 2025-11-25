@@ -5,16 +5,20 @@ It includes utilities to handle data reading, processing, and comparison against
 reference datasets with specified tolerances.
 """
 
+import ast
 import sys
 import warnings
 
 import numpy as np
 import pandas as pd
+import xarray as xr
 
 from util.constants import CHECK_THRESHOLD, compute_statistics
 from util.file_system import file_names_from_pattern
+from util.fof_utils import split_feedback_dataset
 from util.log_handler import logger
 from util.model_output_parser import model_output_parser
+from util.utils import FileType
 
 pd.set_option("display.max_colwidth", None)
 pd.set_option("display.max_columns", None)
@@ -46,7 +50,10 @@ def compute_division(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def parse_probtest_csv(path, index_col):
+def parse_probtest_stats(path, index_col=None):
+    if index_col is None:
+        index_col = [0, 1, 2]
+
     df = pd.read_csv(path, index_col=index_col, header=[0, 1])
 
     times = df.columns.levels[0].astype(int)
@@ -60,6 +67,13 @@ def parse_probtest_csv(path, index_col):
     )
 
     return pd.DataFrame(df, columns=new_cols)
+
+
+def parse_probtest_fof(path):
+    ds = xr.open_dataset(path)
+    _, _, ds_veri = split_feedback_dataset(ds)
+    df_veri = ds_veri.to_dataframe().reset_index()
+    return pd.DataFrame(df_veri)
 
 
 def read_input_file(label, file_name, specification):
@@ -142,6 +156,7 @@ def df_from_file_ids(file_id, input_dir, file_specification):
                 file_name=f"{input_dir}/{f}",
                 specification=specification,
             )
+
             file_dfs.append(var_df)
 
         # same file IDs and file type specification will have same variables but
@@ -151,8 +166,8 @@ def df_from_file_ids(file_id, input_dir, file_specification):
     if len(fid_dfs) == 0:
         logger.error("Could not find any file.")
         sys.exit(2)
-
     fid_dfs = unify_time_index(fid_dfs)
+
     # different file IDs will have different variables but with same timestamps:
     # concatenate along variable axis
     df = pd.concat(fid_dfs, axis=0)
@@ -172,10 +187,12 @@ def unify_time_index(fid_dfs):
         # Find out number of time steps in the column MultiIndex.
         # Is there an easier way to do so without assuming the order of indices?
         time_multiindex_index = df.columns.names.index("time")
+
         ntime = len(df.columns.levels[time_multiindex_index])
 
         unique_times = list(df.columns.levels[time_multiindex_index])
         unique_times.sort()
+
         df = df.reindex(columns=unique_times, level=time_multiindex_index)
 
         df.columns = df.columns.set_levels(range(ntime), level="time")
@@ -244,11 +261,11 @@ def check_intersection(df_ref, df_cur):
 
 
 def check_variable(diff_df, df_tol):
+
     out = diff_df - df_tol
 
     selector = (out > CHECK_THRESHOLD).any(axis=1)
-
-    return len(out[selector].index) == 0, diff_df[selector], df_tol[selector]
+    return len(out.loc[selector]) == 0, diff_df.loc[selector], df_tol.loc[selector]
 
 
 def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
@@ -271,43 +288,154 @@ def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
             - df_cur (pandas.DataFrame): The current DataFrame parsed from the
                                          current input file.
     """
-    df_tol = parse_probtest_csv(tolerance_file_name, index_col=[0, 1])
+    df_tol = parse_probtest_stats(tolerance_file_name, index_col=[0, 1])
 
-    logger.info("applying a factor of %s to the spread", factor)
     df_tol *= factor
 
-    df_ref = parse_probtest_csv(input_file_ref, index_col=[0, 1, 2])
-    df_cur = parse_probtest_csv(input_file_cur, index_col=[0, 1, 2])
-
-    logger.info(
-        "checking %s against %s using tolerances from %s",
-        input_file_cur,
-        input_file_ref,
-        tolerance_file_name,
-    )
+    df_ref = parse_probtest_stats(input_file_ref, index_col=[0, 1, 2])
+    df_cur = parse_probtest_stats(input_file_cur, index_col=[0, 1, 2])
 
     return df_tol, df_ref, df_cur
 
 
-def check_stats_file_with_tolerances(
-    tolerance_file_name, input_file_ref, input_file_cur, factor
+def check_file_with_tolerances(
+    tolerance_file_name, input_file_ref, input_file_cur, factor, rules=""
 ):
+    """
+    This function calculates the relative difference between the current file and
+    the reference file, ensuring that the results fall within the limits specified
+    in the tolerance file.
+    For FOF-type files, it also performs an additional check on variables with multiple
+    possible values to ensure that any variations remain within the allowed range.
+    """
 
-    df_tol, df_ref, df_cur = parse_check(
-        tolerance_file_name, input_file_ref, input_file_cur, factor
+    if input_file_ref.file_type != input_file_cur.file_type:
+        logger.critical(
+            "The current and the reference files are not of the same type; "
+            "it is impossible to calculate the tolerances. Abort."
+        )
+        sys.exit(1)
+
+    if input_file_ref.file_type == FileType.FOF:
+        ds_tol = pd.read_csv(tolerance_file_name, index_col=0)
+        df_tol = ds_tol * factor
+
+        df_ref = parse_probtest_fof(input_file_ref.path)
+
+        df_cur = parse_probtest_fof(input_file_cur.path)
+        if rules != "":
+
+            errors = multiple_solutions_from_dict(df_ref, df_cur, rules)
+
+            if errors:
+                logger.error("RESULT: check FAILED")
+                sys.exit(1)
+
+    else:
+        df_tol, df_ref, df_cur = parse_check(
+            tolerance_file_name, input_file_ref.path, input_file_cur.path, factor
+        )
+
+    logger.info("applying a factor of %s to the spread", factor)
+    logger.info(
+        "checking %s against %s using tolerances from %s",
+        input_file_cur.path,
+        input_file_ref.path,
+        tolerance_file_name,
     )
-
     # check if variables are available in reference file
     skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
+
     if skip_test:  # No intersection
         logger.error("RESULT: check FAILED")
         sys.exit(1)
 
+    if input_file_ref.file_type == FileType.FOF:
+        df_ref = df_ref["veri_data"]
+        df_cur = df_cur["veri_data"]
+        df_tol.columns = ["veri_data"]
+
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
-    # take maximum over height
-    diff_df = diff_df.groupby(["file_ID", "variable"]).max()
+    # if stats, take maximum over height
+    if input_file_ref.file_type == FileType.STATS:
+        diff_df = diff_df.groupby(["file_ID", "variable"]).max()
+
+    if input_file_ref.file_type == FileType.FOF:
+        diff_df = diff_df.to_frame()
 
     out, err, tol = check_variable(diff_df, df_tol)
 
     return out, err, tol
+
+
+def has_enough_data(dfs):
+    ndata = len(dfs)
+    if ndata < 1:
+        logger.critical(
+            "not enough data to compute tolerance, got %s dataset. Abort.", ndata
+        )
+        sys.exit(1)
+
+
+file_name_parser = {
+    FileType.FOF: parse_probtest_fof,
+    FileType.STATS: parse_probtest_stats,
+}
+
+
+def multiple_solutions_from_dict(df_ref, df_cur, rules):
+    """
+    This function compares two DataFrames row by row and column by column according to
+    rules defined in a dictionary (rules). If the corresponding cells are different and
+    the values are not allowed by the rules, it records an error.
+    It returns a list of errors.
+    """
+
+    if isinstance(rules, str):
+        rules_dict = ast.literal_eval(rules)
+    else:
+        rules_dict = rules
+
+    cols_present = [
+        col
+        for col in rules_dict.keys()
+        if col in df_ref.columns and col in df_cur.columns
+    ]
+    errors = []
+
+    if cols_present:
+        for i in range(len(df_ref)):
+            row1 = df_ref.iloc[i]
+            row2 = df_cur.iloc[i]
+
+            for col in cols_present:
+                val1 = row1[col]
+                val2 = row2[col]
+
+                if val1 != val2:
+                    if val1 not in rules_dict[col] or val2 not in rules_dict[col]:
+                        errors.append(
+                            {
+                                "row": i,
+                                "column": col,
+                                "file1": val1,
+                                "file2": val2,
+                                "error": "values different and not admitted",
+                            }
+                        )
+
+        if errors:
+            logger.error("Errors found while comparing the files:")
+            for e in errors:
+                logger.error(
+                    "Row %s - Column '%s': file1=%s, file2=%s → %s",
+                    e["row"],
+                    e["column"],
+                    e["file1"],
+                    e["file2"],
+                    e["error"],
+                )
+            return errors
+
+        return []
