@@ -315,7 +315,7 @@ python ../externals/probtest/probtest.py check --reference-files stats_ref.csv -
 Since `check` accepts also lists of filenames, applying it to the FOF files as well simply requires adding:
 
 ```console
-python ../externals/probtest/probtest.py check --reference-files [stats_ref.csv, fof{fof_type}_ref.nc] --current-files [stats_exp_name.csv, ..experiments/exp/fof{fof_type}.nc] --factor 5
+python ../externals/probtest/probtest.py check --reference-files stats_ref.csv, fof{fof_type}_ref.nc --current-files stats_exp_name.csv, ..experiments/exp/fof{fof_type}.nc --factor 5
 ```
 
 This check can be also visualized by:
