@@ -11,6 +11,7 @@ import matplotlib
 
 from engine.cdo_table import cdo_table
 from engine.check import check
+from engine.fof_compare import fof_compare
 from engine.init import init
 from engine.performance import performance
 from engine.performance_check import performance_check
@@ -59,7 +60,7 @@ cli.add_command(performance_meta_data)
 cli.add_command(performance_check)
 cli.add_command(cdo_table)
 cli.add_command(cdo_table_reader)
-
+cli.add_command(fof_compare)
 
 if __name__ == "__main__":
     cli()

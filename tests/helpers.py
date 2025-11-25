@@ -92,19 +92,23 @@ def run_performance_cli(timing_regex, timing_database):
 
 
 def run_tolerance_cli(
-    stats_file_name,
-    tolerance_file_name,
+    ensemble_files,
+    tolerance_files,
     member_type=None,
     member_ids="1,2,3,4,5,6,7,8,9,10",
+    fof_type="AIREP",
     minimum_tolerance=0.0,
-):
+):  # pylint: disable=too-many-positional-arguments
+
     args = [
-        "--stats-file-name",
-        stats_file_name,
-        "--tolerance-file-name",
-        tolerance_file_name,
+        "--ensemble-files",
+        ensemble_files,
+        "--tolerance-files",
+        tolerance_files,
         "--member-ids",
         member_ids,
+        "--fof-types",
+        fof_type,
         "--minimum-tolerance",
         minimum_tolerance,
     ]

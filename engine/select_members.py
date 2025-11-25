@@ -16,8 +16,9 @@ import click
 
 from engine.tolerance import tolerance
 from util.click_util import cli_help
-from util.dataframe_ops import check_stats_file_with_tolerances
+from util.dataframe_ops import check_file_with_tolerances
 from util.log_handler import logger
+from util.utils import FileInfo
 
 
 def find_members_and_factor_validating_for_all_stats_files(
@@ -47,7 +48,6 @@ def find_members_and_factor_validating_for_all_stats_files(
     If the latter occurs, the tolerance factor is increased in case not all
     members haven been validated yet.
     """
-
     members_not_validating = set(range(1, total_member_count + 1))
     member_selection = set()
 
@@ -62,13 +62,12 @@ def find_members_and_factor_validating_for_all_stats_files(
             )
 
             temp_member_selection = member_selection.union({mem})
-
             # creating tolerances
             context = click.Context(tolerance)
             context.invoke(
                 tolerance,
-                stats_file_name=stats_file_name,
-                tolerance_file_name=tolerance_file_name,
+                ensemble_files=[stats_file_name],
+                tolerance_files=[tolerance_file_name],
                 member_ids=list(temp_member_selection),
                 member_type=member_type,
             )
@@ -107,8 +106,8 @@ def find_members_and_factor_validating_for_all_stats_files(
         context = click.Context(tolerance)
         context.invoke(
             tolerance,
-            stats_file_name=stats_file_name,
-            tolerance_file_name=tolerance_file_name,
+            ensemble_files=[stats_file_name],
+            tolerance_files=[tolerance_file_name],
             member_ids=member_selection,
             member_type=member_type,
         )
@@ -153,7 +152,7 @@ def check_selection_by_ids(
     passed = set()
     failed = set()
 
-    # Change level to not get whole output from check_stats_file_with_tolerances
+    # Change level to not get whole output from check_file_with_tolerances
     original_level = logging.getLogger().level
     logging.getLogger().setLevel(logging.ERROR)
 
@@ -162,10 +161,10 @@ def check_selection_by_ids(
     for mem in member_ids:
         m_id = str(mem) if not member_type else member_type + "_" + str(mem)
 
-        out, err, _ = check_stats_file_with_tolerances(
+        out, err, _ = check_file_with_tolerances(
             tolerance_file_name,
-            stats_file_name.format(member_id="ref"),
-            stats_file_name.format(member_id=m_id),
+            FileInfo(stats_file_name.format(member_id="ref")),
+            FileInfo(stats_file_name.format(member_id=m_id)),
             factor,
         )
 
@@ -262,11 +261,9 @@ def select_members(
     """
     Selects members and writes them to a file together with the tolerance factor
     """
-
     if max_member_count >= total_member_count:
         logger.error("ERROR: max_member_count must be smaller than total_member_count")
         sys.exit(1)
-
     if enable_check_only:
         check_selection_by_ids(
             stats_file_name=stats_file_name,
@@ -276,7 +273,9 @@ def select_members(
             factor=factor,
         )
     else:
+
         tmp_tolerance_file_name = f"tmp_tolerance_{experiment_name}.csv"
+
         start_time = datetime.now()
         selection, factor = find_members_and_factor_validating_for_all_stats_files(
             tmp_tolerance_file_name,
