@@ -198,8 +198,11 @@ def check_selection_by_ids(
     help=cli_help["enable_check_only"],
 )
 @click.option(
-    "--stats-file-name",
-    help=cli_help["stats_file_name"],
+    "--ensemble-files",
+    type=CommaSeparatedStrings(),
+    default=[],
+    help=cli_help["ensemble_files"]
+    + "\nNote: this option accepts exactly one stats file.",
 )
 @click.option(
     "--selected-members-file-name",
@@ -251,7 +254,7 @@ def check_selection_by_ids(
 def select_members(
     experiment_name,
     enable_check_only,
-    stats_file_name,
+    ensemble_files,
     selected_members_file_name,
     tolerance_files,
     member_type,
@@ -268,6 +271,22 @@ def select_members(
     # check for valid input parameters
     errors = []
 
+    if len(ensemble_files) == 1:
+        stats_file_name = ensemble_files[0]
+        file_info = FileInfo(stats_file_name)
+        if file_info.file_type != FileType.STATS:
+            errors.append(
+                "Expected a stats file as ensemble files, "
+                f"but received a {file_info.file_type} files. "
+                "Please provide a stats file."
+            )
+    else:
+        stats_file_name = None
+        errors.append(
+            "Expected exactly one ensemble file, "
+            f"but received {len(tolerance_files)} files. "
+            "Please provide a single file."
+        )
     if len(tolerance_files) == 1:
         tolerance_file_name = tolerance_files[0]
         file_info = FileInfo(tolerance_file_name)

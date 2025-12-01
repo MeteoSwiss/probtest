@@ -110,7 +110,8 @@ cli_help = {
     "tolerance_files_input": r"list containing the name of the input files "
     + r"containing the tolerances (per time step and variable), "
     + r"both for stats and fof files.",
-    "ensemble_files": r"list containing the name of the stat file and the fof file.",
+    "ensemble_files": r"list containing the name of the stat file and the fof file"
+    + r" represeinting the ensemble.",
     "stats_file_name": r"the name of the stats file. No absolute path here, it will "
     + r"always be created in the (perturbed) model_output_dir.",
     "fof_file_name": r"the name of the fof file.",
