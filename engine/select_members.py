@@ -284,7 +284,7 @@ def select_members(
         stats_file_name = None
         errors.append(
             "Expected exactly one ensemble file, "
-            f"but received {len(tolerance_files)} files. "
+            f"but received {len(ensemble_files)} files. "
             "Please provide a single file."
         )
     if len(tolerance_files) == 1:
@@ -304,7 +304,7 @@ def select_members(
             "Please provide a single file."
         )
     if max_member_count >= total_member_count:
-        logger.error("max_member_count must be smaller than total_member_count")
+        errors.append("max_member_count must be smaller than total_member_count")
 
     if errors:
         for msg in errors:

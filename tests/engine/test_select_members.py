@@ -3,11 +3,84 @@ This module contains test cases to validate the functionality of member
 selection and tolerance testing CLI commands.
 """
 
+import logging
 import os
 import re
 
+import pytest
+
 from tests.helpers import run_select_members_cli, run_tolerance_cli
 
+
+def test_multiple_ensemble_files_error(stats_file_set, caplog):
+    caplog.set_level(logging.ERROR)
+
+    with pytest.raises(Exception):
+        run_select_members_cli(
+            stats_file_set["stats"] + ",extra_stats",
+            stats_file_set["members"],
+            tolerance_files=stats_file_set["tol"],
+        )
+
+    # Check that the log contains the error
+    assert any("ERROR" in record.message for record in caplog.records)
+
+
+def test_fof_ensemble_file_error(stats_file_set, caplog):
+    caplog.set_level(logging.ERROR)
+
+    with pytest.raises(Exception):
+        run_select_members_cli(
+            "fofDumy.nc",
+            stats_file_set["members"],
+            tolerance_files=stats_file_set["tol"],
+        )
+
+    # Check that the log contains the error
+    assert any("ERROR" in record.message for record in caplog.records)
+
+
+def test_multiple_tolerance_files_error(stats_file_set, caplog):
+    caplog.set_level(logging.ERROR)
+
+    with pytest.raises(Exception):
+        run_select_members_cli(
+            stats_file_set["stats"],
+            stats_file_set["members"],
+            tolerance_files=stats_file_set["tol"] + ",extra_stats",
+        )
+
+    # Check that the log contains the error
+    assert any("ERROR" in record.message for record in caplog.records)
+
+
+def test_fof_tolerance_file_error(stats_file_set, caplog):
+    caplog.set_level(logging.ERROR)
+
+    with pytest.raises(Exception):
+        run_select_members_cli(
+            stats_file_set["stats"],
+            stats_file_set["members"],
+            tolerance_files="fofDymmy.nc",
+        )
+
+    # Check that the log contains the error
+    assert any("ERROR" in record.message for record in caplog.records)
+
+def test_invalid_max_member_cout_error(stats_file_set, caplog):
+    caplog.set_level(logging.ERROR)
+
+    with pytest.raises(Exception):
+        run_select_members_cli(
+            stats_file_set["stats"],
+            stats_file_set["members"],
+            tolerance_files=stats_file_set["tol"],
+            max_member_count=20,
+            total_member_count=15,
+        )
+
+    # Check that the log contains the error
+    assert any("ERROR" in record.message for record in caplog.records)
 
 def test_select_members(stats_file_set):
 
