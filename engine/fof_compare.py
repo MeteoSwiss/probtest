@@ -57,8 +57,8 @@ def fof_compare(
     ds1 = xr.open_dataset(file1)
     ds2 = xr.open_dataset(file2)
 
-    ds_reports1_sorted, ds_obs1_sorted, _ = split_feedback_dataset(ds1)
-    ds_reports2_sorted, ds_obs2_sorted, _ = split_feedback_dataset(ds2)
+    ds_reports1_sorted, ds_obs1_sorted = split_feedback_dataset(ds1)
+    ds_reports2_sorted, ds_obs2_sorted = split_feedback_dataset(ds2)
 
     total_elements_all, equal_elements_all = 0, 0
 

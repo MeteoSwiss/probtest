@@ -71,11 +71,9 @@ def parse_probtest_stats(path, index_col=None):
 
 def parse_probtest_fof(path):
     ds = xr.open_dataset(path)
-    ds_report, _, ds_veri = split_feedback_dataset(ds)
-    df_report = ds_report.to_dataframe().reset_index()
-    df_report = pd.DataFrame(df_report)
-    df_veri = ds_veri.to_dataframe().reset_index()
-    df_veri = pd.DataFrame(df_veri)
+    ds_report, ds_veri = split_feedback_dataset(ds)
+    df_report, df_veri = (pd.DataFrame(d.to_dataframe().reset_index()) for d in (ds_report, ds_veri))
+
     return df_report, df_veri
 
 
@@ -384,7 +382,7 @@ def has_enough_data(dfs):
 
 
 file_name_parser = {
-    FileType.FOF: parse_probtest_fof,
+    FileType.FOF: lambda path: parse_probtest_fof(path)[1],
     FileType.STATS: parse_probtest_stats,
 }
 
@@ -412,18 +410,16 @@ def multiple_solutions_from_dict(df_ref, df_cur, rules):
     ]
     errors = []
 
-    errors_found = False
-
     for key in df_ref.keys():
         ref_df = df_ref[key]
         cur_df = df_cur[key]
 
-        if not ref_df.equals(cur_df):
-            errors_found = True
-            print(f"DataFrames different in section '{key}':")
-            print(ref_df.compare(cur_df))
+        ref_df = ref_df.to_xarray()
+        cur_df = cur_df.to_xarray()
 
-        return errors_found
+        t, e = compare_var_and_attr_ds(ref_df, cur_df, nl=5, output=False, location=None)
+        if t != e:
+            return errors == 1
 
     if cols_present:
         for i in range(len(df_ref)):
