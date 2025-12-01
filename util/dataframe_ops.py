@@ -15,7 +15,7 @@ import xarray as xr
 
 from util.constants import CHECK_THRESHOLD, compute_statistics
 from util.file_system import file_names_from_pattern
-from util.fof_utils import split_feedback_dataset
+from util.fof_utils import split_feedback_dataset, compare_var_and_attr_ds
 from util.log_handler import logger
 from util.model_output_parser import model_output_parser
 from util.utils import FileType
@@ -71,9 +71,12 @@ def parse_probtest_stats(path, index_col=None):
 
 def parse_probtest_fof(path):
     ds = xr.open_dataset(path)
-    _, _, ds_veri = split_feedback_dataset(ds)
+    ds_report, _, ds_veri = split_feedback_dataset(ds)
+    df_report = ds_report.to_dataframe().reset_index()
+    df_report = pd.DataFrame(df_report)
     df_veri = ds_veri.to_dataframe().reset_index()
-    return pd.DataFrame(df_veri)
+    df_veri = pd.DataFrame(df_veri)
+    return df_report, df_veri
 
 
 def read_input_file(label, file_name, specification):
@@ -320,21 +323,29 @@ def check_file_with_tolerances(
         ds_tol = pd.read_csv(tolerance_file_name, index_col=0)
         df_tol = ds_tol * factor
 
-        df_ref = parse_probtest_fof(input_file_ref.path)
+        df_ref_rep, df_ref_veri = parse_probtest_fof(input_file_ref.path)
 
-        df_cur = parse_probtest_fof(input_file_cur.path)
-        if rules != "":
+        df_cur_rep, df_cur_veri = parse_probtest_fof(input_file_cur.path)
 
-            errors = multiple_solutions_from_dict(df_ref, df_cur, rules)
+        df_ref = {"rep": df_ref_rep, "veri": df_ref_veri}
+        df_cur = {"rep": df_cur_rep, "veri": df_cur_veri}
 
-            if errors:
-                logger.error("RESULT: check FAILED")
-                sys.exit(1)
+        errors = multiple_solutions_from_dict(df_ref, df_cur, rules)
+
+        if errors:
+            logger.error("RESULT: check FAILED")
+            sys.exit(1)
 
     else:
         df_tol, df_ref, df_cur = parse_check(
             tolerance_file_name, input_file_ref.path, input_file_cur.path, factor
         )
+        # check if variables are available in reference file
+        skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
+
+        if skip_test:  # No intersection
+            logger.error("RESULT: check FAILED")
+            sys.exit(1)
 
     logger.info("applying a factor of %s to the spread", factor)
     logger.info(
@@ -343,16 +354,10 @@ def check_file_with_tolerances(
         input_file_ref.path,
         tolerance_file_name,
     )
-    # check if variables are available in reference file
-    skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
-
-    if skip_test:  # No intersection
-        logger.error("RESULT: check FAILED")
-        sys.exit(1)
 
     if input_file_ref.file_type == FileType.FOF:
-        df_ref = df_ref["veri_data"]
-        df_cur = df_cur["veri_data"]
+        df_ref = df_ref["veri"]["veri_data"]
+        df_cur = df_cur["veri"]["veri_data"]
         df_tol.columns = ["veri_data"]
 
     # compute relative difference
@@ -393,9 +398,12 @@ def multiple_solutions_from_dict(df_ref, df_cur, rules):
     """
 
     if isinstance(rules, str):
-        rules_dict = ast.literal_eval(rules)
-    else:
+        rules = rules.strip()
+        rules_dict = ast.literal_eval(rules) if rules else {}
+    elif isinstance(rules, dict):
         rules_dict = rules
+    else:
+        rules_dict = {}
 
     cols_present = [
         col
@@ -403,6 +411,19 @@ def multiple_solutions_from_dict(df_ref, df_cur, rules):
         if col in df_ref.columns and col in df_cur.columns
     ]
     errors = []
+
+    errors_found = False
+
+    for key in df_ref.keys():
+        ref_df = df_ref[key]
+        cur_df = df_cur[key]
+
+        if not ref_df.equals(cur_df):
+            errors_found = True
+            print(f"DataFrames different in section '{key}':")
+            print(ref_df.compare(cur_df))
+
+        return errors_found
 
     if cols_present:
         for i in range(len(df_ref)):
