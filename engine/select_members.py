@@ -15,10 +15,10 @@ from datetime import datetime
 import click
 
 from engine.tolerance import tolerance
-from util.click_util import cli_help
+from util.click_util import CommaSeparatedStrings, cli_help
 from util.dataframe_ops import check_file_with_tolerances
 from util.log_handler import logger
-from util.utils import FileInfo
+from util.utils import FileInfo, FileType
 
 
 def find_members_and_factor_validating_for_all_stats_files(
@@ -206,8 +206,10 @@ def check_selection_by_ids(
     help=cli_help["selected_members_file_name"],
 )
 @click.option(
-    "--tolerance-file-name",
-    help=cli_help["tolerance_file_name"],
+    "--tolerance-files",
+    type=CommaSeparatedStrings(),
+    default=[],
+    help=cli_help["tolerance_files_output"] + r"Warning: only onle file is allowed",
 )
 @click.option(
     "--member-type",
@@ -250,7 +252,7 @@ def select_members(
     enable_check_only,
     stats_file_name,
     selected_members_file_name,
-    tolerance_file_name,
+    tolerance_files,
     member_type,
     max_member_count,
     total_member_count,
@@ -261,13 +263,39 @@ def select_members(
     """
     Selects members and writes them to a file together with the tolerance factor
     """
+
+    # check for valid input parameters
+    errors = []
+
+    if len(tolerance_files) == 1:
+        tolerance_file = tolerance_files[0]
+        file_info = FileInfo(tolerance_file)
+        if file_info.file_type != FileType.STATS:
+            errors.append(
+                "Expected a stats file as tolerance file, "
+                f"but received a {file_info.file_type} files. "
+                "Please provide a stats file."
+            )
+    else:
+        tolerance_file = None
+        errors.append(
+            "Expected exactly one tolerance file, "
+            f"but received {len(tolerance_files)} files. "
+            "Please provide a single file."
+        )
     if max_member_count >= total_member_count:
-        logger.error("ERROR: max_member_count must be smaller than total_member_count")
+        logger.error("max_member_count must be smaller than total_member_count")
+
+    if errors:
+        for msg in errors:
+            logger.error("ERROR: %s", msg)
         sys.exit(1)
+
+    # start with selecting members
     if enable_check_only:
         check_selection_by_ids(
             stats_file_name=stats_file_name,
-            tolerance_file_name=tolerance_file_name,
+            tolerance_file_name=tolerance_file,
             member_ids=list(range(1, total_member_count + 1)),
             member_type=member_type,
             factor=factor,
@@ -303,5 +331,5 @@ def select_members(
             file.write("export FACTOR=" + str(int(factor)))
 
         # The last created file was successful
-        logger.info("Writing tolerance file to %s", tolerance_file_name)
-        os.rename(tmp_tolerance_file_name, tolerance_file_name)
+        logger.info("Writing tolerance file to %s", tolerance_file)
+        os.rename(tmp_tolerance_file_name, tolerance_file)

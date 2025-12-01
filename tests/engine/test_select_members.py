@@ -14,7 +14,7 @@ def test_select_members(stats_file_set):
     run_select_members_cli(
         stats_file_set["stats"],
         stats_file_set["members"],
-        stats_file_set["tol"],
+        tolerance_files=stats_file_set["tol"],
     )
 
     assert os.path.isfile(
@@ -31,7 +31,7 @@ def test_select_members_increase_factor(stats_file_set):
     run_select_members_cli(
         stats_file_set["stats"],
         stats_file_set["members"],
-        stats_file_set["tol"],
+        tolerance_files=stats_file_set["tol"],
         max_member_count=2,
         max_factor=1.0e5,
     )
@@ -52,7 +52,7 @@ def test_select_members_failure(stats_file_set, caplog):
     log = run_select_members_cli(
         stats_file_set["stats"],
         stats_file_set["members"],
-        stats_file_set["tol"],
+        tolerance_files=stats_file_set["tol"],
         max_member_count=1,
         min_factor=0.1,
         max_factor=1,
@@ -69,7 +69,7 @@ def test_tolerance(stats_file_set, caplog):
     log = run_select_members_cli(
         stats_file_set["stats"],
         stats_file_set["members"],
-        stats_file_set["tol"],
+        tolerance_files=stats_file_set["tol"],
         enable_check_only=True,
         log=caplog,
     )

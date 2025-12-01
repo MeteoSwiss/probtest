@@ -104,14 +104,12 @@ cli_help = {
     + r"Must contain '\{member_id\}'.",
     "tolerance_file_name": r"the name of the file containing the tolerances "
     + r"(per time step and variable)",
-    "tolerance_files_output": r"list containing the name of the files "
+    "tolerance_files_output": r"list containing the name of the output files "
     + r"containing the tolerances (per time step and variable), "
-    + r"both for stats and fof files. This file is an output of the computations "
-    + r"done in tolerance.py and will be use as input in check.py",
-    "tolerance_files_input": r"list containing the name of the files "
+    + r"both for stats and fof files.",
+    "tolerance_files_input": r"list containing the name of the input files "
     + r"containing the tolerances (per time step and variable), "
-    + r"both for stats and fof files. This file is used as an input but it is"
-    + r" the output of the tolerance.py module.",
+    + r"both for stats and fof files.",
     "ensemble_files": r"list containing the name of the stat file and the fof file.",
     "stats_file_name": r"the name of the stats file. No absolute path here, it will "
     + r"always be created in the (perturbed) model_output_dir.",
