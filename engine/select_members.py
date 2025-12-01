@@ -209,7 +209,8 @@ def check_selection_by_ids(
     "--tolerance-files",
     type=CommaSeparatedStrings(),
     default=[],
-    help=cli_help["tolerance_files_output"] + r"Warning: only onle file is allowed",
+    help=cli_help["tolerance_files_output"]
+    + "\nNote: this option accepts exactly one stats file.",
 )
 @click.option(
     "--member-type",
@@ -268,8 +269,8 @@ def select_members(
     errors = []
 
     if len(tolerance_files) == 1:
-        tolerance_file = tolerance_files[0]
-        file_info = FileInfo(tolerance_file)
+        tolerance_file_name = tolerance_files[0]
+        file_info = FileInfo(tolerance_file_name)
         if file_info.file_type != FileType.STATS:
             errors.append(
                 "Expected a stats file as tolerance file, "
@@ -277,7 +278,7 @@ def select_members(
                 "Please provide a stats file."
             )
     else:
-        tolerance_file = None
+        tolerance_file_name = None
         errors.append(
             "Expected exactly one tolerance file, "
             f"but received {len(tolerance_files)} files. "
@@ -295,7 +296,7 @@ def select_members(
     if enable_check_only:
         check_selection_by_ids(
             stats_file_name=stats_file_name,
-            tolerance_file_name=tolerance_file,
+            tolerance_file_name=tolerance_file_name,
             member_ids=list(range(1, total_member_count + 1)),
             member_type=member_type,
             factor=factor,
@@ -331,5 +332,5 @@ def select_members(
             file.write("export FACTOR=" + str(int(factor)))
 
         # The last created file was successful
-        logger.info("Writing tolerance file to %s", tolerance_file)
-        os.rename(tmp_tolerance_file_name, tolerance_file)
+        logger.info("Writing tolerance file to %s", tolerance_file_name)
+        os.rename(tmp_tolerance_file_name, tolerance_file_name)
