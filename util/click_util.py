@@ -93,50 +93,49 @@ class CommaSeparatedStrings(click.ParamType):
 
 
 cli_help = {
-    "model_input_dir": r"the directory where the model input is stored",
+    "model_input_dir": r"The directory where the model input is stored.",
     "perturbed_model_input_dir": r"Template for the directory where the perturbed "
     + r"model input is stored. Must contain '\{member_id\}'.",
-    "model_output_dir": r"the directory where the model output is stored",
+    "model_output_dir": r"The directory where the model output is stored.",
     "perturbed_model_output_dir": r"Template for the directory where the perturbed "
     + r"model output is stored. Must contain '\{member_id\}''.",
-    "experiment_name": r"the name of the experiment to be run",
+    "experiment_name": r"The name of the experiment to be run.",
     "perturbed_experiment_name": r"Template for the name of the perturbed experiments. "
     + r"Must contain '\{member_id\}'.",
-    "tolerance_file_name": r"the name of the file containing the tolerances "
-    + r"(per time step and variable)",
-    "tolerance_files_output": r"list containing the name of the output files "
+    "tolerance_file_name": r"The name of the file containing the tolerances "
+    + r"(per time step and variable).",
+    "tolerance_files_output": r"List containing the name of the output file/s "
     + r"containing the tolerances (per time step and variable), "
     + r"both for stats and fof files.",
-    "tolerance_files_input": r"list containing the name of the input files "
+    "tolerance_files_input": r"List containing the name of the input file/s "
     + r"containing the tolerances (per time step and variable), "
     + r"both for stats and fof files.",
-    "ensemble_files": r"list containing the name of the stat file and the fof file"
-    + r" represeinting the ensemble.",
-    "stats_file_name": r"the name of the stats file. No absolute path here, it will "
-    + r"always be created in the (perturbed) model_output_dir.",
-    "fof_file_name": r"the name of the fof file.",
-    "member_count": r"count of ensemble members " + r'(e.g. "10")',
-    "member_id": r"id of ensemble member " + r'(e.g. "3")',
-    "member_ids": r"comma separated list of member ids" + r'(e.g. "1,3,14")',
-    "fof_types": r"type of fof files you want to analyse" + r"(e.g. AIREP,PILOT)",
-    "member_type": r"precision of experiment (e.g. double or mixed). "
+    "ensemble_files": r"List containing the name of the stats file and the fof file"
+    + r" representing the ensemble.",
+    "stats_file_name": r"The name of the stats file to be created.",
+    "member_count": r"Count of ensemble members " + r'(e.g. "10").',
+    "member_id": r"ID of ensemble member " + r'(e.g. "3").',
+    "member_ids": r"List of member ids" + r'(e.g. "1,3,14")',
+    "fof_types": r"Type of fof files you want to analyse" + r"(e.g. AIREP,PILOT).",
+    "member_type": r"Precision of experiment (e.g. 'double' or 'mixed'). "
     + r"The type is part of the created member_id, which is equal to "
-    + r"(member_type+'_'+str(member_id))",
-    "perturb_amplitude": r"the amplitude of the relative perturbation",
-    "files": r"the files that need to be perturbed (comma separated list)",
-    "variable_names": r"the variables that are perturbed (comma separated list)",
-    "copy_all_files": r"copy all files from the model_input_dir directory",
+    + r"(member_type + '_' + str(member_id)).",
+    "perturb_amplitude": r"The amplitude of the relative perturbation.",
+    "files": r"The files that need to be perturbed.",
+    "variable_names": r"The variables that are perturbed.",
+    "copy_all_files": r"Copy all files from the model_input_dir directory to the "
+    + r"perturbed_model_input_dir.",
     "file_id": r"A unique identifier and file pattern FILE_PATTERN of the files "
     + r"containing the variables to be analysed and the file specification label "
     + r"FILE_TYPE. FILE_PATTERN may contain simple shell-style wildcards such as "
     + r'"*" and will be expanded internally by glob. Put FILE_PATTERN in quotes to '
     + r"avoid early glob expansion by the calling shell.",
-    "ensemble": r"For ensemble stats: the sub-directory where the ensemble outputs are",
+    "ensemble": r"Create stats file for an ensemble and the reference file.",
     "enable_check_only": r"Check with how many stats files out "
     + r"of x (x=total_member_count) the probtest passes given a specific"
     + "tolerance file.",
     "total_member_count": r"Number of ensemble members used "
-    + r"to select the x members from (min_member_count<=x<=max_member_count).",
+    + r"to select the x members from (min_member_count <= x <= max_member_count).",
     "min_member_count": r"Minimum number of members to select.",
     "max_member_count": r"Maximum number of members to select.",
     "min_factor": r"Minimum tolerance factor used to select members with.",
@@ -147,51 +146,51 @@ cli_help = {
     + r"option must be defined in the json config file. See doc string of  "
     + r"df_from_file_ids for the specification.",
     "input_file_ref": r"reference file to check against",
-    "reference_files": r"list of reference files to check against, "
-    + r"both for stats and fof files",
+    "reference_files": r"List of reference file/s to check against, "
+    + r"both for stats and fof files.",
     "input_file_cur": r"current file to be tested",
     "current_files": r"list of current files to be tested, "
     + r"both for stats and fof files",
-    "factor": r"relaxation factor for the tolerance values",
-    "timing_regex": r"regex for the file that contains the latest log",
-    "timing_names": r"the name of the timing entries to be displayed (comma separated)",
-    "timing_database": r"a persistent file to keep track of performance history",
-    "append_time": r"if true: append to the performance data, if false: overwrite the "
-    + r"performance data (default: false)",
-    "run_dir": r"directory from where the run is started "
-    + r"(with 'submit_command model_run_script_name')",
-    "perturbed_run_dir": r"directory from where the perturbed run is started "
-    + r"(with 'submit_command model_run_script_name')",
-    "run_script_name": r"name of the original experiment runscript",
+    "factor": r"Relaxation factor for the tolerance values.",
+    "timing_regex": r"Regex for the file that contains the latest log.",
+    "timing_names": r"The name of the timing entries to be displayed.",
+    "timing_database": r"A persistent file to keep track of performance history.",
+    "append_time": r"If true: append to the performance data; If false: overwrite the "
+    + r"performance data (default: false).",
+    "run_dir": r"Directory from where the run is started "
+    + r"(with 'submit_command model_run_script_name').",
+    "perturbed_run_dir": r"Directory from where the perturbed run is started "
+    + r"(with 'submit_command model_run_script_name').",
+    "run_script_name": r"Name of the original experiment runscript.",
     "perturbed_run_script_name": r"Template for the perturbed experiment name. Must "
     + r"contain '\{member_id\}'.",
-    "lhs": r"replace assignments in the runscript. For multiples, use comma separated "
+    "lhs": r"Replace assignments in the runscript. For multiples, use comma separated "
     + r"list. Note that the new right hand side can depend on \{member_id\} define "
-    + r"left hand side",
-    "rhs_new": r"define new right hand side",
-    "rhs_old": r"define old right hand side (optional, put None if not needed)",
-    "submit_command": r"How a model simulation is submitted",
-    "parallel": r"can the jobs run in parallel?",
-    "dry": r"only generate runscripts, do not run the model",
-    "savedir": r"the directory where the plots are stored",
-    "cdo_table_file": r"file to store the cdo table into",
-    "variables": r"select variables to print CDO diff from ensemble",
-    "times": r"select times to print CDO diff from ensemble",
-    "histogram": r"print out full histogram of relative differences",
-    "codebase_install": r"the directory where the code base is installed",
-    "reference": r"the directory where reference files are read from and written to",
-    "config": r"the name of the config file that is being generated",
-    "template_name": r"path to the template for the config file",
-    "i_table": r"which table to plot, must be an int between 0 and n_tables-1",
-    "timing_current": r"the database containing the timings for the current run",
-    "timing_reference": r"the database containing the reference timings",
+    + r"left hand side.",
+    "rhs_new": r"Define new right hand side.",
+    "rhs_old": r"Define old right hand side (optional, put None if not needed).",
+    "submit_command": r"How a model simulation is submitted.",
+    "parallel": r"Run jobs in parallel.",
+    "dry": r"Only generate runscripts, do not run the model.",
+    "savedir": r"The directory where the plots are stored.",
+    "cdo_table_file": r"File to store the cdo table into.",
+    "variables": r"Select variables to print CDO diff from ensemble.",
+    "times": r"Select times to print CDO diff from ensemble.",
+    "histogram": r"Print out full histogram of relative differences.",
+    "codebase_install": r"The directory where the code base is installed.",
+    "reference": r"The directory where reference files are read from and written to.",
+    "config": r"The name of the config file that is being generated.",
+    "template_name": r"Path to the template for the config file.",
+    "i_table": r"Which table to plot, must be an int between 0 and n_tables-1.",
+    "timing_current": r"The database containing the timings for the current run.",
+    "timing_reference": r"The database containing the reference timings.",
     "measurement_uncertainty": r"How much time in [s] the current time can deviate "
     + "from the reference.",
     "tolerance_factor": r"The factor by which the current time can deviate from the "
     + "reference.",
     "new_reference_threshold": r"The factor by which the current time can be faster "
     + r"than the reference before a warning gets printed.",
-    "minimum_tolerance": r"non-zero value to set variable tolerances to when the "
+    "minimum_tolerance": r"Non-zero value to set variable tolerances to when the "
     + r"calculated tolerances from the ensemble are exactly zero.",
 }
 
