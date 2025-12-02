@@ -18,7 +18,7 @@ from engine.tolerance import tolerance
 from util.click_util import CommaSeparatedStrings, cli_help
 from util.dataframe_ops import check_file_with_tolerances
 from util.log_handler import logger
-from util.utils import FileInfo, FileType
+from util.utils import FileInfo, validate_single_stats_file
 
 
 def find_members_and_factor_validating_for_all_stats_files(
@@ -271,38 +271,11 @@ def select_members(
     # check for valid input parameters
     errors = []
 
-    if len(ensemble_files) == 1:
-        stats_file_name = ensemble_files[0]
-        file_info = FileInfo(stats_file_name)
-        if file_info.file_type != FileType.STATS:
-            errors.append(
-                "Expected a stats file as ensemble files, "
-                f"but received a {file_info.file_type} files. "
-                "Please provide a stats file."
-            )
-    else:
-        stats_file_name = None
-        errors.append(
-            "Expected exactly one ensemble file, "
-            f"but received {len(ensemble_files)} files. "
-            "Please provide a single file."
-        )
-    if len(tolerance_files) == 1:
-        tolerance_file_name = tolerance_files[0]
-        file_info = FileInfo(tolerance_file_name)
-        if file_info.file_type != FileType.STATS:
-            errors.append(
-                "Expected a stats file as tolerance file, "
-                f"but received a {file_info.file_type} files. "
-                "Please provide a stats file."
-            )
-    else:
-        tolerance_file_name = None
-        errors.append(
-            "Expected exactly one tolerance file, "
-            f"but received {len(tolerance_files)} files. "
-            "Please provide a single file."
-        )
+    stats_file_name = validate_single_stats_file(ensemble_files, "ensemble", errors)
+    tolerance_file_name = validate_single_stats_file(
+        tolerance_files, "tolerance", errors
+    )
+
     if max_member_count >= total_member_count:
         errors.append("max_member_count must be smaller than total_member_count")
 

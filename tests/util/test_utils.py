@@ -10,6 +10,7 @@ from util.utils import (
     get_seed_from_member_id,
     prepend_type_to_member_id,
     to_list,
+    validate_single_stats_file,
     value_list,
 )
 
@@ -168,3 +169,43 @@ def test_expand_members_full_fof():
     zipped = ["fof_{member_id}.nc"]
     expanded_zip2 = expand_members(zipped, member_ids=["ref"])
     assert expanded_zip2 == ["fof_ref.nc"]
+
+
+def test_single_valid_stats_file():
+
+    stats_file = "stats.csv"
+    errors = []
+    result = validate_single_stats_file([stats_file], "ensemble", errors)
+
+    assert result == stats_file
+    assert errors == []
+
+
+def test_single_invalid_file_type():
+    # create a FOF file
+    fof_file = "fofDummy.nc"
+
+    errors = []
+    result = validate_single_stats_file([fof_file], "tolerance", errors)
+
+    assert result is None
+    assert len(errors) == 1
+
+
+def test_zero_files():
+    errors = []
+    result = validate_single_stats_file([], "ensemble", errors)
+
+    assert result is None
+    assert len(errors) == 1
+    assert "Expected exactly one ensemble file" in errors[0]
+
+
+def test_multiple_files():
+    errors = []
+    result = validate_single_stats_file(
+        ["stats1.csv", "stats2.csv"], "tolerance", errors
+    )
+
+    assert result is None
+    assert len(errors) == 1
