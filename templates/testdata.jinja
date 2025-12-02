@@ -4,7 +4,6 @@
         "perturbed_model_output_dir": "{{codebase_install}}/{{experiment_name}}_member_id_{member_id}",
         "experiment_name": "{{experiment_name}}",
         "perturbed_experiment_name": "{{experiment_name}}_member_id_{member_id}",
-        "stats_file_name": "{{reference}}/reference/{{experiment_name}}_{member_id}.csv",
         "ensemble_files": "{{reference}}/reference/{{experiment_name}}_{member_id}.csv",
         "tolerance_files": "{{reference}}/tolerance/{{experiment_name}}.csv",
         "member_id": "[{member_id}]",
@@ -25,6 +24,7 @@
         "perturbed_model_input_dir": "{{reference}}/perturb/{{experiment_name}}_member_id_{member_id}"
     },
     "stats": {
+        "stats_file_name": "{{reference}}/reference/{{experiment_name}}_{member_id}.csv",
         "ensemble": true
     },
     "select-members":

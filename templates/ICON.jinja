@@ -5,7 +5,6 @@
             "perturbed_model_output_dir": "{{codebase_install}}/experiments/{{experiment_name}}_member_id_{member_id}",
             "experiment_name": "{{experiment_name}}",
             "perturbed_experiment_name": "{{experiment_name}}_member_id_{member_id}",
-            "stats_file_name": "stats_{member_id}.csv",
             "ensemble_files": "stats_{member_id}.csv",
             "tolerance_files": "{{reference}}/{{experiment_name}}_tolerance.csv",
             "member_id": "[{member_id}]",
@@ -45,6 +44,7 @@
         },
     "stats":
         {
+            "stats_file_name": "stats_{member_id}.csv",
             "ensemble": false
         },
     "select-members":
