@@ -178,7 +178,7 @@ def test_single_valid_stats_file():
     result = validate_single_stats_file([stats_file], "ensemble", errors)
 
     assert result == stats_file
-    assert errors == []
+    assert not errors
 
 
 def test_single_invalid_file_type():

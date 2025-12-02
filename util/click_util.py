@@ -149,7 +149,7 @@ cli_help = {
     "reference_files": r"List of reference file/s to check against, "
     + r"both for stats and fof files.",
     "input_file_cur": r"current file to be tested",
-    "current_files": r"list of current files to be tested, "
+    "current_files": r"List of current files to be tested, "
     + r"both for stats and fof files",
     "factor": r"Relaxation factor for the tolerance values.",
     "timing_regex": r"Regex for the file that contains the latest log.",
