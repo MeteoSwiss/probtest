@@ -33,8 +33,8 @@
             "selected_members_file_name": "{{reference}}/{{experiment_name}}_selected_members.csv"
         },
     "check": {
-        "input_file_ref": "{{reference}}/reference/{{experiment_name}}_{{member_id[0] if member_id|length>1 else 1}}.csv",
-        "input_file_cur": "{{reference}}/reference/{{experiment_name}}_{{member_id[1] if member_id|length>1 else 2}}.csv"
+        "reference_files": "{{reference}}/reference/{{experiment_name}}_{{member_id[0] if member_id|length>1 else 1}}.csv",
+        "current_files": "{{reference}}/reference/{{experiment_name}}_{{member_id[1] if member_id|length>1 else 2}}.csv"
     },
     "performance": {
         "timing_regex": "{{codebase_install}}/{{experiment_name}}/LOG.exp.{{experiment_name}}.run.12345678.o",

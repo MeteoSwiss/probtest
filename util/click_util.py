@@ -102,8 +102,6 @@ cli_help = {
     "experiment_name": r"The name of the experiment to be run.",
     "perturbed_experiment_name": r"Template for the name of the perturbed experiments. "
     + r"Must contain '\{member_id\}'.",
-    "tolerance_file_name": r"The name of the file containing the tolerances "
-    + r"(per time step and variable).",
     "tolerance_files_output": r"List containing the name of the output file/s "
     + r"containing the tolerances (per time step and variable), "
     + r"both for stats and fof files.",
@@ -136,7 +134,6 @@ cli_help = {
     + "tolerance file.",
     "total_member_count": r"Number of ensemble members used "
     + r"to select the x members from (min_member_count <= x <= max_member_count).",
-    "min_member_count": r"Minimum number of members to select.",
     "max_member_count": r"Maximum number of members to select.",
     "min_factor": r"Minimum tolerance factor used to select members with.",
     "max_factor": r"Maximum tolerance factor used to select members with.",
@@ -145,10 +142,8 @@ cli_help = {
     "file_specification": "Specify how different file types shall be read. This "
     + r"option must be defined in the json config file. See doc string of  "
     + r"df_from_file_ids for the specification.",
-    "input_file_ref": r"reference file to check against",
     "reference_files": r"List of reference file/s to check against, "
     + r"both for stats and fof files.",
-    "input_file_cur": r"current file to be tested",
     "current_files": r"List of current files to be tested, "
     + r"both for stats and fof files",
     "factor": r"Relaxation factor for the tolerance values.",
