@@ -68,7 +68,7 @@ def test_fof_tolerance_file_error(stats_file_set, caplog):
     assert any("ERROR" in record.message for record in caplog.records)
 
 
-def test_invalid_max_member_cout_error(stats_file_set, caplog):
+def test_invalid_max_member_count_error(stats_file_set, caplog):
     caplog.set_level(logging.ERROR)
 
     with pytest.raises(Exception):
