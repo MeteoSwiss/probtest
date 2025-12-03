@@ -7,6 +7,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 
 def unique_elements(inlist):
@@ -317,7 +318,7 @@ class FileInfo:
     """
 
     path: str
-    file_type: FileType = None
+    file_type: Optional[FileType] = None
 
     def __post_init__(self):
 
