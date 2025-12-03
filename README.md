@@ -273,7 +273,7 @@ python ../externals/probtest/probtest.py check --reference-files stats_ref.csv, 
 
 This check can be also visualized by:
 ```console
-python ../externals/probtest/probtest.py check-plot --input-file-ref stats_ref.csv --input-file-cur stats_exp_name.csv --tolerance-file-name exp_name_tolerance.csv --factor 5 --savedir ./plot_dir
+python ../externals/probtest/probtest.py check-plot --reference-files stats_ref.csv --current-files stats_exp_name.csv --tolerance-files exp_name_tolerance.csv --factor 5 --savedir ./plot_dir
 ```
 
 Note that the reference `--reference-files` and test stats files
