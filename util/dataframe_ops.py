@@ -325,8 +325,8 @@ def check_file_with_tolerances(
 
         df_cur_rep, df_cur_veri = parse_probtest_fof(input_file_cur.path)
 
-        df_ref = {"rep": df_ref_rep, "veri": df_ref_veri}
-        df_cur = {"rep": df_cur_rep, "veri": df_cur_veri}
+        df_ref = {"reports": df_ref_rep, "observation": df_ref_veri}
+        df_cur = {"reports": df_cur_rep, "observation": df_cur_veri}
 
         errors = multiple_solutions_from_dict(df_ref, df_cur, rules)
 
@@ -354,8 +354,8 @@ def check_file_with_tolerances(
     )
 
     if input_file_ref.file_type == FileType.FOF:
-        df_ref = df_ref["veri"]["veri_data"]
-        df_cur = df_cur["veri"]["veri_data"]
+        df_ref = df_ref["observation"]["veri_data"]
+        df_cur = df_cur["observation"]["veri_data"]
         df_tol.columns = ["veri_data"]
 
     # compute relative difference

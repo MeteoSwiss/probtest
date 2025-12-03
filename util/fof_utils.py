@@ -10,6 +10,8 @@ import pandas as pd
 import xarray as xr
 
 
+
+
 def get_report_variables(ds):
     """
     Get variable names of reports.
@@ -70,12 +72,25 @@ def split_feedback_dataset(ds):
     return ds_report_sorted, ds_obs_sorted
 
 
-def compare_arrays(arr1, arr2, var_name):
+def compare_arrays(arr1, arr2, var_name, tol):
     """
     Comparison of two arrays containing the values of the same variable.
     If not the same, it tells you in percentage terms how different they are.
     """
     total = arr1.size
+
+    if var_name == "veri_data":
+        from util.dataframe_ops import compute_rel_diff_dataframe, check_variable
+        diff = compute_rel_diff_dataframe(pd.DataFrame(arr1), pd.DataFrame(arr2))
+        df_new = pd.DataFrame(pd.DataFrame({'tol':[tol]*diff.size}))
+
+        out, err, tol = check_variable(diff, df_new)
+        if out:
+            return total,total, 0
+        else:
+            equal = total - len(err)
+            return total, equal, err
+
 
     if np.array_equal(arr1, arr2):
         equal = total
@@ -206,7 +221,7 @@ def write_different_size(output, nl, path_name, var, sizes):
             )
 
 
-def compare_var_and_attr_ds(ds1, ds2, nl, output, location):
+def compare_var_and_attr_ds(ds1, ds2, nl, output, location, tol):
     """
     Variable by variable and attribute by attribute,
     comparison of the two files.
@@ -232,7 +247,7 @@ def compare_var_and_attr_ds(ds1, ds2, nl, output, location):
             arr2 = fill_nans_for_float32(ds2[var].values)
 
             if arr1.size == arr2.size:
-                t, e, diff = compare_arrays(arr1, arr2, var)
+                t, e, diff = compare_arrays(arr1, arr2, var, tol)
 
                 if output:
                     write_lines(ds1, ds2, diff, path_name)
@@ -252,7 +267,7 @@ def compare_var_and_attr_ds(ds1, ds2, nl, output, location):
             arr1 = np.array(ds1.attrs[var], dtype=object)
             arr2 = np.array(ds2.attrs[var], dtype=object)
             if arr1.size == arr2.size:
-                t, e, diff = compare_arrays(arr1, arr2, var)
+                t, e, diff = compare_arrays(arr1, arr2, var, tol)
 
                 if output:
                     write_lines(ds1, ds2, diff, path_name)
