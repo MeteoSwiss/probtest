@@ -419,7 +419,7 @@ def test(sample_dataset_fof, tmp_path, sample_df_with_obs):
 
     fake_path = tmp_path / "sample_dataset_fof.nc"
     sample_dataset_fof.to_netcdf(fake_path)
-    f = parse_probtest_fof(fake_path)
+    _, f = parse_probtest_fof(fake_path)
 
     assert f.equals(sample_df_with_obs)
 
@@ -669,8 +669,8 @@ def test_check_stats(stats_dataframes):
 
 def test_check_fof(fof_datasets):
     ds1, ds2, tol_large, tol_small = fof_datasets
-    _, _, ds_veri1 = split_feedback_dataset(ds1)
-    _, _, ds_veri2 = split_feedback_dataset(ds2)
+    _, ds_veri1 = split_feedback_dataset(ds1)
+    _, ds_veri2 = split_feedback_dataset(ds2)
     df_veri1 = ds_veri1.to_dataframe().reset_index()
     df_veri2 = ds_veri2.to_dataframe().reset_index()
     _check(
@@ -712,8 +712,8 @@ def test_check_one_zero_fof(fof_datasets):
     ds1["veri_data"][2] = 0
     ds2_copy["veri_data"][2] = CHECK_THRESHOLD / 2
 
-    _, _, ds_veri1 = split_feedback_dataset(ds1)
-    _, _, ds_veri2 = split_feedback_dataset(ds2)
+    _, ds_veri1 = split_feedback_dataset(ds1)
+    _, ds_veri2 = split_feedback_dataset(ds2)
     df_veri1 = ds_veri1.to_dataframe().reset_index()
     df_veri2 = ds_veri2.to_dataframe().reset_index()
 
@@ -724,7 +724,7 @@ def test_check_one_zero_fof(fof_datasets):
 
     assert not out, f"Check with 0-value reference validated incorrectly:\n{err}"
 
-    _, _, ds_veri2_copy = split_feedback_dataset(ds2_copy)
+    _, ds_veri2_copy = split_feedback_dataset(ds2_copy)
     ds_veri2_copy = ds_veri2_copy.copy(deep=True)
     ds_veri2_copy["veri_data"][2] = CHECK_THRESHOLD / 2
     _check(
@@ -765,8 +765,8 @@ def test_check_smalls_fof(fof_datasets):
     ds1["veri_data"][2] = CHECK_THRESHOLD * 1e-5
     ds2["veri_data"][2] = -CHECK_THRESHOLD / 2
 
-    _, _, ds_veri1 = split_feedback_dataset(ds1)
-    _, _, ds_veri2 = split_feedback_dataset(ds2)
+    _, ds_veri1 = split_feedback_dataset(ds1)
+    _, ds_veri2 = split_feedback_dataset(ds2)
     df_veri1 = ds_veri1.to_dataframe().reset_index()
     df_veri2 = ds_veri2.to_dataframe().reset_index()
 
