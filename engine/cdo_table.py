@@ -170,14 +170,18 @@ def cdo_table(
                 varnames = [
                     v
                     for v in list(ref_data.keys())
-                    if "time" in ref_data.variables.get(v).dims
+                    if (var := ref_data.variables.get(v)) is not None
+                    and "time" in var.dims
                 ]
 
                 for v in varnames:
-                    diff_data.variables.get(v).values = compute_rel_diff(
-                        ref_data.variables.get(v).values,
-                        perturb_data.variables.get(v).values,
-                    )
+                    if (ref_var := ref_data.variables.get(v)) is not None and (
+                        pert_var := perturb_data.variables.get(v)
+                    ) is not None:
+                        diff_data.variables[v].values = compute_rel_diff(
+                            ref_var.values,
+                            pert_var.values,
+                        )
 
                 diff_data.to_netcdf(f"{tmpdir}/{rf}")
                 ref_data.close()

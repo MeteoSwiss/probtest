@@ -318,7 +318,7 @@ class FileInfo:
     """
 
     path: str
-    file_type: FileType = None
+    file_type: Optional[FileType] = None
 
     def __post_init__(self):
 
