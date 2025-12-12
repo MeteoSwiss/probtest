@@ -78,6 +78,7 @@ def fof_compare(
         t, e = compare_var_and_attr_ds(ds1, ds2, nl, output, location, tol)
         total_elements_all += t
         equal_elements_all += e
+        hh
 
     if total_elements_all > 0:
         percent_equal_all = (equal_elements_all / total_elements_all) * 100
