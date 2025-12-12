@@ -3,10 +3,85 @@ This module contains test cases to validate the functionality of member
 selection and tolerance testing CLI commands.
 """
 
+import logging
 import os
 import re
 
+import pytest
+
 from tests.helpers import run_select_members_cli, run_tolerance_cli
+
+
+def test_multiple_ensemble_files_error(stats_file_set, caplog):
+    caplog.set_level(logging.ERROR)
+
+    with pytest.raises(Exception):
+        run_select_members_cli(
+            stats_file_set["stats"] + ",extra_stats",
+            stats_file_set["members"],
+            tolerance_files=stats_file_set["tol"],
+        )
+
+    # Check that the log contains the error
+    assert any("ERROR" in record.message for record in caplog.records)
+
+
+def test_fof_ensemble_file_error(stats_file_set, caplog):
+    caplog.set_level(logging.ERROR)
+
+    with pytest.raises(Exception):
+        run_select_members_cli(
+            "fofDumy.nc",
+            stats_file_set["members"],
+            tolerance_files=stats_file_set["tol"],
+        )
+
+    # Check that the log contains the error
+    assert any("ERROR" in record.message for record in caplog.records)
+
+
+def test_multiple_tolerance_files_error(stats_file_set, caplog):
+    caplog.set_level(logging.ERROR)
+
+    with pytest.raises(Exception):
+        run_select_members_cli(
+            stats_file_set["stats"],
+            stats_file_set["members"],
+            tolerance_files=stats_file_set["tol"] + ",extra_stats",
+        )
+
+    # Check that the log contains the error
+    assert any("ERROR" in record.message for record in caplog.records)
+
+
+def test_fof_tolerance_file_error(stats_file_set, caplog):
+    caplog.set_level(logging.ERROR)
+
+    with pytest.raises(Exception):
+        run_select_members_cli(
+            stats_file_set["stats"],
+            stats_file_set["members"],
+            tolerance_files="fofDymmy.nc",
+        )
+
+    # Check that the log contains the error
+    assert any("ERROR" in record.message for record in caplog.records)
+
+
+def test_invalid_max_member_count_error(stats_file_set, caplog):
+    caplog.set_level(logging.ERROR)
+
+    with pytest.raises(Exception):
+        run_select_members_cli(
+            stats_file_set["stats"],
+            stats_file_set["members"],
+            tolerance_files=stats_file_set["tol"],
+            max_member_count=20,
+            total_member_count=15,
+        )
+
+    # Check that the log contains the error
+    assert any("ERROR" in record.message for record in caplog.records)
 
 
 def test_select_members(stats_file_set):
@@ -14,7 +89,7 @@ def test_select_members(stats_file_set):
     run_select_members_cli(
         stats_file_set["stats"],
         stats_file_set["members"],
-        stats_file_set["tol"],
+        tolerance_files=stats_file_set["tol"],
     )
 
     assert os.path.isfile(
@@ -31,7 +106,7 @@ def test_select_members_increase_factor(stats_file_set):
     run_select_members_cli(
         stats_file_set["stats"],
         stats_file_set["members"],
-        stats_file_set["tol"],
+        tolerance_files=stats_file_set["tol"],
         max_member_count=2,
         max_factor=1.0e5,
     )
@@ -52,7 +127,7 @@ def test_select_members_failure(stats_file_set, caplog):
     log = run_select_members_cli(
         stats_file_set["stats"],
         stats_file_set["members"],
-        stats_file_set["tol"],
+        tolerance_files=stats_file_set["tol"],
         max_member_count=1,
         min_factor=0.1,
         max_factor=1,
@@ -69,7 +144,7 @@ def test_tolerance(stats_file_set, caplog):
     log = run_select_members_cli(
         stats_file_set["stats"],
         stats_file_set["members"],
-        stats_file_set["tol"],
+        tolerance_files=stats_file_set["tol"],
         enable_check_only=True,
         log=caplog,
     )

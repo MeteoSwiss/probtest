@@ -134,3 +134,24 @@ repos:
           - "--max-line-length=88"
           - "--ignore=E203,W503,F811,I002"
           - "--max-complexity=12"
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        description: Type-check Python code, only for functions with type annotations
+        language: system
+        entry: mypy
+        pass_filenames: false
+        args:
+          - "-p"
+          - "engine"
+          - "-p"
+          - "tests"
+          - "-p"
+          - "util"
+          - "-p"
+          - "visualize"
+          - "--ignore-missing-imports"
+          - "--allow-untyped-defs"
+          - "--follow-imports=silent"
+          - "--strict-optional"

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "probtest"
-version = "2.0"
+version = "3.0"
 description = "Probtest is a suite of python scripts to test various aspects of weather and climate models. Even though it is mainly developed for the ICON model, it does not contain ICON-specific definitions in the source code but allows to model specifics in a configuration script."
 authors = ["SENC <senc@meteoswiss.ch>"]
 license = "BSD 3"
@@ -20,6 +20,13 @@ pathlib = ">=1.0.1"
 pandas = ">=2.2.3"
 regex = ">=2024.11.6"
 xarray = ">=2024.11.0"
+
+[tool.mypy]
+allow_untyped_defs = true
+ignore_missing_imports = true
+follow_imports = "silent"
+strict_optional = true
+packages = ["engine", "tests", "util", "visualize"]
 
 # Development tools: formatting, linting, IDE helpers
 [tool.poetry.group.dev.dependencies]
