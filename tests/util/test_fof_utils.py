@@ -123,14 +123,14 @@ def fixture_sample_dataset_veri(sample_dataset_fof):
     return ds_veri
 
 
-def test_split_report(ds1, ds_report, ds_obs, ds_veri):
+def test_split_report(ds1, ds_report, ds_obs):
     """
     Test that the dataset is correctly split into reports, observations
     and veri data according to their dimensions.
     """
-    reports, observations, veri_data = split_feedback_dataset(ds1)
+    reports, observations = split_feedback_dataset(ds1)
 
-    assert reports == ds_report and observations == ds_obs and veri_data == ds_veri
+    assert reports == ds_report and observations == ds_obs
 
 
 @pytest.fixture(name="arr1", scope="function")
@@ -164,8 +164,10 @@ def test_compare_array_equal(arr1, arr2, arr1_nan, arr2_nan):
     - they have the same content
     - they have nan values in the same positions
     """
-    total, equal, diff = compare_arrays(arr1, arr2, "var_name")
-    total_nan, equal_nan, diff_nan = compare_arrays(arr1_nan, arr2_nan, "var_name")
+    total, equal, diff = compare_arrays(arr1, arr2, "var_name", tol=1e-12)
+    total_nan, equal_nan, diff_nan = compare_arrays(
+        arr1_nan, arr2_nan, "var_name", tol=1e-12
+    )
 
     assert (total, equal, total_nan, equal_nan, diff.size, diff_nan.size) == (
         5,
@@ -181,7 +183,7 @@ def test_compare_array_diff(arr1, arr3):
     """
     Test that if I compare two different arrays I get the number of total and equal
     vales and the number of the position where values are different."""
-    total, equal, diff = compare_arrays(arr1, arr3, "var_name")
+    total, equal, diff = compare_arrays(arr1, arr3, "var_name", tol=1e-12)
 
     assert (total, equal, diff.tolist()) == (5, 3, [0, 3])
 
@@ -320,9 +322,11 @@ def test_compare_var_and_attr_ds(ds1, ds2, tmp_path):
     file_path = tmp_path / "differences.csv"
 
     total1, equal1 = compare_var_and_attr_ds(
-        ds1, ds2, nl=0, output=True, location=file_path
+        ds1, ds2, nl=0, output=True, location=file_path, tol=1e-12
     )
-    total2, equal2 = compare_var_and_attr_ds(ds1, ds2, nl=4, output=True, location=None)
+    total2, equal2 = compare_var_and_attr_ds(
+        ds1, ds2, nl=4, output=True, location=None, tol=1e-12
+    )
 
     assert (total1, equal1) == (104, 103)
     assert (total2, equal2) == (104, 103)

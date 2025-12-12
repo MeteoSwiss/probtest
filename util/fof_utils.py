@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-
+from util.constants import CHECK_THRESHOLD
 
 
 def get_report_variables(ds):
@@ -68,7 +68,6 @@ def split_feedback_dataset(ds):
     sort_keys_obs = ["lat", "lon", "statid", "varno", "level", "time_nomi"]
     ds_obs_sorted = ds_obs.sortby(sort_keys_obs)
 
-
     return ds_report_sorted, ds_obs_sorted
 
 
@@ -80,17 +79,20 @@ def compare_arrays(arr1, arr2, var_name, tol):
     total = arr1.size
 
     if var_name == "veri_data":
-        from util.dataframe_ops import compute_rel_diff_dataframe, check_variable
-        diff = compute_rel_diff_dataframe(pd.DataFrame(arr1), pd.DataFrame(arr2))
-        df_new = pd.DataFrame(pd.DataFrame({'tol':[tol]*diff.size}))
+        diff_rel = np.abs((arr1 - arr2) / (1.0 + np.abs(arr1)))
+        diff_rel_df = pd.DataFrame(diff_rel)
 
-        out, err, tol = check_variable(diff, df_new)
+        diff = diff_rel_df - tol
+
+        selector = (diff > CHECK_THRESHOLD).any(axis=1)
+
+        out = (~selector).all()
+        diff_err = diff.index[selector].to_numpy()
+
         if out:
-            return total,total, 0
-        else:
-            equal = total - len(err)
-            return total, equal, err
-
+            return total, total, np.array([])
+        equal = total - len(diff_err)
+        return total, equal, diff_err
 
     if np.array_equal(arr1, arr2):
         equal = total
@@ -112,8 +114,7 @@ def compare_arrays(arr1, arr2, var_name, tol):
             f"Differences in '{var_name}': {percent:.2f}% equal. "
             f"{total} total entries for this variable"
         )
-        diff_idx = np.where(~mask_equal.ravel())[0]
-        diff = diff_idx
+        diff = np.where(~mask_equal.ravel())[0]
 
     return total, equal, diff
 
@@ -221,7 +222,9 @@ def write_different_size(output, nl, path_name, var, sizes):
             )
 
 
-def compare_var_and_attr_ds(ds1, ds2, nl, output, location, tol):
+def compare_var_and_attr_ds(
+    ds1, ds2, nl, output, location, tol
+):  # pylint: disable=too-many-positional-arguments
     """
     Variable by variable and attribute by attribute,
     comparison of the two files.

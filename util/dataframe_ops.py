@@ -15,7 +15,7 @@ import xarray as xr
 
 from util.constants import CHECK_THRESHOLD, compute_statistics
 from util.file_system import file_names_from_pattern
-from util.fof_utils import split_feedback_dataset, compare_var_and_attr_ds
+from util.fof_utils import compare_var_and_attr_ds, split_feedback_dataset
 from util.log_handler import logger
 from util.model_output_parser import model_output_parser
 from util.utils import FileType
@@ -72,7 +72,9 @@ def parse_probtest_stats(path, index_col=None):
 def parse_probtest_fof(path):
     ds = xr.open_dataset(path)
     ds_report, ds_veri = split_feedback_dataset(ds)
-    df_report, df_veri = (pd.DataFrame(d.to_dataframe().reset_index()) for d in (ds_report, ds_veri))
+    df_report, df_veri = (
+        pd.DataFrame(d.to_dataframe().reset_index()) for d in (ds_report, ds_veri)
+    )
 
     return df_report, df_veri
 
@@ -331,7 +333,13 @@ def check_file_with_tolerances(
         errors = multiple_solutions_from_dict(df_ref, df_cur, rules)
 
         if errors:
-            logger.error("RESULT: check FAILED")
+            logger.error("RESULT: check FAILED due to rules")
+            sys.exit(1)
+
+        errors = check_reports_observations(df_ref, df_cur)
+
+        if errors:
+            logger.error("RESULT: check FAILED due to reports or observations")
             sys.exit(1)
 
     else:
@@ -410,17 +418,6 @@ def multiple_solutions_from_dict(df_ref, df_cur, rules):
     ]
     errors = []
 
-    for key in df_ref.keys():
-        ref_df = df_ref[key]
-        cur_df = df_cur[key]
-
-        ref_df = ref_df.to_xarray()
-        cur_df = cur_df.to_xarray()
-
-        t, e = compare_var_and_attr_ds(ref_df, cur_df, nl=5, output=False, location=None)
-        if t != e:
-            return errors == 1
-
     if cols_present:
         for i in range(len(df_ref)):
             row1 = df_ref.iloc[i]
@@ -456,3 +453,24 @@ def multiple_solutions_from_dict(df_ref, df_cur, rules):
             return errors
 
         return []
+
+
+def check_reports_observations(df_ref, df_cur):
+    """
+    This function compares two DataFrames row by row and column by column
+    and check that the reports and observations are the same.
+    """
+
+    errors = []
+    for key in df_ref.keys():
+        ref_df = df_ref[key]
+        cur_df = df_cur[key]
+
+        ref_df = ref_df.to_xarray()
+        cur_df = cur_df.to_xarray()
+
+        t, e = compare_var_and_attr_ds(
+            ref_df, cur_df, nl=0, output=False, location=None, tol=0
+        )
+        if t != e:
+            return errors == 1
