@@ -123,14 +123,14 @@ def fixture_sample_dataset_veri(sample_dataset_fof):
     return ds_veri
 
 
-def test_split_report(ds1, ds_report, ds_obs, ds_veri):
+def test_split_report(ds1, ds_report, ds_obs):
     """
     Test that the dataset is correctly split into reports, observations
     and veri data according to their dimensions.
     """
-    reports, observations, veri_data = split_feedback_dataset(ds1)
+    reports, observations = split_feedback_dataset(ds1)
 
-    assert reports == ds_report and observations == ds_obs and veri_data == ds_veri
+    assert reports == ds_report and observations == ds_obs
 
 
 @pytest.fixture(name="arr1", scope="function")

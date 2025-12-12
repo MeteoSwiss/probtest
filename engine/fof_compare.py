@@ -46,12 +46,8 @@ from util.fof_utils import (
     default=None,
     help="If specified, location where to save the CSV file with the differences.",
 )
-@click.option(
-    "--tol",
-    default=10e-12,
-)
 def fof_compare(
-    file1, file2, print_lines, lines, output, location, tol
+    file1, file2, print_lines, lines, output, location
 ):  # pylint: disable=too-many-positional-arguments
 
     if not primary_check(file1, file2):
@@ -75,7 +71,7 @@ def fof_compare(
         (ds_reports1_sorted, ds_reports2_sorted),
         (ds_obs1_sorted, ds_obs2_sorted),
     ]:
-        t, e = compare_var_and_attr_ds(ds1, ds2, nl, output, location, tol)
+        t, e = compare_var_and_attr_ds(ds1, ds2, nl, output, location)
         total_elements_all += t
         equal_elements_all += e
 
