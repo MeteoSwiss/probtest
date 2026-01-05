@@ -70,13 +70,19 @@ def parse_probtest_stats(path, index_col=None):
 
 
 def parse_probtest_fof(path):
+    """
+    This function opens the dataset located at the path, divides it according to
+    the criteria defined in split_feedback_dataset. It converts ds_report and ds_obs
+    into two pandas DataFrames with the index reset and assigns them to df_report
+    and df_obs respectively.
+    """
     ds = xr.open_dataset(path)
-    ds_report, ds_veri = split_feedback_dataset(ds)
-    df_report, df_veri = (
-        pd.DataFrame(d.to_dataframe().reset_index()) for d in (ds_report, ds_veri)
+    ds_report, ds_obs = split_feedback_dataset(ds)
+    df_report, df_obs = (
+        pd.DataFrame(d.to_dataframe().reset_index()) for d in (ds_report, ds_obs)
     )
 
-    return df_report, df_veri
+    return df_report, df_obs
 
 
 def read_input_file(label, file_name, specification):
@@ -323,12 +329,12 @@ def check_file_with_tolerances(
         ds_tol = pd.read_csv(tolerance_file_name, index_col=0)
         df_tol = ds_tol * factor
 
-        df_ref_rep, df_ref_veri = parse_probtest_fof(input_file_ref.path)
+        df_ref_rep, df_ref_obs = parse_probtest_fof(input_file_ref.path)
 
-        df_cur_rep, df_cur_veri = parse_probtest_fof(input_file_cur.path)
+        df_cur_rep, df_cur_obs = parse_probtest_fof(input_file_cur.path)
 
-        df_ref = {"reports": df_ref_rep, "observation": df_ref_veri}
-        df_cur = {"reports": df_cur_rep, "observation": df_cur_veri}
+        df_ref = {"reports": df_ref_rep, "observation": df_ref_obs}
+        df_cur = {"reports": df_cur_rep, "observation": df_cur_obs}
 
         errors = multiple_solutions_from_dict(df_ref, df_cur, rules)
 
@@ -405,10 +411,13 @@ def multiple_solutions_from_dict(df_ref, df_cur, rules):
     else:
         rules_dict = {}
 
+    first_ref = next(iter(df_ref.values()))
+    first_cur = next(iter(df_cur.values()))
+
     cols_present = [
         col
         for col in rules_dict.keys()
-        if col in df_ref.columns and col in df_cur.columns
+        if col in first_ref.columns and col in first_cur.columns
     ]
     errors = []
 
@@ -426,25 +435,29 @@ def multiple_solutions_from_dict(df_ref, df_cur, rules):
             return errors == 1
 
     if cols_present:
-        for i in range(len(df_ref)):
-            row1 = df_ref.iloc[i]
-            row2 = df_cur.iloc[i]
+        for key in df_ref.keys():
+            ref_df = df_ref[key]
+            cur_df = df_cur[key]
 
-            for col in cols_present:
-                val1 = row1[col]
-                val2 = row2[col]
+            for i in range(len(ref_df)):
+                row1 = ref_df.iloc[i]
+                row2 = cur_df.iloc[i]
 
-                if val1 != val2:
-                    if val1 not in rules_dict[col] or val2 not in rules_dict[col]:
-                        errors.append(
-                            {
-                                "row": i,
-                                "column": col,
-                                "file1": val1,
-                                "file2": val2,
-                                "error": "values different and not admitted",
-                            }
-                        )
+                for col in cols_present:
+                    val1 = row1[col]
+                    val2 = row2[col]
+
+                    if val1 != val2:
+                        if val1 not in rules_dict[col] or val2 not in rules_dict[col]:
+                            errors.append(
+                                {
+                                    "row": i,
+                                    "column": col,
+                                    "file1": val1,
+                                    "file2": val2,
+                                    "error": "values different and not admitted",
+                                }
+                            )
 
         if errors:
             logger.error("Errors found while comparing the files:")
