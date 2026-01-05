@@ -395,6 +395,42 @@ file_name_parser = {
 }
 
 
+def parse_rules(rules):
+    if isinstance(rules, str):
+        rules = rules.strip()
+        return ast.literal_eval(rules) if rules else {}
+    if isinstance(rules, dict):
+        return rules
+    return {}
+
+
+def compare_cells(ref_df, cur_df, cols_present, rules_dict):
+    errors = []
+    for i in range(len(ref_df)):
+        row1 = ref_df.iloc[i]
+        row2 = cur_df.iloc[i]
+
+        for col in cols_present:
+            val1 = row1[col]
+            val2 = row2[col]
+
+            if val1 == val2:
+                continue
+            if val1 in rules_dict[col] and val2 in rules_dict[col]:
+                continue
+
+            errors.append(
+                {
+                    "row": i,
+                    "column": col,
+                    "file1": val1,
+                    "file2": val2,
+                    "error": "values different and not admitted",
+                }
+            )
+    return errors
+
+
 def multiple_solutions_from_dict(df_ref, df_cur, rules):
     """
     This function compares two DataFrames row by row and column by column according to
@@ -403,13 +439,7 @@ def multiple_solutions_from_dict(df_ref, df_cur, rules):
     It returns a list of errors.
     """
 
-    if isinstance(rules, str):
-        rules = rules.strip()
-        rules_dict = ast.literal_eval(rules) if rules else {}
-    elif isinstance(rules, dict):
-        rules_dict = rules
-    else:
-        rules_dict = {}
+    rules_dict = parse_rules(rules)
 
     first_ref = next(iter(df_ref.values()))
     first_cur = next(iter(df_cur.values()))
@@ -438,38 +468,17 @@ def multiple_solutions_from_dict(df_ref, df_cur, rules):
         for key in df_ref.keys():
             ref_df = df_ref[key]
             cur_df = df_cur[key]
+            errors.extend(compare_cells(ref_df, cur_df, cols_present, rules_dict))
 
-            for i in range(len(ref_df)):
-                row1 = ref_df.iloc[i]
-                row2 = cur_df.iloc[i]
-
-                for col in cols_present:
-                    val1 = row1[col]
-                    val2 = row2[col]
-
-                    if val1 != val2:
-                        if val1 not in rules_dict[col] or val2 not in rules_dict[col]:
-                            errors.append(
-                                {
-                                    "row": i,
-                                    "column": col,
-                                    "file1": val1,
-                                    "file2": val2,
-                                    "error": "values different and not admitted",
-                                }
-                            )
-
-        if errors:
-            logger.error("Errors found while comparing the files:")
-            for e in errors:
-                logger.error(
-                    "Row %s - Column '%s': file1=%s, file2=%s → %s",
-                    e["row"],
-                    e["column"],
-                    e["file1"],
-                    e["file2"],
-                    e["error"],
-                )
-            return errors
-
-        return []
+    if errors:
+        logger.error("Errors found while comparing the files:")
+        for e in errors:
+            logger.error(
+                "Row %s - Column '%s': file1=%s, file2=%s → %s",
+                e["row"],
+                e["column"],
+                e["file1"],
+                e["file2"],
+                e["error"],
+            )
+    return errors

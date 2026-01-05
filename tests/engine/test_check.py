@@ -147,10 +147,7 @@ def test_check_cli_fof(fof_datasets):
     """
 
     df1, df2, tol_large, tol_small = fof_datasets
-    rules = {
-        "check": [13, 18, 32],
-        "state": [1, 5, 7, 9]
-    }
+    rules = {"check": [13, 18, 32], "state": [1, 5, 7, 9]}
 
     runner = CliRunner()
     result = runner.invoke(
