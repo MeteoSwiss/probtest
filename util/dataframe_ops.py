@@ -330,7 +330,6 @@ def check_file_with_tolerances(
         df_tol = ds_tol * factor
 
         df_ref_rep, df_ref_obs = parse_probtest_fof(input_file_ref.path)
-
         df_cur_rep, df_cur_obs = parse_probtest_fof(input_file_cur.path)
 
         df_ref = {"reports": df_ref_rep, "observation": df_ref_obs}
@@ -405,6 +404,12 @@ def parse_rules(rules):
 
 
 def compare_cells(ref_df, cur_df, cols_present, rules_dict):
+    """
+    This function compares two DataFrames cell by cell for a selected set of columns.
+    For each row and column, it ignores values that are equal or whose differences
+    are allowed by predefined rules.
+    All other differences are collected and returned as a list of error descriptions.
+    """
     errors = []
     for i in range(len(ref_df)):
         row1 = ref_df.iloc[i]
@@ -431,43 +436,45 @@ def compare_cells(ref_df, cur_df, cols_present, rules_dict):
     return errors
 
 
-def multiple_solutions_from_dict(df_ref, df_cur, rules):
+def multiple_solutions_from_dict(dict_ref, dict_cur, rules):
     """
-    This function compares two DataFrames row by row and column by column according to
-    rules defined in a dictionary (rules). If the corresponding cells are different and
-    the values are not allowed by the rules, it records an error.
-    It returns a list of errors.
+    This function compares two Python dictionaries—each containing DataFrames under
+    the keys "reports" and "observation"—row by row and column by column, according
+    to rules defined in a separate dictionary. If the corresponding cells are
+    different and the values are not allowed by the rules, it records an error.
+    It returns a list indicating the row, the column and which values are wrong.
     """
 
     rules_dict = parse_rules(rules)
-
-    first_ref = next(iter(df_ref.values()))
-    first_cur = next(iter(df_cur.values()))
-
-    cols_present = [
-        col
-        for col in rules_dict.keys()
-        if col in first_ref.columns and col in first_cur.columns
-    ]
     errors = []
 
-    for key in df_ref.keys():
-        ref_df = df_ref[key]
-        cur_df = df_cur[key]
+    for key in dict_ref.keys():
+        ref_df = dict_ref[key]
+        cur_df = dict_cur[key]
 
-        ref_df = ref_df.to_xarray()
-        cur_df = cur_df.to_xarray()
+        cols_present = [
+            col
+            for col in rules_dict.keys()
+            if col in ref_df.columns and col in cur_df.columns
+        ]
 
-        t, e = compare_var_and_attr_ds(
-            ref_df, cur_df, nl=5, output=False, location=None
-        )
-        if t != e:
-            return errors == 1
+        cols_other = [
+            col
+            for col in ref_df.columns
+            if col not in cols_present and col in cur_df.columns
+        ]
 
-    if cols_present:
-        for key in df_ref.keys():
-            ref_df = df_ref[key]
-            cur_df = df_cur[key]
+        if cols_other:
+            ref_df_xr = ref_df[cols_other].to_xarray()
+            cur_df_xr = cur_df[cols_other].to_xarray()
+
+            t, e = compare_var_and_attr_ds(
+                ref_df_xr, cur_df_xr, nl=5, output=False, location=None
+            )
+            if t != e:
+                return errors == 1
+
+        if cols_present:
             errors.extend(compare_cells(ref_df, cur_df, cols_present, rules_dict))
 
     if errors:

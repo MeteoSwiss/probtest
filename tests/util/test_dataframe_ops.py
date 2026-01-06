@@ -19,6 +19,7 @@ from util.dataframe_ops import (
     df_from_file_ids,
     force_monotonic,
     has_enough_data,
+    multiple_solutions_from_dict,
     parse_check,
     parse_probtest_fof,
     parse_probtest_stats,
@@ -415,13 +416,34 @@ def fixture_sample_df_with_obs():
     return df
 
 
-def test(sample_dataset_fof, tmp_path, sample_df_with_obs):
+@pytest.fixture(name="sample_df_with_rep", scope="function")
+def fixture_sample_df_with_rep():
+    df = pd.DataFrame(
+        {
+            "d_hdr": [0, 2, 1, 3, 4],
+            "lat": [1, 2, 3, 4, 5],
+            "lon": [5, 7, 9, 8, 3],
+            "statid": ["a", "c", "b", "d", "e"],
+            "time_nomi": [0, 0, 30, 30, 60],
+            "codetype": [5, 5, 5, 5, 5],
+            "l_body": [1, 1, 1, 1, 2],
+            "i_body": [1, 3, 2, 4, 5],
+        }
+    )
+
+    return df
+
+
+def test_parse_probtest_fof(
+    sample_dataset_fof, tmp_path, sample_df_with_obs, sample_df_with_rep
+):
 
     fake_path = tmp_path / "sample_dataset_fof.nc"
     sample_dataset_fof.to_netcdf(fake_path)
-    _, f = parse_probtest_fof(fake_path)
+    df_rep, df_obs = parse_probtest_fof(fake_path)
 
-    assert f.equals(sample_df_with_obs)
+    assert df_rep.equals(sample_df_with_rep)
+    assert df_obs.equals(sample_df_with_obs)
 
 
 @pytest.fixture(name="ds_no_intersection", scope="function")
@@ -667,7 +689,7 @@ def test_check_stats(stats_dataframes):
     _check(df1, df2, tol_large, tol_small, file_type="stats")
 
 
-def test_check_fof(fof_datasets):
+def test_check_fof_with_tol(fof_datasets):
     ds1, ds2, tol_large, tol_small = fof_datasets
     _, ds_veri1 = split_feedback_dataset(ds1)
     _, ds_veri2 = split_feedback_dataset(ds2)
@@ -777,3 +799,68 @@ def test_check_smalls_fof(fof_datasets):
         tol_small,
         file_type="fof",
     )
+
+
+@pytest.fixture(name="dataframes_dict", scope="function")
+def sample_dataframes_dict():
+    """
+    Returns a dictionary containing two simple DataFrames:
+    - 'reports': example report data
+    - 'observation': example observation data
+    """
+
+    df_reports = pd.DataFrame(
+        {"lat": [40, 41, 42], "value": [10, 20, 30], "r_check": [1, 1, 1]}
+    )
+
+    df_observation = pd.DataFrame(
+        {"id": [1, 2, 3], "check": [9, 9, 9], "state": [13, 13, 13]}
+    )
+
+    df_dict = {"reports": df_reports, "observation": df_observation}
+
+    return df_dict
+
+
+def test_multiple_solutions_from_dict_no_rules(dataframes_dict):
+
+    dict_ref = dataframes_dict
+    dict_cur = {key: df.copy() for key, df in dict_ref.items()}
+    rules = ""
+
+    errors = multiple_solutions_from_dict(dict_ref, dict_cur, rules)
+    assert errors == []
+
+
+def test_multiple_solutions_from_dict_with_rules(dataframes_dict):
+    dict_ref = dataframes_dict
+    dict_cur = {key: df.copy() for key, df in dict_ref.items()}
+    dict_cur["observation"].loc[1, "check"] = 1
+    dict_cur["observation"].loc[1, "state"] = 14
+
+    rules = {"check": [9, 1], "state": [13, 14]}
+
+    errors = multiple_solutions_from_dict(dict_ref, dict_cur, rules)
+    assert errors == []
+
+
+def test_multiple_solutions_from_dict_with_rules_wrong(dataframes_dict):
+    dict_ref = dataframes_dict
+    dict_cur = {key: df.copy() for key, df in dict_ref.items()}
+    dict_cur["observation"].loc[1, "check"] = 6
+    dict_cur["observation"].loc[1, "state"] = 14
+
+    rules = {"check": [9, 1], "state": [13, 14]}
+
+    errors = multiple_solutions_from_dict(dict_ref, dict_cur, rules)
+
+    expected = [
+        {
+            "row": 1,
+            "column": "check",
+            "file1": np.int64(9),
+            "file2": np.int64(6),
+            "error": "values different and not admitted",
+        }
+    ]
+    assert errors == expected
