@@ -335,11 +335,11 @@ def check_file_with_tolerances(
         )
         sys.exit(1)
 
-    if input_file_ref.file_type == FileType.FOF:
-        df_tol, df_ref, df_cur = parse_check(
-            tolerance_file_name, input_file_ref, input_file_cur, factor
-        )
+    df_tol, df_ref, df_cur = parse_check(
+        tolerance_file_name, input_file_ref, input_file_cur, factor
+    )
 
+    if input_file_ref.file_type == FileType.FOF:
         errors = check_multiple_solutions_from_dict(df_ref, df_cur, rules)
 
         if errors:
@@ -347,9 +347,6 @@ def check_file_with_tolerances(
             sys.exit(1)
 
     else:
-        df_tol, df_ref, df_cur = parse_check(
-            tolerance_file_name, input_file_ref, input_file_cur, factor
-        )
         # check if variables are available in reference file
         skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
 
