@@ -284,25 +284,35 @@ def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
 
     Args:
         tolerance_file_name (str): Path to the CSV file containing tolerance values.
-        input_file_ref (str): Path to the reference input CSV file.
-        input_file_cur (str): Path to the current input CSV file.
+        input_file_ref (str): Path to the reference input CSV (stats)
+                              or NETCDF (fof) file.
+        input_file_cur (str): Path to the current input CSV (stats)
+                              or NETCDF (fof) file.
         factor (float): Scaling factor to be applied to the tolerance values.
 
     Returns:
         tuple: A tuple containing three DataFrames:
             - df_tol (pandas.DataFrame): The tolerance DataFrame with values
                                          scaled by the provided factor.
-            - df_ref (pandas.DataFrame): The reference DataFrame parsed from the
-                                         reference input file.
-            - df_cur (pandas.DataFrame): The current DataFrame parsed from the
-                                         current input file.
+            - df_ref (pandas.DataFrame | dict): Reference data (DataFrame for stats
+                                                files, dict of DataFrames for
+                                                fof files).
+            - df_cur (pandas.DataFrame | dict): Current data (DataFrame for stats files,
+                                                dict of DataFrames for fof files).
     """
-    df_tol = parse_probtest_stats(tolerance_file_name, index_col=[0, 1])
+    if input_file_ref.file_type == FileType.FOF:
+        df_tol = pd.read_csv(tolerance_file_name, index_col=0)
+        df_ref_rep, df_ref_obs = parse_probtest_fof(input_file_ref.path)
+        df_cur_rep, df_cur_obs = parse_probtest_fof(input_file_cur.path)
+
+        df_ref = {"reports": df_ref_rep, "observation": df_ref_obs}
+        df_cur = {"reports": df_cur_rep, "observation": df_cur_obs}
+    else:
+        df_tol = parse_probtest_stats(tolerance_file_name, index_col=[0, 1])
+        df_ref = parse_probtest_stats(input_file_ref.path, index_col=[0, 1, 2])
+        df_cur = parse_probtest_stats(input_file_cur.path, index_col=[0, 1, 2])
 
     df_tol *= factor
-
-    df_ref = parse_probtest_stats(input_file_ref, index_col=[0, 1, 2])
-    df_cur = parse_probtest_stats(input_file_cur, index_col=[0, 1, 2])
 
     return df_tol, df_ref, df_cur
 
@@ -326,16 +336,11 @@ def check_file_with_tolerances(
         sys.exit(1)
 
     if input_file_ref.file_type == FileType.FOF:
-        ds_tol = pd.read_csv(tolerance_file_name, index_col=0)
-        df_tol = ds_tol * factor
+        df_tol, df_ref, df_cur = parse_check(
+            tolerance_file_name, input_file_ref, input_file_cur, factor
+        )
 
-        df_ref_rep, df_ref_obs = parse_probtest_fof(input_file_ref.path)
-        df_cur_rep, df_cur_obs = parse_probtest_fof(input_file_cur.path)
-
-        df_ref = {"reports": df_ref_rep, "observation": df_ref_obs}
-        df_cur = {"reports": df_cur_rep, "observation": df_cur_obs}
-
-        errors = multiple_solutions_from_dict(df_ref, df_cur, rules)
+        errors = check_multiple_solutions_from_dict(df_ref, df_cur, rules)
 
         if errors:
             logger.error("RESULT: check FAILED")
@@ -343,7 +348,7 @@ def check_file_with_tolerances(
 
     else:
         df_tol, df_ref, df_cur = parse_check(
-            tolerance_file_name, input_file_ref.path, input_file_cur.path, factor
+            tolerance_file_name, input_file_ref, input_file_cur, factor
         )
         # check if variables are available in reference file
         skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
@@ -436,7 +441,7 @@ def compare_cells(ref_df, cur_df, cols_present, rules_dict):
     return errors
 
 
-def multiple_solutions_from_dict(dict_ref, dict_cur, rules):
+def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules):
     """
     This function compares two Python dictionaries—each containing DataFrames under
     the keys "reports" and "observation"—row by row and column by column, according

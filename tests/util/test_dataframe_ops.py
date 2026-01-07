@@ -2,6 +2,7 @@
 This module contains unit tests for the `dataframe_ops.py` module.
 """
 
+from dataclasses import dataclass
 from pathlib import Path
 from unittest.mock import patch
 
@@ -13,13 +14,13 @@ import xarray as xr
 from util.constants import CHECK_THRESHOLD
 from util.dataframe_ops import (
     check_intersection,
+    check_multiple_solutions_from_dict,
     check_variable,
     compute_division,
     compute_rel_diff_dataframe,
     df_from_file_ids,
     force_monotonic,
     has_enough_data,
-    multiple_solutions_from_dict,
     parse_check,
     parse_probtest_fof,
     parse_probtest_stats,
@@ -27,6 +28,7 @@ from util.dataframe_ops import (
     split_feedback_dataset,
     unify_time_index,
 )
+from util.utils import FileType
 
 
 @pytest.fixture(name="_tmp_netcdf_files", scope="function")
@@ -148,6 +150,23 @@ def test_read_input_file(tmp_dir):
         assert e.value.code == 1
 
 
+@dataclass
+class WithPath:
+    """
+    Wrapper for a file path with optional metadata such as file type.
+    """
+
+    path: Path
+    file_type: str = None
+
+    def __init__(self, path, file_type=None):
+        self.path = Path(path)
+        self.file_type = file_type
+
+    def __repr__(self):
+        return f"WithPath(path={self.path}, " f"file_type={self.file_type})"
+
+
 @patch("util.dataframe_ops.parse_probtest_stats")
 def test_parse_check(mock_parse_probtest_stats, setup_csv_files):
     # Mock the return value of parse_probtest_stats
@@ -156,7 +175,12 @@ def test_parse_check(mock_parse_probtest_stats, setup_csv_files):
     )
 
     factor = 2.0
-
+    setup_csv_files["ref_file"] = WithPath(
+        setup_csv_files["ref_file"], file_type=FileType.STATS
+    )
+    setup_csv_files["cur_file"] = WithPath(
+        setup_csv_files["cur_file"], file_type=FileType.STATS
+    )
     df_tol, df_ref, df_cur = parse_check(
         setup_csv_files["tolerance_file"],
         setup_csv_files["ref_file"],
@@ -828,7 +852,7 @@ def test_multiple_solutions_from_dict_no_rules(dataframes_dict):
     dict_cur = {key: df.copy() for key, df in dict_ref.items()}
     rules = ""
 
-    errors = multiple_solutions_from_dict(dict_ref, dict_cur, rules)
+    errors = check_multiple_solutions_from_dict(dict_ref, dict_cur, rules)
     assert errors == []
 
 
@@ -840,7 +864,7 @@ def test_multiple_solutions_from_dict_with_rules(dataframes_dict):
 
     rules = {"check": [9, 1], "state": [13, 14]}
 
-    errors = multiple_solutions_from_dict(dict_ref, dict_cur, rules)
+    errors = check_multiple_solutions_from_dict(dict_ref, dict_cur, rules)
     assert errors == []
 
 
@@ -852,7 +876,7 @@ def test_multiple_solutions_from_dict_with_rules_wrong(dataframes_dict):
 
     rules = {"check": [9, 1], "state": [13, 14]}
 
-    errors = multiple_solutions_from_dict(dict_ref, dict_cur, rules)
+    errors = check_multiple_solutions_from_dict(dict_ref, dict_cur, rules)
 
     expected = [
         {
