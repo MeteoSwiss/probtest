@@ -4,13 +4,13 @@ This module contains unit tests for the `dataframe_ops.py` module.
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from typing import Optional
 
 from util.constants import CHECK_THRESHOLD
 from util.dataframe_ops import (
