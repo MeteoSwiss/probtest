@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+from typing import Optional
 
 from util.constants import CHECK_THRESHOLD
 from util.dataframe_ops import (
@@ -157,7 +158,7 @@ class WithPath:
     """
 
     path: Path
-    file_type: str = None
+    file_type: Optional[FileType] = None
 
     def __init__(self, path, file_type=None):
         self.path = Path(path)
