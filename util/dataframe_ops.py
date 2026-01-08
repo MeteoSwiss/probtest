@@ -471,7 +471,7 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules):
             cur_df_xr = cur_df[cols_other].to_xarray()
 
             t, e = compare_var_and_attr_ds(
-                ref_df_xr, cur_df_xr, nl=5, output=False, location=None
+                ref_df_xr, cur_df_xr, nl=5, output=False, location=None, tol=0
             )
             if t != e:
                 return errors == 1
