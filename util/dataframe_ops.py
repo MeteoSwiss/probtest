@@ -70,13 +70,19 @@ def parse_probtest_stats(path, index_col=None):
 
 
 def parse_probtest_fof(path):
+    """
+    This function opens the dataset located at the path, divides it according to
+    the criteria defined in split_feedback_dataset. It converts ds_report and ds_obs
+    into two pandas DataFrames with the index reset and assigns them to df_report
+    and df_obs respectively.
+    """
     ds = xr.open_dataset(path)
-    ds_report, ds_veri = split_feedback_dataset(ds)
-    df_report, df_veri = (
-        pd.DataFrame(d.to_dataframe().reset_index()) for d in (ds_report, ds_veri)
+    ds_report, ds_obs = split_feedback_dataset(ds)
+    df_report, df_obs = (
+        pd.DataFrame(d.to_dataframe().reset_index()) for d in (ds_report, ds_obs)
     )
 
-    return df_report, df_veri
+    return df_report, df_obs
 
 
 def read_input_file(label, file_name, specification):
@@ -278,25 +284,35 @@ def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
 
     Args:
         tolerance_file_name (str): Path to the CSV file containing tolerance values.
-        input_file_ref (str): Path to the reference input CSV file.
-        input_file_cur (str): Path to the current input CSV file.
+        input_file_ref (str): Path to the reference input CSV (stats)
+                              or NETCDF (fof) file.
+        input_file_cur (str): Path to the current input CSV (stats)
+                              or NETCDF (fof) file.
         factor (float): Scaling factor to be applied to the tolerance values.
 
     Returns:
         tuple: A tuple containing three DataFrames:
             - df_tol (pandas.DataFrame): The tolerance DataFrame with values
                                          scaled by the provided factor.
-            - df_ref (pandas.DataFrame): The reference DataFrame parsed from the
-                                         reference input file.
-            - df_cur (pandas.DataFrame): The current DataFrame parsed from the
-                                         current input file.
+            - df_ref (pandas.DataFrame | dict): Reference data (DataFrame for stats
+                                                files, dict of DataFrames for
+                                                fof files).
+            - df_cur (pandas.DataFrame | dict): Current data (DataFrame for stats files,
+                                                dict of DataFrames for fof files).
     """
-    df_tol = parse_probtest_stats(tolerance_file_name, index_col=[0, 1])
+    if input_file_ref.file_type == FileType.FOF:
+        df_tol = pd.read_csv(tolerance_file_name, index_col=0)
+        df_ref_rep, df_ref_obs = parse_probtest_fof(input_file_ref.path)
+        df_cur_rep, df_cur_obs = parse_probtest_fof(input_file_cur.path)
+
+        df_ref = {"reports": df_ref_rep, "observation": df_ref_obs}
+        df_cur = {"reports": df_cur_rep, "observation": df_cur_obs}
+    else:
+        df_tol = parse_probtest_stats(tolerance_file_name, index_col=[0, 1])
+        df_ref = parse_probtest_stats(input_file_ref.path, index_col=[0, 1, 2])
+        df_cur = parse_probtest_stats(input_file_cur.path, index_col=[0, 1, 2])
 
     df_tol *= factor
-
-    df_ref = parse_probtest_stats(input_file_ref, index_col=[0, 1, 2])
-    df_cur = parse_probtest_stats(input_file_cur, index_col=[0, 1, 2])
 
     return df_tol, df_ref, df_cur
 
@@ -319,33 +335,18 @@ def check_file_with_tolerances(
         )
         sys.exit(1)
 
+    df_tol, df_ref, df_cur = parse_check(
+        tolerance_file_name, input_file_ref, input_file_cur, factor
+    )
+
     if input_file_ref.file_type == FileType.FOF:
-        ds_tol = pd.read_csv(tolerance_file_name, index_col=0)
-        df_tol = ds_tol * factor
-
-        df_ref_rep, df_ref_veri = parse_probtest_fof(input_file_ref.path)
-
-        df_cur_rep, df_cur_veri = parse_probtest_fof(input_file_cur.path)
-
-        df_ref = {"reports": df_ref_rep, "observation": df_ref_veri}
-        df_cur = {"reports": df_cur_rep, "observation": df_cur_veri}
-
-        errors = multiple_solutions_from_dict(df_ref, df_cur, rules)
+        errors = check_multiple_solutions_from_dict(df_ref, df_cur, rules)
 
         if errors:
-            logger.error("RESULT: check FAILED due to rules")
-            sys.exit(1)
-
-        errors = check_reports_observations(df_ref, df_cur)
-
-        if errors:
-            logger.error("RESULT: check FAILED due to reports or observations")
+            logger.error("RESULT: check FAILED")
             sys.exit(1)
 
     else:
-        df_tol, df_ref, df_cur = parse_check(
-            tolerance_file_name, input_file_ref.path, input_file_cur.path, factor
-        )
         # check if variables are available in reference file
         skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
 
@@ -395,82 +396,98 @@ file_name_parser = {
 }
 
 
-def multiple_solutions_from_dict(df_ref, df_cur, rules):
-    """
-    This function compares two DataFrames row by row and column by column according to
-    rules defined in a dictionary (rules). If the corresponding cells are different and
-    the values are not allowed by the rules, it records an error.
-    It returns a list of errors.
-    """
-
+def parse_rules(rules):
     if isinstance(rules, str):
         rules = rules.strip()
-        rules_dict = ast.literal_eval(rules) if rules else {}
-    elif isinstance(rules, dict):
-        rules_dict = rules
-    else:
-        rules_dict = {}
-
-    cols_present = [
-        col
-        for col in rules_dict.keys()
-        if col in df_ref.columns and col in df_cur.columns
-    ]
-    errors = []
-
-    if cols_present:
-        for i in range(len(df_ref)):
-            row1 = df_ref.iloc[i]
-            row2 = df_cur.iloc[i]
-
-            for col in cols_present:
-                val1 = row1[col]
-                val2 = row2[col]
-
-                if val1 != val2:
-                    if val1 not in rules_dict[col] or val2 not in rules_dict[col]:
-                        errors.append(
-                            {
-                                "row": i,
-                                "column": col,
-                                "file1": val1,
-                                "file2": val2,
-                                "error": "values different and not admitted",
-                            }
-                        )
-
-        if errors:
-            logger.error("Errors found while comparing the files:")
-            for e in errors:
-                logger.error(
-                    "Row %s - Column '%s': file1=%s, file2=%s → %s",
-                    e["row"],
-                    e["column"],
-                    e["file1"],
-                    e["file2"],
-                    e["error"],
-                )
-            return errors
-
-        return []
+        return ast.literal_eval(rules) if rules else {}
+    if isinstance(rules, dict):
+        return rules
+    return {}
 
 
-def check_reports_observations(df_ref, df_cur):
+def compare_cells(ref_df, cur_df, cols_present, rules_dict):
     """
-    This function compares two DataFrames row by row and column by column
-    and check that the reports and observations are the same.
+    This function compares two DataFrames cell by cell for a selected set of columns.
+    For each row and column, it ignores values that are equal or whose differences
+    are allowed by predefined rules.
+    All other differences are collected and returned as a list of error descriptions.
+    """
+    errors = []
+    for i in range(len(ref_df)):
+        row1 = ref_df.iloc[i]
+        row2 = cur_df.iloc[i]
+
+        for col in cols_present:
+            val1 = row1[col]
+            val2 = row2[col]
+
+            if val1 == val2:
+                continue
+            if val1 in rules_dict[col] and val2 in rules_dict[col]:
+                continue
+
+            errors.append(
+                {
+                    "row": i,
+                    "column": col,
+                    "file1": val1,
+                    "file2": val2,
+                    "error": "values different and not admitted",
+                }
+            )
+    return errors
+
+
+def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules):
+    """
+    This function compares two Python dictionaries—each containing DataFrames under
+    the keys "reports" and "observation"—row by row and column by column, according
+    to rules defined in a separate dictionary. If the corresponding cells are
+    different and the values are not allowed by the rules, it records an error.
+    It returns a list indicating the row, the column and which values are wrong.
     """
 
+    rules_dict = parse_rules(rules)
     errors = []
-    for key in df_ref.keys():
-        ref_df = df_ref[key]
-        cur_df = df_cur[key]
 
-        ref_df = ref_df.to_xarray()
-        cur_df = cur_df.to_xarray()
+    for key in dict_ref.keys():
+        ref_df = dict_ref[key]
+        cur_df = dict_cur[key]
 
-        t, e = compare_var_and_attr_ds(
-            ref_df, cur_df, nl=0, output=False, location=None, tol=0
-        )
-        if t != e:
-            return errors == 1
+        cols_present = [
+            col
+            for col in rules_dict.keys()
+            if col in ref_df.columns and col in cur_df.columns
+        ]
+
+        cols_other = [
+            col
+            for col in ref_df.columns
+            if col not in cols_present and col in cur_df.columns
+        ]
+
+        if cols_other:
+            ref_df_xr = ref_df[cols_other].to_xarray()
+            cur_df_xr = cur_df[cols_other].to_xarray()
+
+            t, e = compare_var_and_attr_ds(
+                ref_df_xr, cur_df_xr, nl=5, output=False, location=None
+            )
+            if t != e:
+                return errors == 1
+
+        if cols_present:
+            errors.extend(compare_cells(ref_df, cur_df, cols_present, rules_dict))
+
+    if errors:
+        logger.error("Errors found while comparing the files:")
+        for e in errors:
+            logger.error(
+                "Row %s - Column '%s': file1=%s, file2=%s → %s",
+                e["row"],
+                e["column"],
+                e["file1"],
+                e["file2"],
+                e["error"],
+            )
+    return errors

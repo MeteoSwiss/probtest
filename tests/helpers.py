@@ -208,9 +208,9 @@ def run_cdo_table_cli(model_output_dir, cdo_table_file, perturbed_model_output_d
 
 
 def run_select_members_cli(
-    stats_file_name,
+    ensemble_files,
     selected_members_file_name,
-    tolerance_file_name,
+    tolerance_files,
     enable_check_only=False,
     max_member_count=15,
     min_factor=5.0,
@@ -219,12 +219,12 @@ def run_select_members_cli(
     log=None,
 ):  # pylint: disable=too-many-positional-arguments
     args = [
-        "--stats-file-name",
-        stats_file_name,
+        "--ensemble-files",
+        str(ensemble_files),
         "--selected-members-file-name",
         selected_members_file_name,
-        "--tolerance-file-name",
-        tolerance_file_name,
+        "--tolerance-files",
+        str(tolerance_files),
         "--max-member-count",
         str(max_member_count),
         "--min-factor",

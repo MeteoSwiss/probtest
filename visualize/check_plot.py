@@ -7,6 +7,7 @@ This module provides functionality for:
   and reference data, compared against specified tolerance levels.
 """
 
+import sys
 from pathlib import Path
 
 import click
@@ -14,10 +15,11 @@ import numpy as np
 from matplotlib import lines as mlines
 from matplotlib import pyplot as plt
 
-from util.click_util import cli_help
+from util.click_util import CommaSeparatedStrings, cli_help
 from util.constants import compute_statistics
 from util.dataframe_ops import compute_rel_diff_dataframe, parse_check
 from util.log_handler import logger
+from util.utils import validate_single_stats_file
 from util.visualize_util import create_figure
 
 
@@ -34,16 +36,25 @@ colors = prop_cycle.by_key()["color"]
 
 @click.command()
 @click.option(
-    "--tolerance-file-name",
-    help=cli_help["tolerance_file_name"],
+    "--tolerance-files",
+    type=CommaSeparatedStrings(),
+    default=[],
+    help=cli_help["tolerance_files_input"]
+    + "\nNote: this option accepts exactly one stats file.",
 )
 @click.option(
-    "--input-file-ref",
-    help=cli_help["input_file_ref"],
+    "--reference-files",
+    type=CommaSeparatedStrings(),
+    default=[],
+    help=cli_help["reference_files"]
+    + "\nNote: this option accepts exactly one stats file.",
 )
 @click.option(
-    "--input-file-cur",
-    help=cli_help["input_file_cur"],
+    "--current-files",
+    type=CommaSeparatedStrings(),
+    default=[],
+    help=cli_help["current_files"]
+    + "\nNote: this option accepts exactly one stats file.",
 )
 @click.option(
     "--factor",
@@ -54,7 +65,21 @@ colors = prop_cycle.by_key()["color"]
     "--savedir",
     help=cli_help["savedir"],
 )
-def check_plot(tolerance_file_name, input_file_ref, input_file_cur, factor, savedir):
+def check_plot(tolerance_files, reference_files, current_files, factor, savedir):
+
+    # check for valid input parameters
+    errors = []
+
+    tolerance_file_name = validate_single_stats_file(
+        tolerance_files, "tolerance", errors
+    )
+    input_file_ref = validate_single_stats_file(reference_files, "reference", errors)
+    input_file_cur = validate_single_stats_file(current_files, "current", errors)
+
+    if errors:
+        for msg in errors:
+            logger.error("ERROR: %s", msg)
+        sys.exit(1)
 
     df_tol, df_ref, df_cur = parse_check(
         tolerance_file_name, input_file_ref, input_file_cur, factor

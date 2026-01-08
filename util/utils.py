@@ -7,6 +7,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
+from typing import List, Optional
 
 
 def unique_elements(inlist):
@@ -317,7 +318,7 @@ class FileInfo:
     """
 
     path: str
-    file_type: FileType = None
+    file_type: Optional[FileType] = None
 
     def __post_init__(self):
 
@@ -340,3 +341,36 @@ class FileInfo:
             pass
 
         raise ValueError(f"Unknown file type for '{self.path}'")
+
+
+def validate_single_stats_file(
+    files: List[str],
+    role: str,
+    errors: List[str],
+) -> Optional[str]:
+    """
+    Validate that `files` contains exactly one stats file.
+
+    Appends error messages into `errors`.
+    Returns the file name or None.
+    """
+    if len(files) == 1:
+        file_name = files[0]
+        file_info = FileInfo(file_name)
+
+        if file_info.file_type != FileType.STATS:
+            errors.append(
+                f"Expected a stats file as {role} file, "
+                f"but received a {file_info.file_type} file. "
+                "Please provide a stats file."
+            )
+            return None
+
+        return file_name
+
+    errors.append(
+        f"Expected exactly one {role} file, "
+        f"but received {len(files)} files. "
+        "Please provide a single file."
+    )
+    return None

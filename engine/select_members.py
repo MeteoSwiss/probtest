@@ -15,10 +15,10 @@ from datetime import datetime
 import click
 
 from engine.tolerance import tolerance
-from util.click_util import cli_help
+from util.click_util import CommaSeparatedStrings, cli_help
 from util.dataframe_ops import check_file_with_tolerances
 from util.log_handler import logger
-from util.utils import FileInfo
+from util.utils import FileInfo, validate_single_stats_file
 
 
 def find_members_and_factor_validating_for_all_stats_files(
@@ -198,16 +198,22 @@ def check_selection_by_ids(
     help=cli_help["enable_check_only"],
 )
 @click.option(
-    "--stats-file-name",
-    help=cli_help["stats_file_name"],
+    "--ensemble-files",
+    type=CommaSeparatedStrings(),
+    default=[],
+    help=cli_help["ensemble_files"]
+    + "\nNote: this option accepts exactly one stats file.",
 )
 @click.option(
     "--selected-members-file-name",
     help=cli_help["selected_members_file_name"],
 )
 @click.option(
-    "--tolerance-file-name",
-    help=cli_help["tolerance_file_name"],
+    "--tolerance-files",
+    type=CommaSeparatedStrings(),
+    default=[],
+    help=cli_help["tolerance_files_output"]
+    + "\nNote: this option accepts exactly one stats file.",
 )
 @click.option(
     "--member-type",
@@ -248,9 +254,9 @@ def check_selection_by_ids(
 def select_members(
     experiment_name,
     enable_check_only,
-    stats_file_name,
+    ensemble_files,
     selected_members_file_name,
-    tolerance_file_name,
+    tolerance_files,
     member_type,
     max_member_count,
     total_member_count,
@@ -261,9 +267,24 @@ def select_members(
     """
     Selects members and writes them to a file together with the tolerance factor
     """
+
+    # check for valid input parameters
+    errors = []
+
+    stats_file_name = validate_single_stats_file(ensemble_files, "ensemble", errors)
+    tolerance_file_name = validate_single_stats_file(
+        tolerance_files, "tolerance", errors
+    )
+
     if max_member_count >= total_member_count:
-        logger.error("ERROR: max_member_count must be smaller than total_member_count")
+        errors.append("max_member_count must be smaller than total_member_count")
+
+    if errors:
+        for msg in errors:
+            logger.error("ERROR: %s", msg)
         sys.exit(1)
+
+    # start with selecting members
     if enable_check_only:
         check_selection_by_ids(
             stats_file_name=stats_file_name,
