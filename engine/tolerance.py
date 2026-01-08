@@ -76,7 +76,6 @@ def tolerance(
         ensemble_files = expand_members(
             mem, member_ids=member_ids, member_type=member_type
         )
-
         dfs = [
             file_name_parser[info.file_type](info.path)
             for file in ensemble_files

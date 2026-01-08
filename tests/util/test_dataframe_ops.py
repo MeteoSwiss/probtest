@@ -2,7 +2,9 @@
 This module contains unit tests for the `dataframe_ops.py` module.
 """
 
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 from unittest.mock import patch
 
 import numpy as np
@@ -13,6 +15,7 @@ import xarray as xr
 from util.constants import CHECK_THRESHOLD
 from util.dataframe_ops import (
     check_intersection,
+    check_multiple_solutions_from_dict,
     check_variable,
     compute_division,
     compute_rel_diff_dataframe,
@@ -26,6 +29,7 @@ from util.dataframe_ops import (
     split_feedback_dataset,
     unify_time_index,
 )
+from util.utils import FileType
 
 
 @pytest.fixture(name="_tmp_netcdf_files", scope="function")
@@ -147,6 +151,23 @@ def test_read_input_file(tmp_dir):
         assert e.value.code == 1
 
 
+@dataclass
+class WithPath:
+    """
+    Wrapper for a file path with optional metadata such as file type.
+    """
+
+    path: Path
+    file_type: Optional[FileType] = None
+
+    def __init__(self, path, file_type=None):
+        self.path = Path(path)
+        self.file_type = file_type
+
+    def __repr__(self):
+        return f"WithPath(path={self.path}, " f"file_type={self.file_type})"
+
+
 @patch("util.dataframe_ops.parse_probtest_stats")
 def test_parse_check(mock_parse_probtest_stats, setup_csv_files):
     # Mock the return value of parse_probtest_stats
@@ -155,7 +176,12 @@ def test_parse_check(mock_parse_probtest_stats, setup_csv_files):
     )
 
     factor = 2.0
-
+    setup_csv_files["ref_file"] = WithPath(
+        setup_csv_files["ref_file"], file_type=FileType.STATS
+    )
+    setup_csv_files["cur_file"] = WithPath(
+        setup_csv_files["cur_file"], file_type=FileType.STATS
+    )
     df_tol, df_ref, df_cur = parse_check(
         setup_csv_files["tolerance_file"],
         setup_csv_files["ref_file"],
@@ -403,9 +429,9 @@ def fixture_sample_df_with_obs():
             "bcor": [5.80e-02, 6.01e-01, 8.66e-01, 7.08e-01, 9.69e-01, 2.00e-02],
             "level_typ": [8.32e-01, 1.81e-01, 2.12e-01, 1.83e-01, 5.24e-01, 3.04e-01],
             "level_sig": [4.31e-01, 6.11e-01, 2.91e-01, 1.39e-01, 3.66e-01, 2.92e-01],
-            "state": [4.56e-01, 1.99e-01, 7.85e-01, 5.14e-01, 4.60e-02, 5.92e-01],
-            "flags": [6.07e-01, 6.50e-02, 1.70e-01, 9.48e-01, 8.08e-01, 9.65e-01],
-            "check": [3.04e-01, 6.84e-01, 9.70e-02, 4.40e-01, 4.95e-01, 1.22e-01],
+            "state": [1, 1, 1, 1, 1, 1],
+            "flags": [9, 9, 9, 9, 9, 9],
+            "check": [13, 13, 13, 13, 13, 13],
             "e_o": [3.40e-02, 2.58e-01, 9.09e-01, 6.62e-01, 5.20e-01, 3.11e-01],
             "qual": [7.96e-01, 8.10e-01, 5.09e-01, 1.63e-01, 1.38e-01, 4.25e-01],
             "plevel": [8.01e-01, 7.70e-02, 4.06e-01, 8.47e-01, 7.55e-01, 3.20e-01],
@@ -415,13 +441,34 @@ def fixture_sample_df_with_obs():
     return df
 
 
-def test(sample_dataset_fof, tmp_path, sample_df_with_obs):
+@pytest.fixture(name="sample_df_with_rep", scope="function")
+def fixture_sample_df_with_rep():
+    df = pd.DataFrame(
+        {
+            "d_hdr": [0, 2, 1, 3, 4],
+            "lat": [1, 2, 3, 4, 5],
+            "lon": [5, 7, 9, 8, 3],
+            "statid": ["a", "c", "b", "d", "e"],
+            "time_nomi": [0, 0, 30, 30, 60],
+            "codetype": [5, 5, 5, 5, 5],
+            "l_body": [1, 1, 1, 1, 2],
+            "i_body": [1, 3, 2, 4, 5],
+        }
+    )
+
+    return df
+
+
+def test_parse_probtest_fof(
+    sample_dataset_fof, tmp_path, sample_df_with_obs, sample_df_with_rep
+):
 
     fake_path = tmp_path / "sample_dataset_fof.nc"
     sample_dataset_fof.to_netcdf(fake_path)
-    f = parse_probtest_fof(fake_path)
+    df_rep, df_obs = parse_probtest_fof(fake_path)
 
-    assert f.equals(sample_df_with_obs)
+    assert df_rep.equals(sample_df_with_rep)
+    assert df_obs.equals(sample_df_with_obs)
 
 
 @pytest.fixture(name="ds_no_intersection", scope="function")
@@ -667,10 +714,10 @@ def test_check_stats(stats_dataframes):
     _check(df1, df2, tol_large, tol_small, file_type="stats")
 
 
-def test_check_fof(fof_datasets):
+def test_check_fof_with_tol(fof_datasets):
     ds1, ds2, tol_large, tol_small = fof_datasets
-    _, _, ds_veri1 = split_feedback_dataset(ds1)
-    _, _, ds_veri2 = split_feedback_dataset(ds2)
+    _, ds_veri1 = split_feedback_dataset(ds1)
+    _, ds_veri2 = split_feedback_dataset(ds2)
     df_veri1 = ds_veri1.to_dataframe().reset_index()
     df_veri2 = ds_veri2.to_dataframe().reset_index()
     _check(
@@ -712,8 +759,8 @@ def test_check_one_zero_fof(fof_datasets):
     ds1["veri_data"][2] = 0
     ds2_copy["veri_data"][2] = CHECK_THRESHOLD / 2
 
-    _, _, ds_veri1 = split_feedback_dataset(ds1)
-    _, _, ds_veri2 = split_feedback_dataset(ds2)
+    _, ds_veri1 = split_feedback_dataset(ds1)
+    _, ds_veri2 = split_feedback_dataset(ds2)
     df_veri1 = ds_veri1.to_dataframe().reset_index()
     df_veri2 = ds_veri2.to_dataframe().reset_index()
 
@@ -724,7 +771,7 @@ def test_check_one_zero_fof(fof_datasets):
 
     assert not out, f"Check with 0-value reference validated incorrectly:\n{err}"
 
-    _, _, ds_veri2_copy = split_feedback_dataset(ds2_copy)
+    _, ds_veri2_copy = split_feedback_dataset(ds2_copy)
     ds_veri2_copy = ds_veri2_copy.copy(deep=True)
     ds_veri2_copy["veri_data"][2] = CHECK_THRESHOLD / 2
     _check(
@@ -765,8 +812,8 @@ def test_check_smalls_fof(fof_datasets):
     ds1["veri_data"][2] = CHECK_THRESHOLD * 1e-5
     ds2["veri_data"][2] = -CHECK_THRESHOLD / 2
 
-    _, _, ds_veri1 = split_feedback_dataset(ds1)
-    _, _, ds_veri2 = split_feedback_dataset(ds2)
+    _, ds_veri1 = split_feedback_dataset(ds1)
+    _, ds_veri2 = split_feedback_dataset(ds2)
     df_veri1 = ds_veri1.to_dataframe().reset_index()
     df_veri2 = ds_veri2.to_dataframe().reset_index()
 
@@ -777,3 +824,68 @@ def test_check_smalls_fof(fof_datasets):
         tol_small,
         file_type="fof",
     )
+
+
+@pytest.fixture(name="dataframes_dict", scope="function")
+def sample_dataframes_dict():
+    """
+    Returns a dictionary containing two simple DataFrames:
+    - 'reports': example report data
+    - 'observation': example observation data
+    """
+
+    df_reports = pd.DataFrame(
+        {"lat": [40, 41, 42], "value": [10, 20, 30], "r_check": [1, 1, 1]}
+    )
+
+    df_observation = pd.DataFrame(
+        {"id": [1, 2, 3], "check": [9, 9, 9], "state": [13, 13, 13]}
+    )
+
+    df_dict = {"reports": df_reports, "observation": df_observation}
+
+    return df_dict
+
+
+def test_multiple_solutions_from_dict_no_rules(dataframes_dict):
+
+    dict_ref = dataframes_dict
+    dict_cur = {key: df.copy() for key, df in dict_ref.items()}
+    rules = ""
+
+    errors = check_multiple_solutions_from_dict(dict_ref, dict_cur, rules)
+    assert errors == []
+
+
+def test_multiple_solutions_from_dict_with_rules(dataframes_dict):
+    dict_ref = dataframes_dict
+    dict_cur = {key: df.copy() for key, df in dict_ref.items()}
+    dict_cur["observation"].loc[1, "check"] = 1
+    dict_cur["observation"].loc[1, "state"] = 14
+
+    rules = {"check": [9, 1], "state": [13, 14]}
+
+    errors = check_multiple_solutions_from_dict(dict_ref, dict_cur, rules)
+    assert errors == []
+
+
+def test_multiple_solutions_from_dict_with_rules_wrong(dataframes_dict):
+    dict_ref = dataframes_dict
+    dict_cur = {key: df.copy() for key, df in dict_ref.items()}
+    dict_cur["observation"].loc[1, "check"] = 6
+    dict_cur["observation"].loc[1, "state"] = 14
+
+    rules = {"check": [9, 1], "state": [13, 14]}
+
+    errors = check_multiple_solutions_from_dict(dict_ref, dict_cur, rules)
+
+    expected = [
+        {
+            "row": 1,
+            "column": "check",
+            "file1": np.int64(9),
+            "file2": np.int64(6),
+            "error": "values different and not admitted",
+        }
+    ]
+    assert errors == expected

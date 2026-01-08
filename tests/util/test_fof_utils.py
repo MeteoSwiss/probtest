@@ -123,14 +123,14 @@ def fixture_sample_dataset_veri(sample_dataset_fof):
     return ds_veri
 
 
-def test_split_report(ds1, ds_report, ds_obs, ds_veri):
+def test_split_report(ds1, ds_report, ds_obs):
     """
     Test that the dataset is correctly split into reports, observations
     and veri data according to their dimensions.
     """
-    reports, observations, veri_data = split_feedback_dataset(ds1)
+    reports, observations = split_feedback_dataset(ds1)
 
-    assert reports == ds_report and observations == ds_obs and veri_data == ds_veri
+    assert reports == ds_report and observations == ds_obs
 
 
 @pytest.fixture(name="arr1", scope="function")
@@ -257,21 +257,21 @@ def test_print_entire_line(ds1, ds2, capsys):
         "\x1b[1mref\x1b[0m : 0            |5            |1            |5            "
         "|4            |a            |0            |5            |750          "
         "|1            |1            |78           |0.155        |0.969        "
-        "|0.524        |0.366        |0.046        |0.808        |0.495        "
+        "|0.524        |0.366        |1            |9            |13           "
         "|0.52         |0.138        |0.755        "
     )
     assert output[2] == (
         "\x1b[1mcur\x1b[0m : 0            |5            |1            |5            "
         "|4            |a            |0            |5            |750          "
         "|1            |1            |78           |0.155        |0.969        "
-        "|0.524        |0.366        |0.046        |0.808        |0.495        "
+        "|0.524        |0.366        |1            |9            |13           "
         "|0.52         |0.138        |0.755        "
     )
     assert output[3] == (
         "\x1b[1mdiff\x1b[0m: 0            |0            |0            |0            "
         "|0            |nan          |0            |0            |0            "
         "|0            |0            |0            |0.0          |0.0          "
-        "|0.0          |0.0          |0.0          |0.0          |0.0          "
+        "|0.0          |0.0          |0            |0            |0            "
         "|0.0          |0.0          |0.0          "
     )
 
@@ -295,17 +295,17 @@ def test_write_lines(ds1, ds2, tmp_path):
         "ref  : 0            |5            |1            |5            |4            "
         "|a            |0            |5            |750          |1            "
         "|1            |78           |0.155        |0.969        |0.524        "
-        "|0.366        |0.046        |0.808        |0.495        |0.52         "
+        "|0.366        |1            |9            |13           |0.52         "
         "|0.138        |0.755        \n"
         "cur  : 0            |5            |1            |5            |4            "
         "|a            |0            |5            |750          |1            "
         "|1            |78           |0.155        |0.969        |0.524        "
-        "|0.366        |0.046        |0.808        |0.495        |0.52         "
+        "|0.366        |1            |9            |13           |0.52         "
         "|0.138        |0.755        \n"
         "diff : 0            |0            |0            |0            |0            "
         "|nan          |0            |0            |0            |0            "
         "|0            |0            |0.0          |0.0          |0.0          "
-        "|0.0          |0.0          |0.0          |0.0          |0.0          "
+        "|0.0          |0            |0            |0            |0.0          "
         "|0.0          |0.0          \n"
     )
     assert content == expected
