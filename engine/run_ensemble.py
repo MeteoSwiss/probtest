@@ -55,7 +55,7 @@ def replace_string(line, old, new):
     return out_line
 
 
-def prepare_perturbed_run_script(
+def prepare_perturbed_run_script(  # pylint: disable=too-many-positional-arguments
     runscript: str,
     perturbed_runscript: str,
     experiment_name: str,
@@ -64,7 +64,7 @@ def prepare_perturbed_run_script(
     rhs_new: List[str],
     rhs_old: Optional[List],
     seed: int,
-) -> None:  # pylint: disable=too-many-positional-arguments
+) -> None:
     """
     Prepare a `perturbed_runscript` by copying `runscript` and replacing
     namelist values and experiment names.
@@ -109,8 +109,9 @@ def prepare_perturbed_run_script(
 
             if not modified:
                 raise RuntimeError(
-                    f"No lines were modified in the runscript '{runscript}'. "
-                    "Check lhs/rhs values or experiment names."
+                    f"No lines were modified in the runscript '{perturbed_runscript}'. "
+                    f"Check lhs({lhs}) and rhs_new({rhs_new}) values "
+                    f"or experiment names."
                 )
 
             logger.info("writing model run script to: %s", perturbed_runscript)

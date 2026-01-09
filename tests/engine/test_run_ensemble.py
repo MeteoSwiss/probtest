@@ -50,7 +50,11 @@ def test_prepare_perturbed_run_script_replaces_assignment_and_experiment(
     perturbed = tmp_path / "exp.perturbed.run"
 
     runscript.write_text(
-        "EXPERIMENT=base_exp\n" "FOO=old_value\n" "echo done\n",
+        """
+        EXPERIMENT=base_exp
+        FOO=old_value
+        echo done
+        """,
         encoding="utf-8",
     )
 
@@ -78,7 +82,11 @@ def test_prepare_perturbed_run_script_no_modifications(tmp_path: Path) -> None:
     perturbed = tmp_path / "exp.perturbed.run"
 
     runscript.write_text(
-        "EXPERIMENT=base_exp\n" "FOO=old_value\n" "echo done\n",
+        """
+        EXPERIMENT=base_exp
+        FOO=old_value
+        echo done
+        """,
         encoding="utf-8",
     )
 
