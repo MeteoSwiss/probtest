@@ -111,7 +111,7 @@ def prepare_perturbed_run_script(  # pylint: disable=too-many-positional-argumen
                 raise RuntimeError(
                     f"No lines were modified in the runscript '{perturbed_runscript}'. "
                     f"Check lhs({lhs}) and rhs_new({rhs_new}) values "
-                    f"or experiment names."
+                    f"or experiment names({experiment_name})."
                 )
 
             logger.info("writing model run script to: %s", perturbed_runscript)
