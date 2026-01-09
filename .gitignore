@@ -17,3 +17,4 @@ test_stats_csv.csv
 test_stats_csv.dat
 tmp_tolerance_None.csv
 tolerance.csv
+util/differences.csv

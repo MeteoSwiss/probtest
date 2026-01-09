@@ -12,6 +12,7 @@ import re
 import subprocess
 import time
 from pathlib import Path
+from typing import List, Optional
 
 import click
 
@@ -55,15 +56,23 @@ def replace_string(line, old, new):
 
 
 def prepare_perturbed_run_script(
-    runscript,
-    perturbed_runscript,
-    experiment_name,
-    modified_experiment_name,
-    lhs,
-    rhs_new,
-    rhs_old,
-    seed,
-):  # pylint: disable=too-many-positional-arguments
+    runscript: str,
+    perturbed_runscript: str,
+    experiment_name: str,
+    modified_experiment_name: str,
+    lhs: List[str],
+    rhs_new: List[str],
+    rhs_old: Optional[List],
+    seed: int,
+) -> None:  # pylint: disable=too-many-positional-arguments
+    """
+    Prepare a `perturbed_runscript` by copying `runscript` and replacing
+    namelist values and experiment names.
+    Raises RuntimeError if no lines are modified.
+    """
+
+    modified = False  # Track if any line was changed
+
     with open(runscript, "r", encoding="utf-8") as in_file:
         with open(perturbed_runscript, "w", encoding="utf-8") as out_file:
 
@@ -85,6 +94,7 @@ def prepare_perturbed_run_script(
                         out_line = replace_assignment(line, lh, rh_new, rh_old, seed)
                         # replace first match
                         if out_line != line:
+                            modified = True
                             break
 
                     # rename the experiment name
@@ -96,6 +106,12 @@ def prepare_perturbed_run_script(
                     out_file.write(out_line)
             else:
                 out_file.write(in_file.read())
+
+            if not modified:
+                raise RuntimeError(
+                    f"No lines were modified in the runscript '{runscript}'. "
+                    "Check lhs/rhs values or experiment names."
+                )
 
             logger.info("writing model run script to: %s", perturbed_runscript)
 
