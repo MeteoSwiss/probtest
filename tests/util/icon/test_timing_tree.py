@@ -4,6 +4,7 @@ including reading log files, loading from JSON, intersection and subtraction of 
 growing trees with new nodes, and adding trees together.
 """
 
+import pytest
 from datetime import datetime
 
 import numpy as np
@@ -161,3 +162,31 @@ def test_get_sorted_finish_times():
     assert dates == [
         datetime(2022, 6, 26, 20, 11, 23)
     ], "sorted finish time does not match reference"
+
+
+def test_extract_timings() -> None:
+    # Load a TimingTree from logfile
+    tt = TimingTree.from_logfile(TIMING_FILE_1, read_logfile)
+
+    # Test default behavior (timer_sections=None -> ["total"])
+    result: pd.Series = tt.extract_timings(i_table=-1)
+    assert isinstance(result, pd.Series)
+    assert "total" in result.index
+    # The value should be numeric
+    assert all(isinstance(v, (float, int)) for v in result.values)
+
+    # Test multiple timer sections
+    timer_sections = ["total", "physics", "nh_solve"]
+    result_multi: pd.Series = tt.extract_timings(i_table=-1, timer_sections=timer_sections)
+    assert set(result_multi.index) == set(timer_sections)
+    # Values should be numeric
+    assert all(isinstance(v, (float, int)) for v in result_multi.values)
+
+    # Test specific time_measure column
+    result_min = tt.extract_timings(i_table=-1, timer_sections=["total"], time_measure="total avg (s)")
+    assert "total" in result_min.index
+    assert isinstance(result_min["total"], (float, int))
+
+    # Test that missing timer_sections raises ValueError
+    with pytest.raises(ValueError):
+        tt.extract_timings(i_table=-1, timer_sections=["nonexistent_timer"])
