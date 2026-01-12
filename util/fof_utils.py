@@ -209,13 +209,15 @@ def write_lines(ds1, ds2, diff, path_name):
                 f.write(f"diff : {row_diff}" + "\n")
 
 
-def write_different_size(output, nl, path_name, var, sizes):
+def write_different_size(output, nl, var, sizes, path_name=None):
     """
     This function appends a message to a file (and optionally prints it) warning
     that a given variable cannot be compared because two datasets have different
     lengths. The message is written only if output is enabled, and printed to the
     console if nl is not zero.
     """
+    #print(sizes)
+    print(var)
     if output:
         with open(path_name, "a", encoding="utf-8") as f:
             f.write(
@@ -239,6 +241,7 @@ def compare_var_and_attr_ds(
 
     total_all, equal_all = 0, 0
     list_to_skip = ["source", "i_body", "l_body"]
+    path_name = ""
 
     if output:
         if location:
@@ -268,7 +271,7 @@ def compare_var_and_attr_ds(
 
             else:
                 t, e = max(arr1.size, arr2.size), 0
-                write_different_size(output, nl, path_name, var, [arr1.size, arr2.size])
+                write_different_size(output, nl, var, [arr1.size, arr2.size], path_name)
 
             total_all += t
             equal_all += e
@@ -288,7 +291,7 @@ def compare_var_and_attr_ds(
 
             else:
                 t, e = max(arr1.size, arr2.size), 0
-                write_different_size(output, nl, path_name, var, [arr1.size, arr2.size])
+                write_different_size(output, nl, var, [arr1.size, arr2.size], path_name)
 
             total_all += t
             equal_all += e
