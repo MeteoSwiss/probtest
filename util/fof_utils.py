@@ -4,6 +4,7 @@ This module contains functions for handling fof files
 
 import os
 import shutil
+import re
 
 import numpy as np
 import pandas as pd
@@ -209,17 +210,23 @@ def write_lines(ds1, ds2, diff, path_name):
 
 
 def write_different_size(output, nl, path_name, var, sizes):
+    """
+    This function appends a message to a file (and optionally prints it) warning
+    that a given variable cannot be compared because two datasets have different
+    lengths. The message is written only if output is enabled, and printed to the
+    console if nl is not zero.
+    """
     if output:
         with open(path_name, "a", encoding="utf-8") as f:
             f.write(
                 f"variable  : {var} -> datasets have different lengths "
                 f"({sizes[0]} vs. {sizes[1]} ), comparison not possible" + "\n"
             )
-        if nl != 0:
-            print(
-                f"\033[1mvar\033[0m : {var} -> datasets have different lengths "
-                f"({sizes[0]} vs. {sizes[1]} ), comparison not possible"
-            )
+    else:
+        print(
+            f"\033[1mvar\033[0m : {var} -> datasets have different lengths "
+            f"({sizes[0]} vs. {sizes[1]} ), comparison not possible"
+        )
 
 
 def compare_var_and_attr_ds(
@@ -291,12 +298,16 @@ def compare_var_and_attr_ds(
 
 def primary_check(file1, file2):
     """
-    Test that the two files are of the same type.
+    Check if two files are of the observation type, ignoring timestamp differences.
+    The check includes the prefix, the observation type and the ensemble suffix if
+    present.
     """
-    name1 = os.path.basename(file1)
-    name2 = os.path.basename(file2)
+    def core_name(path):
+        # Filename without directory
+        name = os.path.basename(path)
+        # Remove extension
+        name = os.path.splitext(name)[0]
+        # Remove timestamp
+        return re.sub(r'_(\d{14})(?=(_ens\d+)?$)', '', name)
 
-    name1_core = name1.replace("fof", "").replace(".nc", "")
-    name2_core = name2.replace("fof", "").replace(".nc", "")
-
-    return name1_core == name2_core
+    return core_name(file1) == core_name(file2)
