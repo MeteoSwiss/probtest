@@ -48,7 +48,7 @@ from util.fof_utils import (
 )
 @click.option(
     "--tol",
-    default=10e-12,
+    default=1e-12,
 )
 def fof_compare(
     file1, file2, print_lines, lines, output, location, tol

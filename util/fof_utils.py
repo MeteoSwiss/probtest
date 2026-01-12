@@ -3,8 +3,8 @@ This module contains functions for handling fof files
 """
 
 import os
-import shutil
 import re
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -209,14 +209,14 @@ def write_lines(ds1, ds2, diff, path_name):
                 f.write(f"diff : {row_diff}" + "\n")
 
 
-def write_different_size(output, nl, var, sizes, path_name=None):
+def write_different_size(output, var, sizes, path_name=None):
     """
     This function appends a message to a file (and optionally prints it) warning
     that a given variable cannot be compared because two datasets have different
     lengths. The message is written only if output is enabled, and printed to the
     console if nl is not zero.
     """
-    #print(sizes)
+    # print(sizes)
     print(var)
     if output:
         with open(path_name, "a", encoding="utf-8") as f:
@@ -271,7 +271,7 @@ def compare_var_and_attr_ds(
 
             else:
                 t, e = max(arr1.size, arr2.size), 0
-                write_different_size(output, nl, var, [arr1.size, arr2.size], path_name)
+                write_different_size(output, var, [arr1.size, arr2.size], path_name)
 
             total_all += t
             equal_all += e
@@ -291,7 +291,7 @@ def compare_var_and_attr_ds(
 
             else:
                 t, e = max(arr1.size, arr2.size), 0
-                write_different_size(output, nl, var, [arr1.size, arr2.size], path_name)
+                write_different_size(output, var, [arr1.size, arr2.size], path_name)
 
             total_all += t
             equal_all += e
@@ -305,12 +305,13 @@ def primary_check(file1, file2):
     The check includes the prefix, the observation type and the ensemble suffix if
     present.
     """
+
     def core_name(path):
         # Filename without directory
         name = os.path.basename(path)
         # Remove extension
         name = os.path.splitext(name)[0]
         # Remove timestamp
-        return re.sub(r'_(\d{14})(?=(_ens\d+)?$)', '', name)
+        return re.sub(r"_(\d{14})(?=(_ens\d+)?$)", "", name)
 
     return core_name(file1) == core_name(file2)
