@@ -46,7 +46,10 @@ from util.tree import TimingTree
 @click.option(
     "--timer-sections",
     type=CommaSeparatedStrings(),
-    help=cli_help["reference_files"],
+    help=(
+        "Comma-separated list of timer sections to evaluate "
+        "(e.g. 'total,physics,nh_solve')."
+    ),
     default="total",
 )
 @click.option("--i-table", type=int, help=cli_help["i_table"], default=-1)
