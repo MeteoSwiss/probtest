@@ -4,11 +4,11 @@ including reading log files, loading from JSON, intersection and subtraction of 
 growing trees with new nodes, and adding trees together.
 """
 
-import pytest
 from datetime import datetime
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from util.icon.extract_timings import read_logfile
 from util.tree import TimingTree
@@ -177,13 +177,17 @@ def test_extract_timings() -> None:
 
     # Test multiple timer sections
     timer_sections = ["total", "physics", "nh_solve"]
-    result_multi: pd.Series = tt.extract_timings(i_table=-1, timer_sections=timer_sections)
+    result_multi: pd.Series = tt.extract_timings(
+        i_table=-1, timer_sections=timer_sections
+    )
     assert set(result_multi.index) == set(timer_sections)
     # Values should be numeric
     assert all(isinstance(v, (float, int)) for v in result_multi.values)
 
     # Test specific time_measure column
-    result_min = tt.extract_timings(i_table=-1, timer_sections=["total"], time_measure="total avg (s)")
+    result_min = tt.extract_timings(
+        i_table=-1, timer_sections=["total"], time_measure="total avg (s)"
+    )
     assert "total" in result_min.index
     assert isinstance(result_min["total"], (float, int))
 

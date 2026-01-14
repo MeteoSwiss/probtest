@@ -367,9 +367,7 @@ class TimingTree:
             raise ValueError(f"Missing timing regions: {', '.join(missing)}")
 
         values = (
-            df.loc[(timer_sections, slice(None)), time_measure]
-            .groupby(level=0)
-            .first()
+            df.loc[(timer_sections, slice(None)), time_measure].groupby(level=0).first()
         )
 
         return values
