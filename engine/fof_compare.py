@@ -8,12 +8,15 @@ Veri data are not considered, only reports and observations are compared.
 
 import click
 import xarray as xr
+import pandas as pd
 
 from util.fof_utils import (
     compare_var_and_attr_ds,
     primary_check,
     split_feedback_dataset,
 )
+from util.dataframe_ops import check_file_with_tolerances, parse_check
+from util.utils import FileInfo
 
 
 @click.command()
@@ -58,36 +61,28 @@ def fof_compare(
         print("Different types of files")
         return
 
-    ds1 = xr.open_dataset(file1)
-    ds2 = xr.open_dataset(file2)
+    n_righe = xr.open_dataset(file1).sizes["d_body"]
+    tolerance_file = "tolerance_file.csv"
 
-    ds_reports1_sorted, ds_obs1_sorted = split_feedback_dataset(ds1)
-    ds_reports2_sorted, ds_obs2_sorted = split_feedback_dataset(ds2)
+    def create_tolerance_csv(n_righe, tol, tolerance_file_name):
+        df = pd.DataFrame(
+            {"tolerance": [tol] * n_righe}
+        )
+        df.to_csv(tolerance_file_name)
 
-    total_elements_all, equal_elements_all = 0, 0
+    create_tolerance_csv(n_righe, tol, tolerance_file)
 
-    if print_lines:
-        nl = lines
-    else:
-        nl = 0
+    out, err, tol = check_file_with_tolerances(
+            tolerance_file,
+            FileInfo(file1),
+            FileInfo(file2),
+            factor=4,
+            rules="",
+        )
+    # print(out)
+    # print(err)
 
-    for ds1, ds2 in [
-        (ds_reports1_sorted, ds_reports2_sorted),
-        (ds_obs1_sorted, ds_obs2_sorted),
-    ]:
-        t, e = compare_var_and_attr_ds(ds1, ds2, nl, output, location, tol)
-        total_elements_all += t
-        equal_elements_all += e
 
-    if total_elements_all > 0:
-        percent_equal_all = (equal_elements_all / total_elements_all) * 100
-        percent_diff_all = 100 - percent_equal_all
-        print(f"Total percentage of equality: {percent_equal_all:.2f}%")
-        print(f"Total percentage of difference: {percent_diff_all:.2f}%")
-        if equal_elements_all == total_elements_all:
-            print("Files are consistent!")
-        else:
-            print("Files are NOT consistent!")
 
 
 if __name__ == "__main__":
