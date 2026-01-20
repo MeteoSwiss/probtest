@@ -106,8 +106,14 @@ def fill_nans_for_float32(arr):
     """
     To make sure nan values are recognised.
     """
-    if arr.dtype == np.float32 and np.isnan(arr).any():
+    if not np.issubdtype(arr.dtype, np.floating):
+        return arr
+
+    arr = arr.astype(np.float64, copy=False)
+
+    if np.isnan(arr).any():
         return np.where(np.isnan(arr), -999999, arr)
+
     return arr
 
 

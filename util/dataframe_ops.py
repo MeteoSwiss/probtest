@@ -76,12 +76,7 @@ def parse_probtest_fof(path):
     into two pandas DataFrames with the index reset and assigns them to df_report
     and df_obs respectively.
     """
-    ds = xr.open_dataset(path, decode_cf=False)
-    ds = ds.astype({
-        name: "float64"
-        for name, var in ds.variables.items()
-        if var.dtype.kind == "f"
-    })
+    ds = xr.open_dataset(path)
     ds_report, ds_obs = split_feedback_dataset(ds)
     df_report, df_obs = (
         pd.DataFrame(d.to_dataframe().reset_index()) for d in (ds_report, ds_obs)
@@ -476,7 +471,7 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules):
             cur_df_xr = cur_df[cols_other].to_xarray()
 
             t, e = compare_var_and_attr_ds(
-                ref_df_xr, cur_df_xr, nl=5, output=False, location=None
+                ref_df_xr, cur_df_xr, nl=5, output=False, location=None, tol=0
             )
             if t != e:
                 return errors == 1
