@@ -9,7 +9,7 @@ from util.fof_utils import (
     clean_value,
     compare_arrays,
     compare_var_and_attr_ds,
-    fill_nans_for_float32,
+    replace_nan_with_sentinel,
     get_observation_variables,
     get_report_variables,
     primary_check,
@@ -196,7 +196,7 @@ def test_fill_nans_for_float32_nan(arr_nan):
     Test that if an array containign nan is given, these values are replaced
     by -9.99999e05.
     """
-    array = fill_nans_for_float32(arr_nan)
+    array = replace_nan_with_sentinel(arr_nan)
     expected = np.array([1.0, -9.99999e05, 3.0, 4.0, -9.99999e05], dtype=np.float32)
     assert np.array_equal(array, expected)
 
@@ -206,7 +206,7 @@ def test_fill_nans_for_float32(arr1):
     Test that if an array without nan is given, the output of the function
     is the same as the input.
     """
-    array = fill_nans_for_float32(arr1)
+    array = replace_nan_with_sentinel(arr1)
     assert np.array_equal(array, arr1)
 
 

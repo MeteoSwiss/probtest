@@ -102,7 +102,7 @@ def compare_arrays(arr1, arr2, var_name):
     return total, equal, diff
 
 
-def fill_nans_for_float32(arr):
+def replace_nan_with_sentinel(arr):
     """
     To make sure nan values are recognised.
     """
@@ -233,8 +233,8 @@ def compare_var_and_attr_ds(ds1, ds2, nl, output, location):
     for var in set(ds1.data_vars).union(ds2.data_vars):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
 
-            arr1 = fill_nans_for_float32(ds1[var].values)
-            arr2 = fill_nans_for_float32(ds2[var].values)
+            arr1 = replace_nan_with_sentinel(ds1[var].values)
+            arr2 = replace_nan_with_sentinel(ds2[var].values)
 
             if arr1.size == arr2.size:
                 t, e, diff = compare_arrays(arr1, arr2, var)
