@@ -76,7 +76,12 @@ def parse_probtest_fof(path):
     into two pandas DataFrames with the index reset and assigns them to df_report
     and df_obs respectively.
     """
-    ds = xr.open_dataset(path)
+    ds = xr.open_dataset(path, decode_cf=False)
+    ds = ds.astype({
+        name: "float64"
+        for name, var in ds.variables.items()
+        if var.dtype.kind == "f"
+    })
     ds_report, ds_obs = split_feedback_dataset(ds)
     df_report, df_obs = (
         pd.DataFrame(d.to_dataframe().reset_index()) for d in (ds_report, ds_obs)
