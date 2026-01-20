@@ -4,6 +4,7 @@ This module contains unit tests for the `util/fof_utils.py` module.
 
 import numpy as np
 import pytest
+import os
 
 from util.fof_utils import (
     clean_value,
@@ -322,10 +323,18 @@ def test_compare_var_and_attr_ds(ds1, ds2, tmp_path):
     total1, equal1 = compare_var_and_attr_ds(
         ds1, ds2, nl=0, output=True, location=file_path
     )
-    total2, equal2 = compare_var_and_attr_ds(ds1, ds2, nl=4, output=True, location=None)
 
+    total2, equal2 = compare_var_and_attr_ds(ds1, ds2, nl=4, output=True, location=None)
     assert (total1, equal1) == (104, 103)
     assert (total2, equal2) == (104, 103)
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    grandparent_dir = os.path.dirname(os.path.dirname(script_dir))
+
+    path_name = os.path.join(grandparent_dir, "differences.csv")
+    if os.path.exists(path_name):
+        os.remove(path_name)
+
 
 
 @pytest.fixture(name="ds3")

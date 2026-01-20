@@ -224,9 +224,11 @@ def compare_var_and_attr_ds(ds1, ds2, nl, output, location):
     if output:
         if location:
             path_name = location
+
         else:
             script_dir = os.path.dirname(os.path.abspath(__file__))
-            path_name = os.path.join(script_dir, "differences.csv")
+            parent_dir = os.path.dirname(script_dir)
+            path_name = os.path.join(parent_dir, "differences.csv")
 
         with open(path_name, "w", encoding="utf-8") as f:
             f.write("Differences\n")
