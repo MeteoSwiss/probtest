@@ -2,19 +2,20 @@
 This module contains unit tests for the `util/fof_utils.py` module.
 """
 
+import os
+
 import numpy as np
 import pytest
-import os
 
 from util.fof_utils import (
     clean_value,
     compare_arrays,
     compare_var_and_attr_ds,
-    replace_nan_with_sentinel,
     get_observation_variables,
     get_report_variables,
     primary_check,
     print_entire_line,
+    replace_nan_with_sentinel,
     split_feedback_dataset,
     write_lines,
 )
@@ -334,7 +335,6 @@ def test_compare_var_and_attr_ds(ds1, ds2, tmp_path):
     path_name = os.path.join(grandparent_dir, "differences.csv")
     if os.path.exists(path_name):
         os.remove(path_name)
-
 
 
 @pytest.fixture(name="ds3")

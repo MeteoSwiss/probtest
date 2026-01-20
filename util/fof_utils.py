@@ -117,7 +117,6 @@ def replace_nan_with_sentinel(arr):
     return arr
 
 
-
 def clean_value(x):
     """
     Elimination of unnecessary spaces that ruin the
