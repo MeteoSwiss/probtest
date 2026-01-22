@@ -318,7 +318,7 @@ def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
 
 
 def check_file_with_tolerances(
-    tolerance_file_name, input_file_ref, input_file_cur, factor, rules=""
+    tolerance_file_name, input_file_ref, input_file_cur, factor, rules="", fof_compare_settings=[]
 ):
     """
     This function calculates the relative difference between the current file and
@@ -340,9 +340,10 @@ def check_file_with_tolerances(
     )
 
     if input_file_ref.file_type == FileType.FOF:
-        errors = check_multiple_solutions_from_dict(df_ref, df_cur, rules)
+        errors = check_multiple_solutions_from_dict(df_ref, df_cur, rules, fof_compare_settings)
 
         if errors:
+
             logger.error("RESULT: check FAILED")
             sys.exit(1)
 
@@ -438,7 +439,7 @@ def compare_cells(ref_df, cur_df, cols_present, rules_dict):
     return errors
 
 
-def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules):
+def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, fof_compare_settings):
     """
     This function compares two Python dictionaries—each containing DataFrames under
     the keys "reports" and "observation"—row by row and column by column, according
@@ -469,9 +470,17 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules):
         if cols_other:
             ref_df_xr = ref_df[cols_other].to_xarray()
             cur_df_xr = cur_df[cols_other].to_xarray()
+            if fof_compare_settings:
+                nl = fof_compare_settings[0]
+                output = fof_compare_settings[1]
+                location = fof_compare_settings[2]
+            else:
+                nl = 0
+                output = False
+                location = None
 
             t, e = compare_var_and_attr_ds(
-                ref_df_xr, cur_df_xr, nl=5, output=False, location=None, tol=0
+                ref_df_xr, cur_df_xr, nl=nl, output=output, location=location
             )
             if t != e:
                 return errors == 1

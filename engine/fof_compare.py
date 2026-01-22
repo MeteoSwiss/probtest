@@ -57,20 +57,22 @@ def fof_compare(
     file1, file2, print_lines, lines, output, location, tol
 ):  # pylint: disable=too-many-positional-arguments
 
-    if not primary_check(file1, file2):
-        print("Different types of files")
-        return
+    if print_lines:
+        nl = lines
+    else:
+        nl = 0
 
-    n_righe = xr.open_dataset(file1).sizes["d_body"]
+    n_rows = xr.open_dataset(file1).sizes["d_body"]
     tolerance_file = "tolerance_file.csv"
 
-    def create_tolerance_csv(n_righe, tol, tolerance_file_name):
+    def create_tolerance_csv(n_rows, tol, tolerance_file_name):
         df = pd.DataFrame(
-            {"tolerance": [tol] * n_righe}
+            {"tolerance": [tol] * n_rows}
         )
         df.to_csv(tolerance_file_name)
 
-    create_tolerance_csv(n_righe, tol, tolerance_file)
+    create_tolerance_csv(n_rows, tol, tolerance_file)
+
 
     out, err, tol = check_file_with_tolerances(
             tolerance_file,
@@ -78,10 +80,12 @@ def fof_compare(
             FileInfo(file2),
             factor=4,
             rules="",
+            fof_compare_settings = [nl, output, location]
         )
-    # print(out)
-    # print(err)
-
+    if out:
+        print("Files are consistent!")
+    else:
+        print("Files are NOT consistent!")
 
 
 

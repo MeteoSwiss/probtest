@@ -72,28 +72,28 @@ def split_feedback_dataset(ds):
     return ds_report_sorted, ds_obs_sorted
 
 
-def compare_arrays(arr1, arr2, var_name, tol):
+def compare_arrays(arr1, arr2, var_name):
     """
     Comparison of two arrays containing the values of the same variable.
     If not the same, it tells you in percentage terms how different they are.
     """
     total = arr1.size
 
-    if var_name == "veri_data":
-        diff_rel = np.abs((arr1 - arr2) / (1.0 + np.abs(arr1)))
-        diff_rel_df = pd.DataFrame(diff_rel)
+    # if var_name == "veri_data":
+    #     diff_rel = np.abs((arr1 - arr2) / (1.0 + np.abs(arr1)))
+    #     diff_rel_df = pd.DataFrame(diff_rel)
 
-        diff = diff_rel_df - tol
+    #     diff = diff_rel_df - tol
 
-        selector = (diff > CHECK_THRESHOLD).any(axis=1)
+    #     selector = (diff > CHECK_THRESHOLD).any(axis=1)
 
-        out = (~selector).all()
-        diff_err = diff.index[selector].to_numpy()
+    #     out = (~selector).all()
+    #     diff_err = diff.index[selector].to_numpy()
 
-        if out:
-            return total, total, np.array([])
-        equal = total - len(diff_err)
-        return total, equal, diff_err
+    #     if out:
+    #         return total, total, np.array([])
+    #     equal = total - len(diff_err)
+    #     return total, equal, diff_err
 
     if np.array_equal(arr1, arr2):
         equal = total
@@ -232,7 +232,7 @@ def write_different_size(output, var, sizes, path_name=None):
 
 
 def compare_var_and_attr_ds(
-    ds1, ds2, nl, output, location, tol
+    ds1, ds2, nl, output, location
 ):  # pylint: disable=too-many-positional-arguments
     """
     Variable by variable and attribute by attribute,
@@ -260,7 +260,7 @@ def compare_var_and_attr_ds(
             arr2 = fill_nans_for_float32(ds2[var].values)
 
             if arr1.size == arr2.size:
-                t, e, diff = compare_arrays(arr1, arr2, var, tol)
+                t, e, diff = compare_arrays(arr1, arr2, var)
 
                 if output:
                     write_lines(ds1, ds2, diff, path_name)
