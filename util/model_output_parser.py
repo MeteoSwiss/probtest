@@ -42,6 +42,9 @@ def parse_netcdf(file_id, filename, specification):
     horizontal_dims = specification["horizontal_dims"]
     fill_value_key = specification.get("fill_value_key", None)
     ds = xarray.open_dataset(filename, decode_cf=False)
+    # Convert all float variables to float64
+    float_vars = [v for v in ds.data_vars if np.issubdtype(ds[v].dtype, np.floating)]
+    ds[float_vars] = ds[float_vars].astype(np.float64)
 
     var_tmp = __get_variables(ds, time_dim, horizontal_dims)
 
