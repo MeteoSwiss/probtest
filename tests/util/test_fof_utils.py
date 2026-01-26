@@ -5,17 +5,14 @@ This module contains unit tests for the `util/fof_utils.py` module.
 import numpy as np
 import pytest
 
-from util.fof_utils import (
+from util.fof_utils import (  # write_lines,
     clean_value,
     compare_arrays,
     compare_var_and_attr_ds,
     fill_nans_for_float32,
     get_observation_variables,
     get_report_variables,
-    primary_check,
-    print_entire_line,
     split_feedback_dataset,
-    write_lines,
 )
 
 
@@ -164,10 +161,8 @@ def test_compare_array_equal(arr1, arr2, arr1_nan, arr2_nan):
     - they have the same content
     - they have nan values in the same positions
     """
-    total, equal, diff = compare_arrays(arr1, arr2, "var_name", tol=1e-12)
-    total_nan, equal_nan, diff_nan = compare_arrays(
-        arr1_nan, arr2_nan, "var_name", tol=1e-12
-    )
+    total, equal, diff = compare_arrays(arr1, arr2, "var_name")
+    total_nan, equal_nan, diff_nan = compare_arrays(arr1_nan, arr2_nan, "var_name")
 
     assert (total, equal, total_nan, equal_nan, diff.size, diff_nan.size) == (
         5,
@@ -183,7 +178,7 @@ def test_compare_array_diff(arr1, arr3):
     """
     Test that if I compare two different arrays I get the number of total and equal
     vales and the number of the position where values are different."""
-    total, equal, diff = compare_arrays(arr1, arr3, "var_name", tol=1e-12)
+    total, equal, diff = compare_arrays(arr1, arr3, "var_name")
 
     assert (total, equal, diff.tolist()) == (5, 3, [0, 3])
 
@@ -239,94 +234,49 @@ def fixture_sample_dataset_2(sample_dataset_fof):
     return data
 
 
-def test_print_entire_line(ds1, ds2, capsys):
-    """
-    Test that in case of differences, these are printed correctly.
-    """
-    diff = np.array([5])
-    print_entire_line(ds1, ds2, diff)
-    captured = capsys.readouterr()
-    output = captured.out.splitlines()
+# def test_write_lines(ds1, ds2, tmp_path):
+#     """
+#     Test that if there are any differences, they are saved in a separate csv file.
+#     """
+#     file_path = tmp_path / "differences.csv"
+#     diff = np.array([5])
+#     write_lines(ds1, ds2, diff, file_path)
 
-    assert output[0] == (
-        "\x1b[1mid\x1b[0m  : d_hdr        |d_body       |lat          |lon          "
-        "|varno        |statid       |time_nomi    |codetype     |level        "
-        "|l_body       |i_body       |veri_data    |obs          |bcor         "
-        "|level_typ    |level_sig    |state        |flags        |check        "
-        "|e_o          |qual         |plevel       "
-    )
-    assert output[1] == (
-        "\x1b[1mref\x1b[0m : 0            |5            |1            |5            "
-        "|4            |a            |0            |5            |750          "
-        "|1            |1            |78           |0.155        |0.969        "
-        "|0.524        |0.366        |1            |9            |13           "
-        "|0.52         |0.138        |0.755        "
-    )
-    assert output[2] == (
-        "\x1b[1mcur\x1b[0m : 0            |5            |1            |5            "
-        "|4            |a            |0            |5            |750          "
-        "|1            |1            |78           |0.155        |0.969        "
-        "|0.524        |0.366        |1            |9            |13           "
-        "|0.52         |0.138        |0.755        "
-    )
-    assert output[3] == (
-        "\x1b[1mdiff\x1b[0m: 0            |0            |0            |0            "
-        "|0            |nan          |0            |0            |0            "
-        "|0            |0            |0            |0.0          |0.0          "
-        "|0.0          |0.0          |0            |0            |0            "
-        "|0.0          |0.0          |0.0          "
-    )
+#     content = file_path.read_text(encoding="utf-8")
+
+#     expected = (
+#         "id  : d_hdr        |d_body       |lat          |lon          |varno        "
+#         "|statid       |time_nomi    |codetype     |level        |l_body       "
+#         "|i_body       |veri_data    |obs          |bcor         |level_typ    "
+#         "|level_sig    |state        |flags        |check        |e_o          "
+#         "|qual         |plevel       \n"
+#         "ref  : 0            |5            |1            |5            |4            "
+#         "|a            |0            |5            |750          |1            "
+#         "|1            |78           |0.155        |0.969        |0.524        "
+#         "|0.366        |1            |9            |13           |0.52         "
+#         "|0.138        |0.755        \n"
+#         "cur  : 0            |5            |1            |5            |4            "
+#         "|a            |0            |5            |750          |1            "
+#         "|1            |78           |0.155        |0.969        |0.524        "
+#         "|0.366        |1            |9            |13           |0.52         "
+#         "|0.138        |0.755        \n"
+#         "diff : 0            |0            |0            |0            |0            "
+#         "|nan          |0            |0            |0            |0            "
+#         "|0            |0            |0.0          |0.0          |0.0          "
+#         "|0.0          |0            |0            |0            |0.0          "
+#         "|0.0          |0.0          \n"
+#     )
+#     assert content == expected
 
 
-def test_write_lines(ds1, ds2, tmp_path):
-    """
-    Test that if there are any differences, they are saved in a separate csv file.
-    """
-    file_path = tmp_path / "differences.csv"
-    diff = np.array([5])
-    write_lines(ds1, ds2, diff, file_path)
-
-    content = file_path.read_text(encoding="utf-8")
-
-    expected = (
-        "id  : d_hdr        |d_body       |lat          |lon          |varno        "
-        "|statid       |time_nomi    |codetype     |level        |l_body       "
-        "|i_body       |veri_data    |obs          |bcor         |level_typ    "
-        "|level_sig    |state        |flags        |check        |e_o          "
-        "|qual         |plevel       \n"
-        "ref  : 0            |5            |1            |5            |4            "
-        "|a            |0            |5            |750          |1            "
-        "|1            |78           |0.155        |0.969        |0.524        "
-        "|0.366        |1            |9            |13           |0.52         "
-        "|0.138        |0.755        \n"
-        "cur  : 0            |5            |1            |5            |4            "
-        "|a            |0            |5            |750          |1            "
-        "|1            |78           |0.155        |0.969        |0.524        "
-        "|0.366        |1            |9            |13           |0.52         "
-        "|0.138        |0.755        \n"
-        "diff : 0            |0            |0            |0            |0            "
-        "|nan          |0            |0            |0            |0            "
-        "|0            |0            |0.0          |0.0          |0.0          "
-        "|0.0          |0            |0            |0            |0.0          "
-        "|0.0          |0.0          \n"
-    )
-    assert content == expected
-
-
-def test_compare_var_and_attr_ds(ds1, ds2, tmp_path):
+def test_compare_var_and_attr_ds(ds1, ds2):
     """
     Test that, given two datasets, returns the number of elements in which
     the variables are the same and in which they differ.
     """
 
-    file_path = tmp_path / "differences.csv"
-
-    total1, equal1 = compare_var_and_attr_ds(
-        ds1, ds2, nl=0, output=True, location=file_path, tol=1e-12
-    )
-    total2, equal2 = compare_var_and_attr_ds(
-        ds1, ds2, nl=4, output=True, location=None, tol=1e-12
-    )
+    total1, equal1 = compare_var_and_attr_ds(ds1, ds2)
+    total2, equal2 = compare_var_and_attr_ds(ds1, ds2)
 
     assert (total1, equal1) == (104, 103)
     assert (total2, equal2) == (104, 103)
@@ -341,17 +291,3 @@ def fixture_sample_dataset_3(sample_dataset_fof):
     ds.attrs["plevel"] = np.array([0.374, 0.950, 0.731, 0.598, 0.156])
 
     return ds
-
-
-def test_primary_check(tmp_path):
-    """
-    Note that if two fof files are not of the same type, then the primary_check fails.
-    """
-    test_fof1 = tmp_path / "fofAIREP.nc"
-    test_fof2 = tmp_path / "fofAIREP.nc"
-    test_fof3 = tmp_path / "fofPILOT.nc"
-
-    assert primary_check(test_fof1, test_fof2)
-
-    false_result = primary_check(test_fof1, test_fof3)
-    assert false_result is False

@@ -6,16 +6,13 @@ two given fof files are consistent.
 Veri data are not considered, only reports and observations are compared.
 """
 
+import os
+
 import click
 import xarray as xr
-import pandas as pd
 
-from util.fof_utils import (
-    compare_var_and_attr_ds,
-    primary_check,
-    split_feedback_dataset,
-)
-from util.dataframe_ops import check_file_with_tolerances, parse_check
+from util.dataframe_ops import check_file_with_tolerances
+from util.fof_utils import create_tolerance_csv
 from util.utils import FileInfo
 
 
@@ -23,70 +20,26 @@ from util.utils import FileInfo
 @click.argument("file1", type=click.Path(exists=True))
 @click.argument("file2", type=click.Path(exists=True))
 @click.option(
-    "--print-lines",
-    is_flag=True,
-    help="Prints the lines where there are differences. "
-    "If --lines is not specified, then the first 10 "
-    "differences per variables are shown.",
-)
-@click.option(
-    "--lines",
-    "-n",
-    default=10,
-    help="Option to specify how many lines to print " "with the --print-lines option",
-)
-@click.option(
-    "--output",
-    "-o",
-    is_flag=True,
-    help="Option to save differences in a CSV file. "
-    "If the location is not specified, the file "
-    "is saved in the same location as this code. ",
-)
-@click.option(
-    "--location",
-    "-l",
-    default=None,
-    help="If specified, location where to save the CSV file with the differences.",
-)
-@click.option(
     "--tol",
     default=1e-12,
 )
-def fof_compare(
-    file1, file2, print_lines, lines, output, location, tol
-):  # pylint: disable=too-many-positional-arguments
-
-    if print_lines:
-        nl = lines
-    else:
-        nl = 0
+def fof_compare(file1, file2, tol):
 
     n_rows = xr.open_dataset(file1).sizes["d_body"]
     tolerance_file = "tolerance_file.csv"
 
-    def create_tolerance_csv(n_rows, tol, tolerance_file_name):
-        df = pd.DataFrame(
-            {"tolerance": [tol] * n_rows}
-        )
-        df.to_csv(tolerance_file_name)
-
     create_tolerance_csv(n_rows, tol, tolerance_file)
 
-
-    out, err, tol = check_file_with_tolerances(
-            tolerance_file,
-            FileInfo(file1),
-            FileInfo(file2),
-            factor=4,
-            rules="",
-            fof_compare_settings = [nl, output, location]
-        )
+    out, _, _ = check_file_with_tolerances(
+        tolerance_file, FileInfo(file1), FileInfo(file2), factor=1, rules=""
+    )
     if out:
         print("Files are consistent!")
     else:
         print("Files are NOT consistent!")
 
+    if os.path.exists(tolerance_file):
+        os.remove(tolerance_file)
 
 
 if __name__ == "__main__":

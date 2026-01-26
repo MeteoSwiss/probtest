@@ -2,15 +2,11 @@
 This module contains functions for handling fof files
 """
 
-import os
-import re
-import shutil
+import logging
 
 import numpy as np
 import pandas as pd
 import xarray as xr
-
-from util.constants import CHECK_THRESHOLD
 
 
 def get_report_variables(ds):
@@ -79,22 +75,6 @@ def compare_arrays(arr1, arr2, var_name):
     """
     total = arr1.size
 
-    # if var_name == "veri_data":
-    #     diff_rel = np.abs((arr1 - arr2) / (1.0 + np.abs(arr1)))
-    #     diff_rel_df = pd.DataFrame(diff_rel)
-
-    #     diff = diff_rel_df - tol
-
-    #     selector = (diff > CHECK_THRESHOLD).any(axis=1)
-
-    #     out = (~selector).all()
-    #     diff_err = diff.index[selector].to_numpy()
-
-    #     if out:
-    #         return total, total, np.array([])
-    #     equal = total - len(diff_err)
-    #     return total, equal, diff_err
-
     if np.array_equal(arr1, arr2):
         equal = total
         diff = np.array([])
@@ -139,101 +119,68 @@ def clean_value(x):
     return str(x).rstrip(" '")
 
 
-def print_entire_line(ds1, ds2, diff):
+def write_lines(ds1, ds2, diff, logger):
+    if diff.size == 0:
+        return
+
+    da1 = ds1.to_dataframe().reset_index()
+    da2 = ds2.to_dataframe().reset_index()
+    col_width = 13
+    index = "|".join(f"{str(x):<{col_width}}" for x in da1.columns)
+
+    for i in diff:
+        row1 = "|".join(f"{clean_value(x):<{col_width}}" for x in da1.loc[i])
+        row2 = "|".join(f"{clean_value(x):<{col_width}}" for x in da2.loc[i])
+
+        diff_vals = []
+        for x, y in zip(da1.loc[i], da2.loc[i]):
+            if pd.api.types.is_number(x) and pd.api.types.is_number(y):
+                diff_vals.append(x - y)
+            else:
+                diff_vals.append("nan")
+
+        row_diff = "|".join(f"{str(x):<{col_width}}" for x in diff_vals)
+
+        logger.info(f"id  : {index}")
+        logger.info(f"ref  : {row1}")
+        logger.info(f"cur  : {row2}")
+        logger.info(f"diff : {row_diff}")
+        logger.info("")
+
+
+def write_different_size(var, size1, size2, logger):
     """
-    If the specific option is called, this function print
-    the entire line in which differences are found.
+    This function is triggered when the array sizes do not match and records
+    in the log file that a comparison is not possible.
     """
-    if diff.size > 0:
-        da1 = ds1.to_dataframe().reset_index()
-        da2 = ds2.to_dataframe().reset_index()
 
-        for i in diff:
-            col_width = 13
-            row1 = "|".join(f"{clean_value(x):<{col_width}}" for x in da1.loc[i])
-
-            row2 = "|".join(f"{clean_value(x):<{col_width}}" for x in da2.loc[i])
-
-            diff_row = []
-            for x, y in zip(da1.loc[i], da2.loc[i]):
-                if pd.api.types.is_number(x) and pd.api.types.is_number(y):
-                    row_diff = x - y
-                else:
-                    row_diff = "nan"
-
-                diff_row.append(row_diff)
-
-            row_diff = "|".join(f"{str(x):<{col_width}}" for x in diff_row)
-
-            index = "|".join(f"{str(x):<{col_width}}" for x in da1.columns)
-
-            print(f"\033[1mid\033[0m  : {index}")
-            print(f"\033[1mref\033[0m : {row1}")
-            print(f"\033[1mcur\033[0m : {row2}")
-            print(f"\033[1mdiff\033[0m: {row_diff}")
-            term_width = shutil.get_terminal_size().columns
-            print("-" * term_width)
+    logger.info(
+        f"variable  : {var} -> datasets have different lengths "
+        f"({size1} vs. {size2} ), comparison not possible" + "\n"
+    )
 
 
-def write_lines(ds1, ds2, diff, path_name):
+def setup_logger(log_path):
     """
-    If the specific option is called, this function save
-    the lines in which differences are found.
+    Sets up a logger that appends plain-text messages to the given log
+    file and returns the configured logger.
     """
-    if diff.size > 0:
-        da1 = ds1.to_dataframe().reset_index()
-        da2 = ds2.to_dataframe().reset_index()
-        col_width = 13
-        index = "|".join(f"{str(x):<{col_width}}" for x in da1.columns)
-        for i in diff:
+    logger = logging.getLogger("diff_logger")
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
 
-            row1 = "|".join(f"{clean_value(x):<{col_width}}" for x in da1.loc[i])
+    if logger.handlers:
+        logger.handlers.clear()
 
-            row2 = "|".join(f"{clean_value(x):<{col_width}}" for x in da2.loc[i])
+    handler = logging.FileHandler(log_path, mode="a", encoding="utf-8")
+    formatter = logging.Formatter("%(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
-            diff_row = []
-            for x, y in zip(da1.loc[i], da2.loc[i]):
-                if pd.api.types.is_number(x) and pd.api.types.is_number(y):
-                    row_diff = x - y
-                else:
-                    row_diff = "nan"
-
-                diff_row.append(row_diff)
-
-            row_diff = "|".join(f"{str(x):<{col_width}}" for x in diff_row)
-
-            with open(path_name, "a", encoding="utf-8") as f:
-                f.write(f"id  : {index}" + "\n")
-                f.write(f"ref  : {row1}" + "\n")
-                f.write(f"cur  : {row2}" + "\n")
-                f.write(f"diff : {row_diff}" + "\n")
+    return logger
 
 
-def write_different_size(output, var, sizes, path_name=None):
-    """
-    This function appends a message to a file (and optionally prints it) warning
-    that a given variable cannot be compared because two datasets have different
-    lengths. The message is written only if output is enabled, and printed to the
-    console if nl is not zero.
-    """
-    # print(sizes)
-    print(var)
-    if output:
-        with open(path_name, "a", encoding="utf-8") as f:
-            f.write(
-                f"variable  : {var} -> datasets have different lengths "
-                f"({sizes[0]} vs. {sizes[1]} ), comparison not possible" + "\n"
-            )
-    else:
-        print(
-            f"\033[1mvar\033[0m : {var} -> datasets have different lengths "
-            f"({sizes[0]} vs. {sizes[1]} ), comparison not possible"
-        )
-
-
-def compare_var_and_attr_ds(
-    ds1, ds2, nl, output, location
-):  # pylint: disable=too-many-positional-arguments
+def compare_var_and_attr_ds(ds1, ds2):
     """
     Variable by variable and attribute by attribute,
     comparison of the two files.
@@ -241,17 +188,13 @@ def compare_var_and_attr_ds(
 
     total_all, equal_all = 0, 0
     list_to_skip = ["source", "i_body", "l_body"]
-    path_name = ""
 
-    if output:
-        if location:
-            path_name = location
-        else:
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-            path_name = os.path.join(script_dir, "differences.csv")
+    log_path = "/home/ghc/probtest/differences.log"
 
-        with open(path_name, "w", encoding="utf-8") as f:
-            f.write("Differences\n")
+    with open(log_path, "w", encoding="utf-8") as f:
+        f.write("Differences\n\n")
+
+    logger = setup_logger(log_path)
 
     for var in set(ds1.data_vars).union(ds2.data_vars):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
@@ -262,16 +205,11 @@ def compare_var_and_attr_ds(
             if arr1.size == arr2.size:
                 t, e, diff = compare_arrays(arr1, arr2, var)
 
-                if output:
-                    write_lines(ds1, ds2, diff, path_name)
-
-                if nl != 0:
-                    diff = diff[:nl]
-                    print_entire_line(ds1, ds2, diff)
+                write_lines(ds1, ds2, diff, logger)
 
             else:
                 t, e = max(arr1.size, arr2.size), 0
-                write_different_size(output, var, [arr1.size, arr2.size], path_name)
+                write_different_size(var, arr1.size, arr2.size, logger)
 
             total_all += t
             equal_all += e
@@ -280,18 +218,12 @@ def compare_var_and_attr_ds(
             arr1 = np.array(ds1.attrs[var], dtype=object)
             arr2 = np.array(ds2.attrs[var], dtype=object)
             if arr1.size == arr2.size:
-                t, e, diff = compare_arrays(arr1, arr2, var, tol)
+                t, e, diff = compare_arrays(arr1, arr2, var)
 
-                if output:
-                    write_lines(ds1, ds2, diff, path_name)
-
-                if nl != 0:
-                    diff = diff[:nl]
-                    print_entire_line(ds1, ds2, diff)
-
+                write_lines(ds1, ds2, diff, logger)
             else:
                 t, e = max(arr1.size, arr2.size), 0
-                write_different_size(output, var, [arr1.size, arr2.size], path_name)
+                write_different_size(var, arr1.size, arr2.size, logger)
 
             total_all += t
             equal_all += e
@@ -299,19 +231,11 @@ def compare_var_and_attr_ds(
     return total_all, equal_all
 
 
-def primary_check(file1, file2):
+def create_tolerance_csv(n_rows, tol, tolerance_file_name):
     """
-    Check if two files are of the observation type, ignoring timestamp differences.
-    The check includes the prefix, the observation type and the ensemble suffix if
-    present.
+    This function generates a file with the same number of lines as the file being
+    analyzed, where each line contains the tolerances specified when fof-compare
+    is called.
     """
-
-    def core_name(path):
-        # Filename without directory
-        name = os.path.basename(path)
-        # Remove extension
-        name = os.path.splitext(name)[0]
-        # Remove timestamp
-        return re.sub(r"_(\d{14})(?=(_ens\d+)?$)", "", name)
-
-    return core_name(file1) == core_name(file2)
+    df = pd.DataFrame({"tolerance": [tol] * n_rows})
+    df.to_csv(tolerance_file_name)
