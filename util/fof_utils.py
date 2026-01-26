@@ -3,6 +3,7 @@ This module contains functions for handling fof files
 """
 
 import logging
+import os
 
 import numpy as np
 import pandas as pd
@@ -115,13 +116,20 @@ def clean_value(x):
     alignment when printing the value.
     """
     if isinstance(x, bytes):
-        return x.decode().rstrip(" '")
+        return x.decode("utf-8", errors="replace").rstrip(" '")
     return str(x).rstrip(" '")
 
 
-def write_lines(ds1, ds2, diff, logger):
+def write_lines(ds1, ds2, diff, log_path):
     if diff.size == 0:
         return
+
+    logger = setup_logger(log_path)
+
+    if not hasattr(write_lines, "_header_written"):
+        with open(log_path, "w", encoding="utf-8") as f:
+            f.write("Differences\n\n")
+        write_lines._header_written = True
 
     da1 = ds1.to_dataframe().reset_index()
     da2 = ds2.to_dataframe().reset_index()
@@ -153,7 +161,8 @@ def write_different_size(var, size1, size2, logger):
     This function is triggered when the array sizes do not match and records
     in the log file that a comparison is not possible.
     """
-
+    log_path = "error_fof.log"
+    logger = setup_logger(log_path)
     logger.info(
         f"variable  : {var} -> datasets have different lengths "
         f"({size1} vs. {size2} ), comparison not possible" + "\n"
@@ -180,21 +189,15 @@ def setup_logger(log_path):
     return logger
 
 
-def compare_var_and_attr_ds(ds1, ds2):
+def compare_var_and_attr_ds(ds1, ds2, name_core):
     """
     Variable by variable and attribute by attribute,
     comparison of the two files.
     """
 
     total_all, equal_all = 0, 0
-    list_to_skip = ["source", "i_body", "l_body"]
-
-    log_path = "differences.log"
-
-    with open(log_path, "w", encoding="utf-8") as f:
-        f.write("Differences\n\n")
-
-    logger = setup_logger(log_path)
+    list_to_skip = ["source", "i_body", "l_body", "veri_data"]
+    log_path = f"error_{name_core}.log"
 
     for var in set(ds1.data_vars).union(ds2.data_vars):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
@@ -205,25 +208,26 @@ def compare_var_and_attr_ds(ds1, ds2):
             if arr1.size == arr2.size:
                 t, e, diff = compare_arrays(arr1, arr2, var)
 
-                write_lines(ds1, ds2, diff, logger)
+                write_lines(ds1, ds2, diff, log_path)
 
             else:
                 t, e = max(arr1.size, arr2.size), 0
-                write_different_size(var, arr1.size, arr2.size, logger)
+                write_different_size(var, arr1.size, arr2.size, log_path)
 
             total_all += t
             equal_all += e
 
         if var in ds1.attrs and var in ds2.attrs and var not in list_to_skip:
-            arr1 = np.array(ds1.attrs[var], dtype=object)
-            arr2 = np.array(ds2.attrs[var], dtype=object)
+
+            arr1 = fill_nans_for_float32(ds1[var].values)
+            arr2 = fill_nans_for_float32(ds2[var].values)
             if arr1.size == arr2.size:
                 t, e, diff = compare_arrays(arr1, arr2, var)
 
-                write_lines(ds1, ds2, diff, logger)
+                write_lines(ds1, ds2, diff, log_path)
             else:
                 t, e = max(arr1.size, arr2.size), 0
-                write_different_size(var, arr1.size, arr2.size, logger)
+                write_different_size(var, arr1.size, arr2.size, log_path)
 
             total_all += t
             equal_all += e
@@ -239,3 +243,16 @@ def create_tolerance_csv(n_rows, tol, tolerance_file_name):
     """
     df = pd.DataFrame({"tolerance": [tol] * n_rows})
     df.to_csv(tolerance_file_name)
+
+
+def primary_check(file1, file2):
+    """
+    Test that the two files are of the same type.
+    """
+    name1 = os.path.basename(file1)
+    name2 = os.path.basename(file2)
+
+    name1_core = name1.replace("fof", "").replace(".nc", "")
+    name2_core = name2.replace("fof", "").replace(".nc", "")
+
+    return name1_core == name2_core, name1_core

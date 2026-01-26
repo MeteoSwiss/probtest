@@ -12,7 +12,7 @@ import click
 import xarray as xr
 
 from util.dataframe_ops import check_file_with_tolerances
-from util.fof_utils import create_tolerance_csv
+from util.fof_utils import create_tolerance_csv, primary_check
 from util.utils import FileInfo
 
 
@@ -30,13 +30,15 @@ def fof_compare(file1, file2, tol):
 
     create_tolerance_csv(n_rows, tol, tolerance_file)
 
-    out, _, _ = check_file_with_tolerances(
+    out, err, _ = check_file_with_tolerances(
         tolerance_file, FileInfo(file1), FileInfo(file2), factor=1, rules=""
     )
+
     if out:
         print("Files are consistent!")
     else:
         print("Files are NOT consistent!")
+        print(err)
 
     if os.path.exists(tolerance_file):
         os.remove(tolerance_file)

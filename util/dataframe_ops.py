@@ -8,6 +8,7 @@ reference datasets with specified tolerances.
 import ast
 import sys
 import warnings
+import os
 
 import numpy as np
 import pandas as pd
@@ -335,17 +336,18 @@ def check_file_with_tolerances(
         )
         sys.exit(1)
 
+
     df_tol, df_ref, df_cur = parse_check(
         tolerance_file_name, input_file_ref, input_file_cur, factor
     )
 
     if input_file_ref.file_type == FileType.FOF:
-        errors = check_multiple_solutions_from_dict(df_ref, df_cur, rules)
+        name_core = os.path.basename(input_file_ref.path).replace(".nc", "")
+        errors = check_multiple_solutions_from_dict(df_ref, df_cur, rules, name_core)
 
         if errors:
             logger.error("RESULT: check FAILED")
-            sys.exit(1)
-
+            return False, 0, 0
     else:
         # check if variables are available in reference file
         skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
@@ -438,7 +440,7 @@ def compare_cells(ref_df, cur_df, cols_present, rules_dict):
     return errors
 
 
-def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules):
+def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, name_core):
     """
     This function compares two Python dictionaries—each containing DataFrames under
     the keys "reports" and "observation"—row by row and column by column, according
@@ -470,9 +472,10 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules):
             ref_df_xr = ref_df[cols_other].to_xarray()
             cur_df_xr = cur_df[cols_other].to_xarray()
 
-            t, e = compare_var_and_attr_ds(ref_df_xr, cur_df_xr)
+            t, e = compare_var_and_attr_ds(ref_df_xr, cur_df_xr, name_core)
             if t != e:
-                return errors == 1
+                errors = True
+                return errors
 
         if cols_present:
             errors.extend(compare_cells(ref_df, cur_df, cols_present, rules_dict))
