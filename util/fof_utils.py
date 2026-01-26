@@ -189,7 +189,7 @@ def compare_var_and_attr_ds(ds1, ds2):
     total_all, equal_all = 0, 0
     list_to_skip = ["source", "i_body", "l_body"]
 
-    log_path = "/home/ghc/probtest/differences.log"
+    log_path = "differences.log"
 
     with open(log_path, "w", encoding="utf-8") as f:
         f.write("Differences\n\n")
