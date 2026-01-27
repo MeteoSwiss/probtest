@@ -38,9 +38,12 @@ def fof_compare(file1, file2, tol):
         print("Files are consistent!")
     else:
         print("Files are NOT consistent!")
-        print(err)
         if err:
-            print("DDD")
+            with open("error_tolerance.log", 'a') as f:
+                f.write(f"Differences")
+                f.write(err)
+                f.write("\nTolerance")
+                f.write(tol)
 
     if os.path.exists(tolerance_file):
         os.remove(tolerance_file)
