@@ -324,7 +324,7 @@ class FileInfo:
 
         name = self.path.lower()
 
-        if "fof" in name:
+        if "fof" in name or "ekf" in name:
             self.file_type = FileType.FOF
             return
         if "csv" in name or "stats" in name:
