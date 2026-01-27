@@ -121,16 +121,16 @@ def clean_value(x):
     return str(x).rstrip(" '")
 
 
-def write_lines(ds1, ds2, diff, log_path):
+def write_lines_log(ds1, ds2, diff, log_path):
     if diff.size == 0:
         return
 
     logger = setup_logger(log_path)
 
-    if not hasattr(write_lines, "_header_written"):
+    if not hasattr(write_lines_log, "_header_written"):
         with open(log_path, "w", encoding="utf-8") as f:
             f.write("Differences\n\n")
-        write_lines._header_written = True
+        write_lines_log._header_written = True
 
     da1 = ds1.to_dataframe().reset_index()
     da2 = ds2.to_dataframe().reset_index()
@@ -157,7 +157,7 @@ def write_lines(ds1, ds2, diff, log_path):
         logger.info("")
 
 
-def write_different_size(var, size1, size2, log_path):
+def write_different_size_log(var, size1, size2, log_path):
     """
     This function is triggered when the array sizes do not match and records
     in the log file that a comparison is not possible.
@@ -170,12 +170,14 @@ def write_different_size(var, size1, size2, log_path):
 
 def write_tolerance_log(err, tol, log_path):
     """
-    This function is triggered when the array sizes do not match and records
-    in the log file that a comparison is not possible.
+    This function is triggered when the fof-compare step fails because the
+    veri_data fall outside the specified tolerance range.
+    Any resulting errors are recorded in a log file.
     """
     logger = setup_logger(log_path)
     logger.info("Differences, veri_data outside of tolerance range")
     logger.info(err)
+    logger.info(tol)
 
 
 def setup_logger(log_path):
@@ -217,11 +219,11 @@ def compare_var_and_attr_ds(ds1, ds2, name_core):
             if arr1.size == arr2.size:
                 t, e, diff = compare_arrays(arr1, arr2, var)
 
-                write_lines(ds1, ds2, diff, log_path)
+                write_lines_log(ds1, ds2, diff, log_path)
 
             else:
                 t, e = max(arr1.size, arr2.size), 0
-                write_different_size(var, arr1.size, arr2.size, log_path)
+                write_different_size_log(var, arr1.size, arr2.size, log_path)
 
             total_all += t
             equal_all += e
@@ -233,10 +235,10 @@ def compare_var_and_attr_ds(ds1, ds2, name_core):
             if arr1.size == arr2.size:
                 t, e, diff = compare_arrays(arr1, arr2, var)
 
-                write_lines(ds1, ds2, diff, log_path)
+                write_lines_log(ds1, ds2, diff, log_path)
             else:
                 t, e = max(arr1.size, arr2.size), 0
-                write_different_size(var, arr1.size, arr2.size, log_path)
+                write_different_size_log(var, arr1.size, arr2.size, log_path)
 
             total_all += t
             equal_all += e
