@@ -10,6 +10,7 @@ import pandas as pd
 import xarray as xr
 
 
+
 def get_report_variables(ds):
     """
     Get variable names of reports.
@@ -156,17 +157,25 @@ def write_lines(ds1, ds2, diff, log_path):
         logger.info("")
 
 
-def write_different_size(var, size1, size2, logger):
+def write_different_size(var, size1, size2, log_path):
     """
     This function is triggered when the array sizes do not match and records
     in the log file that a comparison is not possible.
     """
-    log_path = "error_fof.log"
     logger = setup_logger(log_path)
     logger.info(
         f"variable  : {var} -> datasets have different lengths "
         f"({size1} vs. {size2} ), comparison not possible" + "\n"
     )
+
+def write_tolerance_log(err, tol, log_path):
+    """
+    This function is triggered when the array sizes do not match and records
+    in the log file that a comparison is not possible.
+    """
+    logger = setup_logger(log_path)
+    logger.info("Differences, veri_data outside of tolerance range")
+    logger.info(err)
 
 
 def setup_logger(log_path):
