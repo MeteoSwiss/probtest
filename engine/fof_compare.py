@@ -30,7 +30,7 @@ def fof_compare(file1, file2, tol):
 
     create_tolerance_csv(n_rows, tol, tolerance_file)
 
-    out, err, _ = check_file_with_tolerances(
+    out, err, tol = check_file_with_tolerances(
         tolerance_file, FileInfo(file1), FileInfo(file2), factor=1, rules=""
     )
 
