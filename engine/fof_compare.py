@@ -39,6 +39,8 @@ def fof_compare(file1, file2, tol):
     else:
         print("Files are NOT consistent!")
         print(err)
+        if err:
+            print("DDD")
 
     if os.path.exists(tolerance_file):
         os.remove(tolerance_file)

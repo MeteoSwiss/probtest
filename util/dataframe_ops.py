@@ -399,15 +399,16 @@ file_name_parser = {
 
 
 def parse_rules(rules):
-    if isinstance(rules, str):
-        rules = rules.strip()
-        return ast.literal_eval(rules) if rules else {}
     if isinstance(rules, dict):
         return rules
+
+    if isinstance(rules, str) and rules.strip():
+        return ast.literal_eval(rules)
+
     return {}
 
 
-def compare_cells(ref_df, cur_df, cols_present, rules_dict):
+def compare_cells_rules(ref_df, cur_df, cols, rules_dict):
     """
     This function compares two DataFrames cell by cell for a selected set of columns.
     For each row and column, it ignores values that are equal or whose differences
@@ -415,22 +416,21 @@ def compare_cells(ref_df, cur_df, cols_present, rules_dict):
     All other differences are collected and returned as a list of error descriptions.
     """
     errors = []
-    for i in range(len(ref_df)):
-        row1 = ref_df.iloc[i]
-        row2 = cur_df.iloc[i]
-
-        for col in cols_present:
-            val1 = row1[col]
-            val2 = row2[col]
+    for row_idx, (row1, row2) in enumerate(zip(ref_df.itertuples(), cur_df.itertuples())):
+        for col in cols:
+            val1 = getattr(row1, col)
+            val2 = getattr(row2, col)
 
             if val1 == val2:
                 continue
-            if val1 in rules_dict[col] and val2 in rules_dict[col]:
+
+            allowed = rules_dict.get(col, [])
+            if val1 in allowed and val2 in allowed:
                 continue
 
             errors.append(
                 {
-                    "row": i,
+                    "row": row_idx,
                     "column": col,
                     "file1": val1,
                     "file2": val2,
@@ -452,43 +452,28 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, name_core):
     rules_dict = parse_rules(rules)
     errors = []
 
-    for key in dict_ref.keys():
-        ref_df = dict_ref[key]
+    for key, ref_df in dict_ref.items():
         cur_df = dict_cur[key]
 
-        cols_present = [
-            col
-            for col in rules_dict.keys()
-            if col in ref_df.columns and col in cur_df.columns
-        ]
+        common_cols = set(ref_df.columns) & set(cur_df.columns)
+        rule_cols = set(rules_dict)
 
-        cols_other = [
-            col
-            for col in ref_df.columns
-            if col not in cols_present and col in cur_df.columns
-        ]
+        cols_with_rules = common_cols & rule_cols
+        cols_without_rules = common_cols - cols_with_rules
 
-        if cols_other:
-            ref_df_xr = ref_df[cols_other].to_xarray()
-            cur_df_xr = cur_df[cols_other].to_xarray()
 
-            t, e = compare_var_and_attr_ds(ref_df_xr, cur_df_xr, name_core)
+        if cols_without_rules:
+            t, e = compare_var_and_attr_ds(
+                ref_df[list(cols_without_rules)].to_xarray(),
+                cur_df[list(cols_without_rules)].to_xarray(),
+                name_core,
+            )
             if t != e:
                 errors = True
                 return errors
 
-        if cols_present:
-            errors.extend(compare_cells(ref_df, cur_df, cols_present, rules_dict))
 
-    if errors:
-        logger.error("Errors found while comparing the files:")
-        for e in errors:
-            logger.error(
-                "Row %s - Column '%s': file1=%s, file2=%s → %s",
-                e["row"],
-                e["column"],
-                e["file1"],
-                e["file2"],
-                e["error"],
-            )
+        if cols_with_rules:
+            errors.extend(compare_cells_rules(ref_df, cur_df, cols_without_rules, rules_dict))
+
     return errors
