@@ -27,9 +27,7 @@ from util.utils import FileInfo
 def fof_compare(file1, file2, tol):
 
     n_rows = xr.open_dataset(file1).sizes["d_body"]
-    tolerance_file = "tolerance_file.csv"
-
-    create_tolerance_csv(n_rows, tol, tolerance_file)
+    tolerance_file = create_tolerance_csv(n_rows, tol)
 
     out, err, tol = check_file_with_tolerances(
         tolerance_file, FileInfo(file1), FileInfo(file2), factor=1, rules=""
