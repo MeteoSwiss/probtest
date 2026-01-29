@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-_LOGGER = None
-_LOG_PATH = None
+from util.log_handler import logger, initialize_detailed_logger
+from util.log_handler import initialize_logger
 
 
 def get_report_variables(ds):
@@ -124,8 +124,8 @@ def clean_value(x):
     return str(x).rstrip(" '")
 
 
-def write_lines_log(ds1, ds2, diff):
-    logger = get_logger()
+def write_lines_log(ds1, ds2, diff, file_logger):
+
     da1 = ds1.to_dataframe().reset_index()
     da2 = ds2.to_dataframe().reset_index()
     col_width = 13
@@ -144,20 +144,20 @@ def write_lines_log(ds1, ds2, diff):
 
         row_diff = "|".join(f"{str(x):<{col_width}}" for x in diff_vals)
 
-        logger.info("id  : %s", index)
-        logger.info("ref  : %s", row1)
-        logger.info("cur  : %s", row2)
-        logger.info("diff : %s", row_diff)
-        logger.info("")
+        file_logger.info("id  : %s", index)
+        file_logger.info("ref  : %s", row1)
+        file_logger.info("cur  : %s", row2)
+        file_logger.info("diff : %s", row_diff)
+        file_logger.info("")
 
 
-def write_different_size_log(var, size1, size2):
+def write_different_size_log(var, size1, size2,file_logger):
     """
     This function is triggered when the array sizes do not match and records
     in the log file that a comparison is not possible.
     """
-    logger = get_logger()
-    logger.info(
+
+    file_logger.info(
         "variable  : %s -> datasets have different lengths "
         "(%s vs. %s), comparison not possible\n",
         var,
@@ -172,64 +172,10 @@ def write_tolerance_log(err, tol):
     veri_data fall outside the specified tolerance range.
     Any resulting errors are recorded in a log file.
     """
-    logger = get_logger()
+
     logger.info("Differences, veri_data outside of tolerance range")
     logger.info(err)
     logger.info(tol)
-
-
-def init_logger(log_path):
-    """
-    Sets up a logger that appends plain-text messages to the given log
-    file and returns the configured logger.
-    """
-    global _LOGGER, _LOG_PATH
-
-    if _LOGGER is not None:
-        return _LOGGER
-
-    _LOG_PATH = Path(log_path)
-
-    logger = logging.getLogger("diff_logger")
-    logger.setLevel(logging.INFO)
-    logger.propagate = False
-
-    if not logger.handlers:
-        handler = logging.FileHandler(_LOG_PATH, mode="w", encoding="utf-8")
-        formatter = logging.Formatter("%(message)s")
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-
-    logger.info("Differences\n")
-
-    _LOGGER = logger
-    return logger
-
-
-def get_logger():
-    if _LOGGER is None:
-        raise RuntimeError(
-            "Logger not initialized. Call init_logger(log_path) once at startup."
-        )
-    return _LOGGER
-
-
-def remove_log_if_only_header():
-    """
-    Remove the log file if it contains only the initial header 'Differences'.
-    """
-    if _LOG_PATH is None:
-        return
-
-    path = Path(_LOG_PATH)
-
-    if not path.exists():
-        return
-
-    content = path.read_text(encoding="utf-8").strip()
-
-    if content == "Differences":
-        path.unlink()
 
 
 def compare_var_and_attr_ds(ds1, ds2, name_core):
@@ -241,16 +187,20 @@ def compare_var_and_attr_ds(ds1, ds2, name_core):
     total_all, equal_all = 0, 0
     total, equal = 0, 0
     list_to_skip = ["source", "i_body", "l_body", "veri_data"]
-    init_logger(f"error_{name_core}.log")
+    file_logger = initialize_detailed_logger(
+    "DETAILS",
+    log_level="DEBUG",
+    log_file=f"error_{name_core}.log",
+    )
 
     for var in set(ds1.data_vars).union(ds2.data_vars):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
 
-            total, equal = process_var(ds1, ds2, var)
+            total, equal = process_var(ds1, ds2, var, file_logger)
 
         if var in ds1.attrs and var in ds2.attrs and var not in list_to_skip:
 
-            total, equal = process_var(ds1, ds2, var)
+            total, equal = process_var(ds1, ds2, var, file_logger)
 
         total_all += total
         equal_all += equal
@@ -284,16 +234,16 @@ def primary_check(file1, file2):
     return name1_core == name2_core, name1_core
 
 
-def process_var(ds1, ds2, var):
+def process_var(ds1, ds2, var, file_logger):
     arr1 = fill_nans_for_float32(ds1[var].values)
     arr2 = fill_nans_for_float32(ds2[var].values)
     if arr1.size == arr2.size:
         t, e, diff = compare_arrays(arr1, arr2, var)
         if diff.size != 0:
-            write_lines_log(ds1, ds2, diff)
+            write_lines_log(ds1, ds2, diff, file_logger)
 
     else:
         t, e = max(arr1.size, arr2.size), 0
-        write_different_size_log(var, arr1.size, arr2.size)
+        write_different_size_log(var, arr1.size, arr2.size, file_logger)
 
     return t, e

@@ -28,3 +28,26 @@ def initialize_logger(log_level="DEBUG", log_file="probtest.log"):
     logger.setLevel(log_level)
 
     logger.info("initialized logger with level %s", log_level)
+
+
+def initialize_detailed_logger(
+    name,
+    log_level="DEBUG",
+    log_file=None,
+):
+    detailed_logger = logging.getLogger(name)
+    detailed_logger.setLevel(log_level)
+    detailed_logger.propagate = False
+
+    if detailed_logger.handlers:
+        return detailed_logger
+
+    formatter = logging.Formatter("%(message)s")
+
+    if log_file:
+        file_handler = logging.FileHandler(log_file, mode="w")
+        file_handler.setFormatter(formatter)
+        detailed_logger.addHandler(file_handler)
+
+    detailed_logger.info("initialized named logger '%s'", name)
+    return detailed_logger
