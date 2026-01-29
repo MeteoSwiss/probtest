@@ -10,10 +10,14 @@ import os
 
 import click
 import xarray as xr
-import numpy as np
 
 from util.dataframe_ops import check_file_with_tolerances
-from util.fof_utils import create_tolerance_csv, primary_check, write_tolerance_log
+from util.fof_utils import (
+    create_tolerance_csv,
+    primary_check,
+    remove_log_if_only_header,
+    write_tolerance_log,
+)
 from util.utils import FileInfo
 
 
@@ -25,6 +29,10 @@ from util.utils import FileInfo
     default=1e-12,
 )
 def fof_compare(file1, file2, tol):
+
+    if not primary_check(file1, file2):
+        print("Different types of files")
+        return
 
     n_rows = xr.open_dataset(file1).sizes["d_body"]
     tolerance_file = create_tolerance_csv(n_rows, tol)
@@ -38,9 +46,9 @@ def fof_compare(file1, file2, tol):
     else:
         print("Files are NOT consistent!")
         if err:
-            write_tolerance_log(err, tol, "tolerance_error.log")
+            write_tolerance_log(err, tol)
 
-
+    remove_log_if_only_header()
     if os.path.exists(tolerance_file):
         os.remove(tolerance_file)
 

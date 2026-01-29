@@ -4,11 +4,14 @@ This module contains functions for handling fof files
 
 import logging
 import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import xarray as xr
 
+_LOGGER = None
+_LOG_PATH = None
 
 
 def get_report_variables(ds):
@@ -121,17 +124,8 @@ def clean_value(x):
     return str(x).rstrip(" '")
 
 
-def write_lines_log(ds1, ds2, diff, log_path):
-    if diff.size == 0:
-        return
-
-    logger = setup_logger(log_path)
-
-    if not hasattr(write_lines_log, "_header_written"):
-        with open(log_path, "w", encoding="utf-8") as f:
-            f.write("Differences\n\n")
-        write_lines_log._header_written = True
-
+def write_lines_log(ds1, ds2, diff):
+    logger = get_logger()
     da1 = ds1.to_dataframe().reset_index()
     da2 = ds2.to_dataframe().reset_index()
     col_width = 13
@@ -150,98 +144,116 @@ def write_lines_log(ds1, ds2, diff, log_path):
 
         row_diff = "|".join(f"{str(x):<{col_width}}" for x in diff_vals)
 
-        logger.info(f"id  : {index}")
-        logger.info(f"ref  : {row1}")
-        logger.info(f"cur  : {row2}")
-        logger.info(f"diff : {row_diff}")
+        logger.info("id  : %s", index)
+        logger.info("ref  : %s", row1)
+        logger.info("cur  : %s", row2)
+        logger.info("diff : %s", row_diff)
         logger.info("")
 
 
-def write_different_size_log(var, size1, size2, log_path):
+def write_different_size_log(var, size1, size2):
     """
     This function is triggered when the array sizes do not match and records
     in the log file that a comparison is not possible.
     """
-    logger = setup_logger(log_path)
+    logger = get_logger()
     logger.info(
-        f"variable  : {var} -> datasets have different lengths "
-        f"({size1} vs. {size2} ), comparison not possible" + "\n"
+        "variable  : %s -> datasets have different lengths "
+        "(%s vs. %s), comparison not possible\n",
+        var,
+        size1,
+        size2,
     )
 
-def write_tolerance_log(err, tol, log_path):
+
+def write_tolerance_log(err, tol):
     """
     This function is triggered when the fof-compare step fails because the
     veri_data fall outside the specified tolerance range.
     Any resulting errors are recorded in a log file.
     """
-    logger = setup_logger(log_path)
+    logger = get_logger()
     logger.info("Differences, veri_data outside of tolerance range")
     logger.info(err)
     logger.info(tol)
 
 
-def setup_logger(log_path):
+def init_logger(log_path):
     """
     Sets up a logger that appends plain-text messages to the given log
     file and returns the configured logger.
     """
+    global _LOGGER, _LOG_PATH
+
+    if _LOGGER is not None:
+        return _LOGGER
+
+    _LOG_PATH = Path(log_path)
+
     logger = logging.getLogger("diff_logger")
     logger.setLevel(logging.INFO)
     logger.propagate = False
 
-    if logger.handlers:
-        logger.handlers.clear()
+    if not logger.handlers:
+        handler = logging.FileHandler(_LOG_PATH, mode="w", encoding="utf-8")
+        formatter = logging.Formatter("%(message)s")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
 
-    handler = logging.FileHandler(log_path, mode="a", encoding="utf-8")
-    formatter = logging.Formatter("%(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    logger.info("Differences\n")
 
+    _LOGGER = logger
     return logger
+
+
+def get_logger():
+    if _LOGGER is None:
+        raise RuntimeError(
+            "Logger not initialized. Call init_logger(log_path) once at startup."
+        )
+    return _LOGGER
+
+
+def remove_log_if_only_header():
+    """
+    Remove the log file if it contains only the initial header 'Differences'.
+    """
+    if _LOG_PATH is None:
+        return
+
+    path = Path(_LOG_PATH)
+
+    if not path.exists():
+        return
+
+    content = path.read_text(encoding="utf-8").strip()
+
+    if content == "Differences":
+        path.unlink()
 
 
 def compare_var_and_attr_ds(ds1, ds2, name_core):
     """
     Variable by variable and attribute by attribute,
-    comparison of the two files.
+    comparison of the two datasets.
     """
 
     total_all, equal_all = 0, 0
+    total, equal = 0, 0
     list_to_skip = ["source", "i_body", "l_body", "veri_data"]
-    log_path = f"error_{name_core}.log"
+    init_logger(f"error_{name_core}.log")
 
     for var in set(ds1.data_vars).union(ds2.data_vars):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
 
-            arr1 = fill_nans_for_float32(ds1[var].values)
-            arr2 = fill_nans_for_float32(ds2[var].values)
-
-            if arr1.size == arr2.size:
-                t, e, diff = compare_arrays(arr1, arr2, var)
-
-                write_lines_log(ds1, ds2, diff, log_path)
-
-            else:
-                t, e = max(arr1.size, arr2.size), 0
-                write_different_size_log(var, arr1.size, arr2.size, log_path)
-
-            total_all += t
-            equal_all += e
+            total, equal = process_var(ds1, ds2, var)
 
         if var in ds1.attrs and var in ds2.attrs and var not in list_to_skip:
 
-            arr1 = fill_nans_for_float32(ds1[var].values)
-            arr2 = fill_nans_for_float32(ds2[var].values)
-            if arr1.size == arr2.size:
-                t, e, diff = compare_arrays(arr1, arr2, var)
+            total, equal = process_var(ds1, ds2, var)
 
-                write_lines_log(ds1, ds2, diff, log_path)
-            else:
-                t, e = max(arr1.size, arr2.size), 0
-                write_different_size_log(var, arr1.size, arr2.size, log_path)
-
-            total_all += t
-            equal_all += e
+        total_all += total
+        equal_all += equal
 
     return total_all, equal_all
 
@@ -270,3 +282,18 @@ def primary_check(file1, file2):
     name2_core = name2.replace("fof", "").replace(".nc", "")
 
     return name1_core == name2_core, name1_core
+
+
+def process_var(ds1, ds2, var):
+    arr1 = fill_nans_for_float32(ds1[var].values)
+    arr2 = fill_nans_for_float32(ds2[var].values)
+    if arr1.size == arr2.size:
+        t, e, diff = compare_arrays(arr1, arr2, var)
+        if diff.size != 0:
+            write_lines_log(ds1, ds2, diff)
+
+    else:
+        t, e = max(arr1.size, arr2.size), 0
+        write_different_size_log(var, arr1.size, arr2.size)
+
+    return t, e

@@ -6,9 +6,9 @@ reference datasets with specified tolerances.
 """
 
 import ast
+import os
 import sys
 import warnings
-import os
 
 import numpy as np
 import pandas as pd
@@ -336,7 +336,6 @@ def check_file_with_tolerances(
         )
         sys.exit(1)
 
-
     df_tol, df_ref, df_cur = parse_check(
         tolerance_file_name, input_file_ref, input_file_cur, factor
     )
@@ -416,7 +415,9 @@ def compare_cells_rules(ref_df, cur_df, cols, rules_dict):
     All other differences are collected and returned as a list of error descriptions.
     """
     errors = []
-    for row_idx, (row1, row2) in enumerate(zip(ref_df.itertuples(), cur_df.itertuples())):
+    for row_idx, (row1, row2) in enumerate(
+        zip(ref_df.itertuples(), cur_df.itertuples())
+    ):
         for col in cols:
             val1 = getattr(row1, col)
             val2 = getattr(row2, col)
@@ -442,10 +443,10 @@ def compare_cells_rules(ref_df, cur_df, cols, rules_dict):
 
 def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, name_core):
     """
-    This function compares two Python dictionaries—each containing DataFrames under
-    the keys "reports" and "observation"—row by row and column by column, according
-    to rules defined in a separate dictionary. If the corresponding cells are
-    different and the values are not allowed by the rules, it records an error.
+    This function compares two Python dictionaries,each containing DataFrames under
+    the keys "reports" and "observation",row by row and column by column, according
+    to rules defined in a separate dictionary. If the variable does not need to follow
+    specific rules, the values must be identical.
     It returns a list indicating the row, the column and which values are wrong.
     """
 
@@ -461,7 +462,6 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, name_core):
         cols_with_rules = common_cols & rule_cols
         cols_without_rules = common_cols - cols_with_rules
 
-
         if cols_without_rules:
             t, e = compare_var_and_attr_ds(
                 ref_df[list(cols_without_rules)].to_xarray(),
@@ -472,8 +472,9 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, name_core):
                 errors = True
                 return errors
 
-
         if cols_with_rules:
-            errors.extend(compare_cells_rules(ref_df, cur_df, cols_without_rules, rules_dict))
+            errors.extend(
+                compare_cells_rules(ref_df, cur_df, cols_without_rules, rules_dict)
+            )
 
     return errors
