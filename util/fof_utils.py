@@ -2,10 +2,11 @@
 This module contains functions for handling fof files
 """
 
+import os
+
 import numpy as np
 import pandas as pd
 import xarray as xr
-import os
 
 from util.log_handler import logger
 
@@ -123,6 +124,10 @@ def clean_value(x):
 
 
 def write_lines_log(ds1, ds2, diff, detailed_logger):
+    """
+    This function writes the differences detected between
+    two files to a detailed log file.
+    """
 
     da1 = ds1.to_dataframe().reset_index()
     da2 = ds2.to_dataframe().reset_index()
@@ -190,6 +195,14 @@ def compare_var_and_attr_ds(ds1, ds2, detailed_logger):
 
 
 def process_var(ds1, ds2, var, detailed_logger):
+    """
+    This function first checks whether two arrays have the same size.
+    If they do, their values are compared.
+    If they don't, the differences are written to a log file.
+    The function outputs the total number of elements and the
+    number of matching elements.
+    """
+
     arr1 = fill_nans_for_float32(ds1[var].values)
     arr2 = fill_nans_for_float32(ds2[var].values)
     if arr1.size == arr2.size:
@@ -216,8 +229,31 @@ def create_tolerance_csv(n_rows, tol):
 
     return tolerance_file_name
 
+
 def get_log_file_name(file_path):
+    """
+    This function gives the name of the detailed log file,
+    according to the file path.
+    """
 
     core_name = os.path.basename(file_path).replace(".nc", "")
     log_file_name = f"error_{core_name}.log"
     return log_file_name
+
+
+def clean_logger_file_if_only_details(file_path):
+    """
+    This function deletes the detailed log file if it doesn't
+    contain anything.
+    """
+    target_line = "initialized named logger 'DETAILS'"
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    stripped_lines = [line.strip() for line in lines if line.strip()]
+
+    if 0 < len(stripped_lines) <= 2 and all(
+        line == target_line for line in stripped_lines
+    ):
+        os.remove(file_path)

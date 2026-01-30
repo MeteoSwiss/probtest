@@ -6,7 +6,6 @@ reference datasets with specified tolerances.
 """
 
 import ast
-import os
 import sys
 import warnings
 
@@ -16,9 +15,12 @@ import xarray as xr
 
 from util.constants import CHECK_THRESHOLD, compute_statistics
 from util.file_system import file_names_from_pattern
-from util.fof_utils import compare_var_and_attr_ds, split_feedback_dataset, get_log_file_name
-from util.log_handler import logger
-from util.log_handler import initialize_detailed_logger
+from util.fof_utils import (
+    compare_var_and_attr_ds,
+    get_log_file_name,
+    split_feedback_dataset,
+)
+from util.log_handler import get_detailed_logger, logger
 from util.model_output_parser import model_output_parser
 from util.utils import FileType
 
@@ -343,13 +345,14 @@ def check_file_with_tolerances(
 
     if input_file_ref.file_type == FileType.FOF:
         log_file_name = get_log_file_name(input_file_ref.path)
-        name_core = os.path.basename(input_file_ref.path).replace(".nc", "")
-        errors = check_multiple_solutions_from_dict(df_ref, df_cur, rules, log_file_name)
+        errors = check_multiple_solutions_from_dict(
+            df_ref, df_cur, rules, log_file_name
+        )
 
         if errors:
             logger.error("RESULT: check FAILED")
             err = pd.DataFrame()
-            return False, err , 0
+            return False, err, 0
     else:
         # check if variables are available in reference file
         skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
@@ -455,11 +458,7 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, log_file_name)
 
     rules_dict = parse_rules(rules)
     errors = False
-    detailed_logger = initialize_detailed_logger(
-        "DETAILS",
-        log_level="DEBUG",
-        log_file=log_file_name,
-    )
+    detailed_logger = get_detailed_logger(log_file_name)
 
     for key, ref_df in dict_ref.items():
         cur_df = dict_cur[key]
@@ -474,13 +473,14 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, log_file_name)
             t, e = compare_var_and_attr_ds(
                 ref_df[list(cols_without_rules)].to_xarray(),
                 cur_df[list(cols_without_rules)].to_xarray(),
-                detailed_logger
+                detailed_logger,
             )
             if t != e:
                 return True
 
         if cols_with_rules:
-            errors = compare_cells_rules(ref_df, cur_df, cols_without_rules, rules_dict,
-                                         detailed_logger)
+            errors = compare_cells_rules(
+                ref_df, cur_df, cols_without_rules, rules_dict, detailed_logger
+            )
 
     return errors

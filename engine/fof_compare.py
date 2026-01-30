@@ -13,8 +13,12 @@ import xarray as xr
 
 from util.click_util import CommaSeparatedStrings, cli_help
 from util.dataframe_ops import check_file_with_tolerances
-from util.fof_utils import create_tolerance_csv, get_log_file_name
-from util.log_handler import initialize_detailed_logger, logger
+from util.fof_utils import (
+    clean_logger_file_if_only_details,
+    create_tolerance_csv,
+    get_log_file_name,
+)
+from util.log_handler import get_detailed_logger, logger
 from util.utils import FileInfo
 
 
@@ -48,24 +52,23 @@ def fof_compare(file1, file2, fof_types, tolerance):
             rules="",
         )
 
+        log_file_name = get_log_file_name(file1_path)
         if out:
             logger.info("Files are consistent!")
+
         else:
             logger.info("Files are NOT consistent!")
-            log_file_name = get_log_file_name(file1_path)
+
             logger.info("Complete output available in %s", log_file_name)
             if not err.empty:
-                detailed_logger = initialize_detailed_logger(
-                    "DETAILS",
-                    log_level="DEBUG",
-                    log_file=log_file_name,
-                )
+                detailed_logger = get_detailed_logger(log_file_name)
                 detailed_logger.info(
                     "Differences, veri_data outside of tolerance range"
                 )
                 detailed_logger.info(err)
                 detailed_logger.info(tol)
 
+        clean_logger_file_if_only_details(log_file_name)
         if os.path.exists(tolerance_file):
             os.remove(tolerance_file)
 

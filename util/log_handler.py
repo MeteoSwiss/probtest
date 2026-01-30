@@ -39,7 +39,11 @@ def initialize_detailed_logger(
     detailed_logger.setLevel(log_level)
     detailed_logger.propagate = False
 
-    existing_handlers = [h for h in detailed_logger.handlers if getattr(h, 'baseFilename', None) == log_file]
+    existing_handlers = [
+        h
+        for h in detailed_logger.handlers
+        if getattr(h, "baseFilename", None) == log_file
+    ]
 
     if existing_handlers:
         return detailed_logger
@@ -53,3 +57,10 @@ def initialize_detailed_logger(
 
     detailed_logger.info("initialized named logger '%s'", name)
     return detailed_logger
+
+
+def get_detailed_logger(log_file_name, logger_name="DETAILS", log_level="DEBUG"):
+
+    return initialize_detailed_logger(
+        logger_name, log_level=log_level, log_file=log_file_name
+    )
