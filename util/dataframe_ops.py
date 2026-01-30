@@ -412,9 +412,9 @@ def compare_cells_rules(ref_df, cur_df, cols, rules_dict):
     This function compares two DataFrames cell by cell for a selected set of columns.
     For each row and column, it ignores values that are equal or whose differences
     are allowed by predefined rules.
-    All other differences are collected and returned as a list of error descriptions.
+    All other differences not admitted are stored in a log file.
     """
-    errors = []
+    errors = False
     for row_idx, (row1, row2) in enumerate(
         zip(ref_df.itertuples(), cur_df.itertuples())
     ):
@@ -429,29 +429,29 @@ def compare_cells_rules(ref_df, cur_df, cols, rules_dict):
             if val1 in allowed and val2 in allowed:
                 continue
 
-            errors.append(
-                {
-                    "row": row_idx,
-                    "column": col,
-                    "file1": val1,
-                    "file2": val2,
-                    "error": "values different and not admitted",
-                }
+            logger.info(
+                "Values different and not admitted | "
+                "row=%s, column=%s, file1=%s, file2=%s",
+                row_idx,
+                col,
+                val1,
+                val2,
             )
+            errors = True
     return errors
 
 
 def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, name_core):
     """
-    This function compares two Python dictionaries,each containing DataFrames under
-    the keys "reports" and "observation",row by row and column by column, according
+    This function compares two Python dictionaries, each containing DataFrames under
+    the keys "reports" and "observation", row by row and column by column, according
     to rules defined in a separate dictionary. If the variable does not need to follow
     specific rules, the values must be identical.
-    It returns a list indicating the row, the column and which values are wrong.
+    It records the row, column and invalid values in a log file.
     """
 
     rules_dict = parse_rules(rules)
-    errors = []
+    errors = False
 
     for key, ref_df in dict_ref.items():
         cur_df = dict_cur[key]
@@ -469,12 +469,9 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, name_core):
                 name_core,
             )
             if t != e:
-                errors = True
-                return errors
+                return True
 
         if cols_with_rules:
-            errors.extend(
-                compare_cells_rules(ref_df, cur_df, cols_without_rules, rules_dict)
-            )
+            errors = compare_cells_rules(ref_df, cur_df, cols_without_rules, rules_dict)
 
     return errors

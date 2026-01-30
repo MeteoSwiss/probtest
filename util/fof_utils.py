@@ -2,16 +2,11 @@
 This module contains functions for handling fof files
 """
 
-import logging
-import os
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import xarray as xr
 
-from util.log_handler import logger, initialize_detailed_logger
-from util.log_handler import initialize_logger
+from util.log_handler import initialize_detailed_logger, logger
 
 
 def get_report_variables(ds):
@@ -96,9 +91,11 @@ def compare_arrays(arr1, arr2, var_name):
         mask_equal = arr1 == arr2
         equal = mask_equal.sum()
         percent = (equal / total) * 100
-        print(
-            f"Differences in '{var_name}': {percent:.2f}% equal. "
-            f"{total} total entries for this variable"
+        logger.info(
+            "Differences in '%s': %.2f%% equal. %s total entries for this variable",
+            var_name,
+            percent,
+            total,
         )
         diff = np.where(~mask_equal.ravel())[0]
 
@@ -124,7 +121,7 @@ def clean_value(x):
     return str(x).rstrip(" '")
 
 
-def write_lines_log(ds1, ds2, diff, file_logger):
+def write_lines_log(ds1, ds2, diff, detailed_logger):
 
     da1 = ds1.to_dataframe().reset_index()
     da2 = ds2.to_dataframe().reset_index()
@@ -144,38 +141,26 @@ def write_lines_log(ds1, ds2, diff, file_logger):
 
         row_diff = "|".join(f"{str(x):<{col_width}}" for x in diff_vals)
 
-        file_logger.info("id  : %s", index)
-        file_logger.info("ref  : %s", row1)
-        file_logger.info("cur  : %s", row2)
-        file_logger.info("diff : %s", row_diff)
-        file_logger.info("")
+        detailed_logger.info("id  : %s", index)
+        detailed_logger.info("ref  : %s", row1)
+        detailed_logger.info("cur  : %s", row2)
+        detailed_logger.info("diff : %s", row_diff)
+        detailed_logger.info("")
 
 
-def write_different_size_log(var, size1, size2,file_logger):
+def write_different_size_log(var, size1, size2, detailed_logger):
     """
     This function is triggered when the array sizes do not match and records
     in the log file that a comparison is not possible.
     """
 
-    file_logger.info(
+    detailed_logger.info(
         "variable  : %s -> datasets have different lengths "
         "(%s vs. %s), comparison not possible\n",
         var,
         size1,
         size2,
     )
-
-
-def write_tolerance_log(err, tol):
-    """
-    This function is triggered when the fof-compare step fails because the
-    veri_data fall outside the specified tolerance range.
-    Any resulting errors are recorded in a log file.
-    """
-
-    logger.info("Differences, veri_data outside of tolerance range")
-    logger.info(err)
-    logger.info(tol)
 
 
 def compare_var_and_attr_ds(ds1, ds2, name_core):
@@ -187,25 +172,40 @@ def compare_var_and_attr_ds(ds1, ds2, name_core):
     total_all, equal_all = 0, 0
     total, equal = 0, 0
     list_to_skip = ["source", "i_body", "l_body", "veri_data"]
-    file_logger = initialize_detailed_logger(
-    "DETAILS",
-    log_level="DEBUG",
-    log_file=f"error_{name_core}.log",
+    detailed_logger = initialize_detailed_logger(
+        "DETAILS",
+        log_level="DEBUG",
+        log_file=f"error_{name_core}.log",
     )
 
     for var in set(ds1.data_vars).union(ds2.data_vars):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
 
-            total, equal = process_var(ds1, ds2, var, file_logger)
+            total, equal = process_var(ds1, ds2, var, detailed_logger)
 
         if var in ds1.attrs and var in ds2.attrs and var not in list_to_skip:
 
-            total, equal = process_var(ds1, ds2, var, file_logger)
+            total, equal = process_var(ds1, ds2, var, detailed_logger)
 
         total_all += total
         equal_all += equal
 
     return total_all, equal_all
+
+
+def process_var(ds1, ds2, var, detailed_logger):
+    arr1 = fill_nans_for_float32(ds1[var].values)
+    arr2 = fill_nans_for_float32(ds2[var].values)
+    if arr1.size == arr2.size:
+        t, e, diff = compare_arrays(arr1, arr2, var)
+        if diff.size != 0:
+            write_lines_log(ds1, ds2, diff, detailed_logger)
+
+    else:
+        t, e = max(arr1.size, arr2.size), 0
+        write_different_size_log(var, arr1.size, arr2.size, detailed_logger)
+
+    return t, e
 
 
 def create_tolerance_csv(n_rows, tol):
@@ -219,31 +219,3 @@ def create_tolerance_csv(n_rows, tol):
     df.to_csv(tolerance_file_name)
 
     return tolerance_file_name
-
-
-def primary_check(file1, file2):
-    """
-    Test that the two files are of the same type.
-    """
-    name1 = os.path.basename(file1)
-    name2 = os.path.basename(file2)
-
-    name1_core = name1.replace("fof", "").replace(".nc", "")
-    name2_core = name2.replace("fof", "").replace(".nc", "")
-
-    return name1_core == name2_core, name1_core
-
-
-def process_var(ds1, ds2, var, file_logger):
-    arr1 = fill_nans_for_float32(ds1[var].values)
-    arr2 = fill_nans_for_float32(ds2[var].values)
-    if arr1.size == arr2.size:
-        t, e, diff = compare_arrays(arr1, arr2, var)
-        if diff.size != 0:
-            write_lines_log(ds1, ds2, diff, file_logger)
-
-    else:
-        t, e = max(arr1.size, arr2.size), 0
-        write_different_size_log(var, arr1.size, arr2.size, file_logger)
-
-    return t, e

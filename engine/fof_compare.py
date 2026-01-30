@@ -10,15 +10,13 @@ import os
 
 import click
 import xarray as xr
-from util.click_util import CommaSeparatedStrings, cli_help
 
+from util.click_util import CommaSeparatedStrings, cli_help
 from util.dataframe_ops import check_file_with_tolerances
-from util.fof_utils import (
-    create_tolerance_csv,
-    write_tolerance_log,
-)
+from util.fof_utils import create_tolerance_csv
+from util.log_handler import initialize_detailed_logger, logger
 from util.utils import FileInfo
-from util.log_handler import logger, initialize_detailed_logger
+
 
 @click.command()
 @click.argument("file1")
@@ -33,34 +31,41 @@ from util.log_handler import logger, initialize_detailed_logger
     "--tol",
     default=1e-12,
 )
-def fof_compare(file1, file2, fof_types,tol):
+def fof_compare(file1, file2, fof_types, tol):
 
-    for ft in fof_types:
-        file1_path = file1.format(fof_type=ft)
-        file2_path = file2.format(fof_type=ft)
+    for fof_type in fof_types:
+        file1_path = file1.format(fof_type=fof_type)
+        file2_path = file2.format(fof_type=fof_type)
 
         n_rows = xr.open_dataset(file1_path).sizes["d_body"]
         tolerance_file = create_tolerance_csv(n_rows, tol)
 
         out, err, tol = check_file_with_tolerances(
-            tolerance_file, FileInfo(file1_path), FileInfo(file2_path), factor=1, rules=""
+            tolerance_file,
+            FileInfo(file1_path),
+            FileInfo(file2_path),
+            factor=1,
+            rules="",
         )
 
         if out:
-            print("Files are consistent!")
+            logger.info("Files are consistent!")
         else:
-            print("Files are NOT consistent!")
+            logger.info("Files are NOT consistent!")
+            log_file_name = f"error_{fof_type}.log"
+            logger.info("Complete output available in %s", log_file_name)
             if err:
-                file_logger = initialize_detailed_logger(
-                "DETAILS",
-                log_level="DEBUG",
-                log_file=f"error_{ft}.log",
+                detailed_logger = initialize_detailed_logger(
+                    "DETAILS",
+                    log_level="DEBUG",
+                    log_file=log_file_name,
                 )
-                file_logger.info("Differences, veri_data outside of tolerance range")
-                file_logger.info(err)
-                file_logger.info(tol)
+                detailed_logger.info(
+                    "Differences, veri_data outside of tolerance range"
+                )
+                detailed_logger.info(err)
+                detailed_logger.info(tol)
 
-        #remove_log_if_only_header()
         if os.path.exists(tolerance_file):
             os.remove(tolerance_file)
 
