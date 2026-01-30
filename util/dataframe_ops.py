@@ -16,6 +16,7 @@ import xarray as xr
 from util.constants import CHECK_THRESHOLD, compute_statistics
 from util.file_system import file_names_from_pattern
 from util.fof_utils import (
+    clean_logger_file_if_only_details,
     compare_var_and_attr_ds,
     get_log_file_name,
     split_feedback_dataset,
@@ -480,5 +481,5 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, log_file_name)
             errors = compare_cells_rules(
                 ref_df, cur_df, cols_with_rules, rules_dict, detailed_logger
             )
-
+    clean_logger_file_if_only_details(log_file_name)
     return errors

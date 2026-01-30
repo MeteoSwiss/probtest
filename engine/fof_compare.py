@@ -14,7 +14,6 @@ import xarray as xr
 from util.click_util import CommaSeparatedStrings, cli_help
 from util.dataframe_ops import check_file_with_tolerances
 from util.fof_utils import (
-    clean_logger_file_if_only_details,
     create_tolerance_csv,
     get_log_file_name,
 )
@@ -68,7 +67,6 @@ def fof_compare(file1, file2, fof_types, tolerance):
                 detailed_logger.info(err)
                 detailed_logger.info(tol)
 
-        clean_logger_file_if_only_details(log_file_name)
         if os.path.exists(tolerance_file):
             os.remove(tolerance_file)
 
