@@ -2,6 +2,8 @@
 This module contains unit tests for the `util/fof_utils.py` module.
 """
 
+from unittest.mock import mock_open, patch
+
 import numpy as np
 import pytest
 
@@ -14,6 +16,7 @@ from util.fof_utils import (  # write_lines,
     get_report_variables,
     split_feedback_dataset,
 )
+from util.log_handler import get_detailed_logger
 
 
 @pytest.fixture(name="ds1", scope="function")
@@ -274,12 +277,14 @@ def test_compare_var_and_attr_ds(ds1, ds2):
     Test that, given two datasets, returns the number of elements in which
     the variables are the same and in which they differ.
     """
+    with patch("builtins.open", mock_open()):
+        detailed_logger = get_detailed_logger("test_log.log")
 
-    total1, equal1 = compare_var_and_attr_ds(ds1, ds2)
-    total2, equal2 = compare_var_and_attr_ds(ds1, ds2)
+        total1, equal1 = compare_var_and_attr_ds(ds1, ds2, detailed_logger)
+        total2, equal2 = compare_var_and_attr_ds(ds1, ds2, detailed_logger)
 
-    assert (total1, equal1) == (104, 103)
-    assert (total2, equal2) == (104, 103)
+        assert (total1, equal1) == (114, 113)
+        assert (total2, equal2) == (114, 113)
 
 
 @pytest.fixture(name="ds3")

@@ -462,12 +462,10 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, log_file_name)
 
     for key, ref_df in dict_ref.items():
         cur_df = dict_cur[key]
+        common_cols = [col for col in ref_df.columns if col in cur_df.columns]
 
-        common_cols = set(ref_df.columns) & set(cur_df.columns)
-        rule_cols = set(rules_dict)
-
-        cols_with_rules = common_cols & rule_cols
-        cols_without_rules = common_cols - cols_with_rules
+        cols_with_rules = [col for col in common_cols if col in rules_dict]
+        cols_without_rules = [col for col in common_cols if col not in rules_dict]
 
         if cols_without_rules:
             t, e = compare_var_and_attr_ds(
@@ -480,7 +478,7 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, log_file_name)
 
         if cols_with_rules:
             errors = compare_cells_rules(
-                ref_df, cur_df, cols_without_rules, rules_dict, detailed_logger
+                ref_df, cur_df, cols_with_rules, rules_dict, detailed_logger
             )
 
     return errors
