@@ -28,17 +28,17 @@ from util.utils import FileInfo
     help=cli_help["fof_types"],
 )
 @click.option(
-    "--tol",
+    "--tolerance",
     default=1e-12,
 )
-def fof_compare(file1, file2, fof_types, tol):
+def fof_compare(file1, file2, fof_types, tolerance):
 
     for fof_type in fof_types:
         file1_path = file1.format(fof_type=fof_type)
         file2_path = file2.format(fof_type=fof_type)
 
         n_rows = xr.open_dataset(file1_path).sizes["d_body"]
-        tolerance_file = create_tolerance_csv(n_rows, tol)
+        tolerance_file = create_tolerance_csv(n_rows, tolerance)
 
         out, err, tol = check_file_with_tolerances(
             tolerance_file,
