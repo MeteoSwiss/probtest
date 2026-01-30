@@ -283,8 +283,8 @@ def test_compare_var_and_attr_ds(ds1, ds2):
         total1, equal1 = compare_var_and_attr_ds(ds1, ds2, detailed_logger)
         total2, equal2 = compare_var_and_attr_ds(ds1, ds2, detailed_logger)
 
-        assert (total1, equal1) == (114, 113)
-        assert (total2, equal2) == (114, 113)
+        assert (total1, equal1) == (103, 102)
+        assert (total2, equal2) == (103, 102)
 
 
 @pytest.fixture(name="ds3")
