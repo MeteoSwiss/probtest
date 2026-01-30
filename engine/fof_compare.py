@@ -52,9 +52,10 @@ def fof_compare(file1, file2, fof_types, tolerance):
             logger.info("Files are consistent!")
         else:
             logger.info("Files are NOT consistent!")
-            log_file_name = f"error_{fof_type}.log"
+            core_name = os.path.basename(file1_path).replace(".nc", "")
+            log_file_name = f"error_{core_name}.log"
             logger.info("Complete output available in %s", log_file_name)
-            if err:
+            if not err.empty:
                 detailed_logger = initialize_detailed_logger(
                     "DETAILS",
                     log_level="DEBUG",

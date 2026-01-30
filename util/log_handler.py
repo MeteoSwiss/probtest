@@ -39,7 +39,9 @@ def initialize_detailed_logger(
     detailed_logger.setLevel(log_level)
     detailed_logger.propagate = False
 
-    if detailed_logger.handlers:
+    existing_handlers = [h for h in detailed_logger.handlers if getattr(h, 'baseFilename', None) == log_file]
+
+    if existing_handlers:
         return detailed_logger
 
     formatter = logging.Formatter("%(message)s")
