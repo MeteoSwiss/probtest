@@ -16,8 +16,9 @@ import xarray as xr
 
 from util.constants import CHECK_THRESHOLD, compute_statistics
 from util.file_system import file_names_from_pattern
-from util.fof_utils import compare_var_and_attr_ds, split_feedback_dataset
+from util.fof_utils import compare_var_and_attr_ds, split_feedback_dataset, get_log_file_name
 from util.log_handler import logger
+from util.log_handler import initialize_detailed_logger
 from util.model_output_parser import model_output_parser
 from util.utils import FileType
 
@@ -341,8 +342,9 @@ def check_file_with_tolerances(
     )
 
     if input_file_ref.file_type == FileType.FOF:
+        log_file_name = get_log_file_name(input_file_ref.path)
         name_core = os.path.basename(input_file_ref.path).replace(".nc", "")
-        errors = check_multiple_solutions_from_dict(df_ref, df_cur, rules, name_core)
+        errors = check_multiple_solutions_from_dict(df_ref, df_cur, rules, log_file_name)
 
         if errors:
             logger.error("RESULT: check FAILED")
@@ -408,7 +410,7 @@ def parse_rules(rules):
     return {}
 
 
-def compare_cells_rules(ref_df, cur_df, cols, rules_dict):
+def compare_cells_rules(ref_df, cur_df, cols, rules_dict, detailed_logger):
     """
     This function compares two DataFrames cell by cell for a selected set of columns.
     For each row and column, it ignores values that are equal or whose differences
@@ -430,7 +432,7 @@ def compare_cells_rules(ref_df, cur_df, cols, rules_dict):
             if val1 in allowed and val2 in allowed:
                 continue
 
-            logger.info(
+            detailed_logger.info(
                 "Values different and not admitted | "
                 "row=%s, column=%s, file1=%s, file2=%s",
                 row_idx,
@@ -442,7 +444,7 @@ def compare_cells_rules(ref_df, cur_df, cols, rules_dict):
     return errors
 
 
-def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, name_core):
+def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, log_file_name):
     """
     This function compares two Python dictionaries, each containing DataFrames under
     the keys "reports" and "observation", row by row and column by column, according
@@ -453,6 +455,11 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, name_core):
 
     rules_dict = parse_rules(rules)
     errors = False
+    detailed_logger = initialize_detailed_logger(
+        "DETAILS",
+        log_level="DEBUG",
+        log_file=log_file_name,
+    )
 
     for key, ref_df in dict_ref.items():
         cur_df = dict_cur[key]
@@ -467,12 +474,13 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, name_core):
             t, e = compare_var_and_attr_ds(
                 ref_df[list(cols_without_rules)].to_xarray(),
                 cur_df[list(cols_without_rules)].to_xarray(),
-                name_core,
+                detailed_logger
             )
             if t != e:
                 return True
 
         if cols_with_rules:
-            errors = compare_cells_rules(ref_df, cur_df, cols_without_rules, rules_dict)
+            errors = compare_cells_rules(ref_df, cur_df, cols_without_rules, rules_dict,
+                                         detailed_logger)
 
     return errors

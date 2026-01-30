@@ -5,8 +5,9 @@ This module contains functions for handling fof files
 import numpy as np
 import pandas as pd
 import xarray as xr
+import os
 
-from util.log_handler import initialize_detailed_logger, logger
+from util.log_handler import logger
 
 
 def get_report_variables(ds):
@@ -163,7 +164,7 @@ def write_different_size_log(var, size1, size2, detailed_logger):
     )
 
 
-def compare_var_and_attr_ds(ds1, ds2, name_core):
+def compare_var_and_attr_ds(ds1, ds2, detailed_logger):
     """
     Variable by variable and attribute by attribute,
     comparison of the two datasets.
@@ -172,11 +173,6 @@ def compare_var_and_attr_ds(ds1, ds2, name_core):
     total_all, equal_all = 0, 0
     total, equal = 0, 0
     list_to_skip = ["source", "i_body", "l_body", "veri_data"]
-    detailed_logger = initialize_detailed_logger(
-        "DETAILS",
-        log_level="DEBUG",
-        log_file=f"error_{name_core}.log",
-    )
 
     for var in set(ds1.data_vars).union(ds2.data_vars):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
@@ -219,3 +215,9 @@ def create_tolerance_csv(n_rows, tol):
     df.to_csv(tolerance_file_name)
 
     return tolerance_file_name
+
+def get_log_file_name(file_path):
+
+    core_name = os.path.basename(file_path).replace(".nc", "")
+    log_file_name = f"error_{core_name}.log"
+    return log_file_name

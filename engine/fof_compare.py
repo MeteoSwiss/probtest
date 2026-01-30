@@ -13,7 +13,7 @@ import xarray as xr
 
 from util.click_util import CommaSeparatedStrings, cli_help
 from util.dataframe_ops import check_file_with_tolerances
-from util.fof_utils import create_tolerance_csv
+from util.fof_utils import create_tolerance_csv, get_log_file_name
 from util.log_handler import initialize_detailed_logger, logger
 from util.utils import FileInfo
 
@@ -52,8 +52,7 @@ def fof_compare(file1, file2, fof_types, tolerance):
             logger.info("Files are consistent!")
         else:
             logger.info("Files are NOT consistent!")
-            core_name = os.path.basename(file1_path).replace(".nc", "")
-            log_file_name = f"error_{core_name}.log"
+            log_file_name = get_log_file_name(file1_path)
             logger.info("Complete output available in %s", log_file_name)
             if not err.empty:
                 detailed_logger = initialize_detailed_logger(
