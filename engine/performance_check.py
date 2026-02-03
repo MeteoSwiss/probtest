@@ -33,15 +33,21 @@ from util.tree import TimingTree
     help=cli_help["measurement_uncertainty"],
     type=float,
     default=2,
+    show_default=True,
 )
 @click.option(
-    "--tolerance-factor", help=cli_help["tolerance_factor"], type=float, default=1.1
+    "--tolerance-factor",
+    help=cli_help["tolerance_factor"],
+    type=float,
+    default=1.1,
+    show_default=True,
 )
 @click.option(
     "--new-reference-threshold",
     help=cli_help["new_reference_threshold"],
     type=float,
     default=0.95,
+    show_default=True,
 )
 @click.option(
     "--timer-sections",
@@ -51,8 +57,11 @@ from util.tree import TimingTree
         "(e.g. 'total,physics,nh_solve')."
     ),
     default="total",
+    show_default=True,
 )
-@click.option("--i-table", type=int, help=cli_help["i_table"], default=-1)
+@click.option(
+    "--i-table", type=int, help=cli_help["i_table"], default=-1, show_default=True
+)
 def performance_check(
     timing_current: str,
     timing_reference: str,
@@ -62,6 +71,49 @@ def performance_check(
     new_reference_threshold: float,
     timer_sections: List[str],
 ):  # pylint: disable=too-many-positional-arguments
+    """
+    Compare current performance timings against a reference.
+
+    Evaluates timer measurements from a current run and compares them to a
+    reference run.
+    Measurement uncertainty and tolerance factors are taken into account to
+    detect performance regressions or decide whether a new reference timing
+    should be accepted automatically.
+
+    By default, only the "total" timer section is evaluated.
+    Multiple sections can be selected using a comma-separated list.
+
+    Examples:
+
+        \b
+        EXPERIMENT=mch_icon-ch2
+        BB_NAME=balfrin_gpu_nvidia_mixed
+
+        Basic comparison using default settings:
+
+        \b
+        probtest performance-check
+        --timing-current ${EXPERIMENT}_${BB_NAME}
+        --timing-reference run/performance_reference/${EXPERIMENT}_${BB_NAME}
+
+        Compare multiple timer sections with a stricter tolerance:
+
+        \b
+        probtest performance-check
+            --timing-current ${EXPERIMENT}_${BB_NAME}
+            --timing-reference run/performance_reference/${EXPERIMENT}_${BB_NAME}
+            --timer-sections total,physics,nh_solve
+            --tolerance-factor 1.05
+
+        Select a specific timing table and adjust measurement uncertainty:
+
+        \b
+        probtest performance-check
+            --timing-current ${EXPERIMENT}_${BB_NAME}
+            --timing-reference run/performance_reference/${EXPERIMENT}_${BB_NAME}
+            --i-table 2
+            --measurement-uncertainty 1.5
+    """
 
     if measurement_uncertainty < 0:
         logger.error("measurement_uncertainty needs to be positive")
