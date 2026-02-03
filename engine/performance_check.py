@@ -93,8 +93,8 @@ def performance_check(
 
         \b
         probtest performance-check
-        --timing-current ${EXPERIMENT}_${BB_NAME}
-        --timing-reference run/performance_reference/${EXPERIMENT}_${BB_NAME}
+            --timing-current ${EXPERIMENT}_${BB_NAME}
+            --timing-reference run/performance_reference/${EXPERIMENT}_${BB_NAME}
 
         Compare multiple timer sections with a stricter tolerance:
 
