@@ -14,12 +14,12 @@ import click
 import numpy as np
 from matplotlib import lines as mlines
 from matplotlib import pyplot as plt
-from util.utils import FileInfo
+
 from util.click_util import CommaSeparatedStrings, cli_help
 from util.constants import compute_statistics
 from util.dataframe_ops import compute_rel_diff_dataframe, parse_check
 from util.log_handler import logger
-from util.utils import validate_single_stats_file
+from util.utils import FileInfo, validate_single_stats_file
 from util.visualize_util import create_figure
 
 
@@ -85,7 +85,7 @@ def check_plot(tolerance_files, reference_files, current_files, factor, savedir)
     df_tol, df_ref, df_cur = parse_check(
         tolerance_file_name, FileInfo(input_file_cur), FileInfo(input_file_ref), factor
     )
-        # compute relative difference
+    # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
     # take maximum over height
     diff_df = diff_df.groupby(["file_ID", "variable"]).max()
