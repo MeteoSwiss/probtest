@@ -18,7 +18,7 @@ from util.file_system import file_names_from_pattern
 from util.fof_utils import compare_var_and_attr_ds, split_feedback_dataset
 from util.log_handler import logger
 from util.model_output_parser import model_output_parser
-from util.utils import FileType
+from util.utils import FileInfo, FileType
 
 pd.set_option("display.max_colwidth", None)
 pd.set_option("display.max_columns", None)
@@ -277,18 +277,23 @@ def check_variable(diff_df, df_tol):
     return len(out.loc[selector]) == 0, diff_df.loc[selector], df_tol.loc[selector]
 
 
-def parse_check(tolerance_file_name, input_file_ref, input_file_cur, factor):
+def parse_check(
+    tolerance_file_name: str,
+    input_file_ref: FileInfo,
+    input_file_cur: FileInfo,
+    factor: float,
+) -> tuple:
     """
     Parses all necessary data to perform a check from tolerance, reference and
     input files, applying scaling factor to tolerance values.
 
     Args:
-        tolerance_file_name (str): Path to the CSV file containing tolerance values.
-        input_file_ref (str): Path to the reference input CSV (stats)
+        tolerance_file_name: Path to the CSV file containing tolerance values.
+        input_file_ref: Path to the reference input CSV (stats)
                               or NETCDF (fof) file.
-        input_file_cur (str): Path to the current input CSV (stats)
+        input_file_cur: Path to the current input CSV (stats)
                               or NETCDF (fof) file.
-        factor (float): Scaling factor to be applied to the tolerance values.
+        factor: Scaling factor to be applied to the tolerance values.
 
     Returns:
         tuple: A tuple containing three DataFrames:
