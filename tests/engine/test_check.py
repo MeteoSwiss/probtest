@@ -5,8 +5,6 @@ of check CLI commands.
 
 import os
 
-import numpy as np
-import pandas as pd
 import pytest
 from click.testing import CliRunner
 
@@ -14,19 +12,11 @@ from engine.check import check
 
 
 @pytest.fixture(name="fof_datasets", scope="function")
-def fixture_fof_datasets(tmp_dir, sample_dataset_fof):
+def fixture_fof_datasets(tmp_dir, fof_datasets_base):
     """
-    Create fof dataset and reference tolerances.
+    FoF datasets written to disk, returns file paths.
     """
-
-    ds1 = sample_dataset_fof
-    ds2 = ds1.copy(deep=True)
-    ds2["veri_data"] = (("d_body",), ds2["veri_data"].values * 1.55)
-
-    n_body_size = ds1.sizes["d_body"]
-
-    tol_large = pd.DataFrame({"veri_data": np.full(n_body_size, 5)})
-    tol_small = pd.DataFrame({"veri_data": np.full(n_body_size, 0.06)})
+    ds1, ds2, tol_large, tol_small = fof_datasets_base
 
     ds1_file = os.path.join(tmp_dir, "fof1.nc")
     ds2_file = os.path.join(tmp_dir, "fof2.nc")

@@ -362,6 +362,25 @@ def fof_file_set(tmp_dir, sample_dataset_fof):
             os.remove(path)
 
 
+@pytest.fixture
+def fof_datasets_base(sample_dataset_fof):
+    """
+    Create FoF datasets and reference tolerances (in-memory).
+    This fixture contains ALL shared setup logic.
+    """
+    ds1 = sample_dataset_fof
+    ds2 = ds1.copy(deep=True)
+
+    ds2["veri_data"] = (("d_body",), ds2["veri_data"].values * 1.55)
+
+    n_body_size = ds1.sizes["d_body"]
+
+    tol_large = pd.DataFrame({"veri_data": np.full(n_body_size, 5)})
+    tol_small = pd.DataFrame({"veri_data": np.full(n_body_size, 0.06)})
+
+    return ds1, ds2, tol_large, tol_small
+
+
 @pytest.fixture(name="stats_dataframes", scope="function")
 def fixture_dataframes(tmp_dir):
     """
