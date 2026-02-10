@@ -37,12 +37,19 @@ from util.utils import numbers
 from util.xarray_ops import statistics_over_horizontal_dim
 
 
-def parse_netcdf(file_id: str, filename: str, specification: Dict[str, Any]):
+def parse_netcdf(
+    file_id: str, filename: str, specification: Dict[str, Any]
+) -> List[pd.DataFrame]:
+    """
+    Parse a NetCDF file into pandas DataFrames.
+    """
+
     logger.debug("parse NetCDF file %s", filename)
     time_dim = specification["time_dim"]
     horizontal_dims = specification["horizontal_dims"]
     fill_value_key = specification.get("fill_value_key", None)
     ds = xarray.open_dataset(filename, decode_cf=False)
+
     # Convert all float variables to float64
     for v in ds.data_vars:
         if np.issubdtype(ds[v].dtype, np.floating):
