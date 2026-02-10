@@ -25,6 +25,7 @@ Each parser returns a list of Pandas DataFrame:
 
 import sys
 from collections.abc import Iterable
+from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
@@ -36,15 +37,16 @@ from util.utils import numbers
 from util.xarray_ops import statistics_over_horizontal_dim
 
 
-def parse_netcdf(file_id, filename, specification):
+def parse_netcdf(file_id: str, filename: str, specification: Dict[str, Any]):
     logger.debug("parse NetCDF file %s", filename)
     time_dim = specification["time_dim"]
     horizontal_dims = specification["horizontal_dims"]
     fill_value_key = specification.get("fill_value_key", None)
     ds = xarray.open_dataset(filename, decode_cf=False)
     # Convert all float variables to float64
-    float_vars = [v for v in ds.data_vars if np.issubdtype(ds[v].dtype, np.floating)]
-    ds[float_vars] = ds[float_vars].astype(np.float64)
+    for v in ds.data_vars:
+        if np.issubdtype(ds[v].dtype, np.floating):
+            ds[v] = ds[v].astype(np.float64)
 
     var_tmp = __get_variables(ds, time_dim, horizontal_dims)
 
