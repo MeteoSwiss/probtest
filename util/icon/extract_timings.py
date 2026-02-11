@@ -14,7 +14,7 @@ from util.log_handler import logger
 
 TIMING_START_REGEX = r"\s+L?\s*[a-zA-Z_.]+"
 TIMING_ELEMENT_REGEX = r"\[?\d+(?:[.,]\d+)?(?:[smh])?\]?\s+"
-TIMING_REGEX = TIMING_START_REGEX + r"\s+(?:" + TIMING_ELEMENT_REGEX + r"){6,}"
+LOG_FILE = TIMING_START_REGEX + r"\s+(?:" + TIMING_ELEMENT_REGEX + r"){6,}"
 HEADER_REGEX = r"name +.*calls.*"
 INDENT_REGEX = r"^ *L? "
 HOUR_REGEX = r"(\d+)h(\d+)m(\d+)s"
@@ -59,7 +59,7 @@ def read_logfile(filename):
 
         # filter by timing headers and elements
         data = [
-            e for e in data if re.search(HEADER_REGEX, e) or re.search(TIMING_REGEX, e)
+            e for e in data if re.search(HEADER_REGEX, e) or re.search(LOG_FILE, e)
         ]
 
         # store line numbers of timing table headers

@@ -23,28 +23,28 @@ from util.tree import TREEFILE_TEMPLATE, TimingTree
 
 @click.command()
 @click.option(
-    "--timing-regex",
-    help=cli_help["timing_regex"],
+    "--log_file",
+    help=cli_help["log_file"],
 )
 @click.option(
     "--timing-database",
     help=cli_help["timing_database"],
 )
 @click.option("--append-time", help=cli_help["append_time"], type=bool, default=False)
-def performance(timing_regex, timing_database, append_time):
-    timing_file_name_base, timing_regex = os.path.split(timing_regex)
+def performance(log_file, timing_database, append_time):
+    timing_file_name_base, log_file = os.path.split(log_file)
     if timing_file_name_base == "":
         timing_file_name_base = "."
 
-    timing_file_name, err = file_names_from_pattern(timing_file_name_base, timing_regex)
+    timing_file_name, err = file_names_from_pattern(timing_file_name_base, log_file)
     if err > 0:
-        logger.info("Did not find any files for regex %s", timing_regex)
+        logger.info("Did not find any files for regex %s", log_file)
         sys.exit(1)
 
     if len(timing_file_name) > 1:
         logger.critical(
             "Found too many files for regex '%s' in '%s':",
-            timing_regex,
+            log_file,
             timing_file_name_base,
         )
         for tf in timing_file_name:
@@ -52,7 +52,7 @@ def performance(timing_regex, timing_database, append_time):
         sys.exit(1)
     else:
         timing_file_name = timing_file_name_base + "/" + timing_file_name[0]
-        logger.info("Found timing file %s for regex %s", timing_file_name, timing_regex)
+        logger.info("Found timing file %s for regex %s", timing_file_name, log_file)
 
     tt = TimingTree.from_logfile(timing_file_name, read_logfile)
 
