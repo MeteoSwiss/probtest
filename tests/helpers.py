@@ -83,7 +83,7 @@ def assert_empty_df(df, msg):
 
 def run_performance_cli(log_file, timing_database):
     args = [
-        "--timing-regex",
+        "--log_file",
         log_file,
         "--timing-database",
         timing_database,

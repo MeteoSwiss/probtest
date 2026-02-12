@@ -12,9 +12,10 @@ import numpy as np
 from util.constants import DATETIME_FORMAT
 from util.log_handler import logger
 
+
 TIMING_START_REGEX = r"\s+L?\s*[a-zA-Z_.]+"
-TIMING_ELEMENT_REGEX = r"\[?\d+(?:[.,]\d+)?(?:[smh])?\]?\s+"
-LOG_FILE = TIMING_START_REGEX + r"\s+(?:" + TIMING_ELEMENT_REGEX + r"){6,}"
+TIMING_ELEMENT_REGEX = r"(?:\[?\d+[.msh]?\d*s?\]? +)"
+LOG_FILE = TIMING_START_REGEX + r"\s+(?:" + TIMING_ELEMENT_REGEX + r"){6,20} *(?!.)"
 HEADER_REGEX = r"name +.*calls.*"
 INDENT_REGEX = r"^ *L? "
 HOUR_REGEX = r"(\d+)h(\d+)m(\d+)s"
@@ -22,17 +23,27 @@ MINUTE_REGEX = r"(\d+[.]?\d*)m(\d+[.]?\d*)s"
 SEC_REGEX = r"(\d+[.]?\d*)s"
 NUMBER_REGEX = r"(\d+[.]?\d*)"
 
-dateline_regexs = (
-    r"(?:[A-Z][a-z]{2} +){2}\d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{3,4} 20\d{2}",
-    (
-        r"(?:[A-Z][a-z]{2} +)\d{1,2} (?:[A-Z][a-z]{2} +)20\d{2} \d{2}:\d{2}:\d{2} "
-        "[A-Z]{2} [A-Z]{3,4}"
-    ),
-)
-icon_date_formats = ("%a %b %d %H:%M:%S %Z %Y", "%a %d %b %Y %H:%M:%S %p %Z")
+dateline_regex = r".*\d{2}:\d{2}:\d{2}.*"
+
+icon_date_formats = [
+    "%a %b %d %H:%M:%S %Z %Y",
+    "%a %d %b %Y %H:%M:%S %Z %Z",
+    "%Y-%m-%d %H:%M:%S",
+    "%Y-%m-%dT%H:%M:%S",
+    "%Y-%m-%dT%H:%M:%SZ",
+]
+
+#icon_date_formats = ("%a %b %d %H:%M:%S %Z %Y", "%a %d %b %Y %H:%M:%S %p %Z")
 
 DICT_REGEX = r"^\s*{} *: *(.*)"
 
+def parse_datetime_string(date_str):
+    for fmt in icon_date_formats:
+        try:
+            return datetime.strptime(date_str.strip(), fmt)
+        except ValueError:
+            continue
+    return None
 
 def _convert_dateline_to_start_end_datetime(dateline, icon_date_format):
     # LOG.check files have more dates than we need
@@ -124,17 +135,24 @@ def read_logfile(filename):
         found_dateline_yes = False
         start_datetime_converted = ""
         finish_datetime_converted = ""
-        for dateline_regex, icon_date_format in zip(dateline_regexs, icon_date_formats):
-            dateline = re.findall(dateline_regex, full_file)
 
-            if dateline:
-                (
-                    start_datetime_converted,
-                    finish_datetime_converted,
-                ) = _convert_dateline_to_start_end_datetime(dateline, icon_date_format)
-                found_dateline_yes = True
+        candidate_lines = re.findall(r".*\d{2}:\d{2}:\d{2}.*", full_file)
+
+        for line in candidate_lines:
+            for icon_date_format in icon_date_formats:
+                try:
+                    start_datetime_converted, finish_datetime_converted = \
+                        _convert_dateline_to_start_end_datetime([line], icon_date_format)
+
+                    found_dateline_yes = True
+                    break
+                except Exception:
+                    continue
+            if found_dateline_yes:
+                break
+
         if not found_dateline_yes:
-            raise Exception("Could not match any regex for start and end time.")
+            raise Exception("Could not parse start and end time using supported date formats.")
         meta_data["start_time"] = start_datetime_converted
         meta_data["finish_time"] = finish_datetime_converted
 
