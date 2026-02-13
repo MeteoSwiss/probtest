@@ -37,6 +37,7 @@ def performance(log_file, timing_database, append_time):
         timing_file_name_base = "."
 
     timing_file_name, err = file_names_from_pattern(timing_file_name_base, log_file)
+    print(timing_file_name)
     if err > 0:
         logger.info("Did not find any files for regex %s", log_file)
         sys.exit(1)

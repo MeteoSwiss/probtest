@@ -11,6 +11,7 @@ import numpy as np
 
 from util.constants import DATETIME_FORMAT
 from util.log_handler import logger
+from dateutil.parser import parse as parse_date
 
 
 TIMING_START_REGEX = r"\s+L?\s*[a-zA-Z_.]+"
@@ -23,15 +24,15 @@ MINUTE_REGEX = r"(\d+[.]?\d*)m(\d+[.]?\d*)s"
 SEC_REGEX = r"(\d+[.]?\d*)s"
 NUMBER_REGEX = r"(\d+[.]?\d*)"
 
-dateline_regex = r".*\d{2}:\d{2}:\d{2}.*"
+dateline_regexs = (
+    r"(?:[A-Z][a-z]{2} +){2}\d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{3,4} 20\d{2}",
+    (
+        r"(?:[A-Z][a-z]{2} +)\d{1,2} (?:[A-Z][a-z]{2} +)20\d{2} \d{2}:\d{2}:\d{2} "
+        "[A-Z]{2} [A-Z]{3,4}"
+    ),
+)
+icon_date_formats = ("%a %b %d %H:%M:%S %Z %Y", "%a %d %b %Y %H:%M:%S %p %Z")
 
-icon_date_formats = [
-    "%a %b %d %H:%M:%S %Z %Y",
-    "%a %d %b %Y %H:%M:%S %Z %Z",
-    "%Y-%m-%d %H:%M:%S",
-    "%Y-%m-%dT%H:%M:%S",
-    "%Y-%m-%dT%H:%M:%SZ",
-]
 
 #icon_date_formats = ("%a %b %d %H:%M:%S %Z %Y", "%a %d %b %Y %H:%M:%S %p %Z")
 
@@ -132,29 +133,27 @@ def read_logfile(filename):
         meta_data = {}
 
         # get start and finish time from job
-        found_dateline_yes = False
-        start_datetime_converted = ""
-        finish_datetime_converted = ""
+        # --- robust start/finish datetime extraction ---
 
-        candidate_lines = re.findall(r".*\d{2}:\d{2}:\d{2}.*", full_file)
+        datelines = []
 
-        for line in candidate_lines:
-            for icon_date_format in icon_date_formats:
+        for line in full_file.splitlines():
+            if line.count(":") >= 2:
                 try:
-                    start_datetime_converted, finish_datetime_converted = \
-                        _convert_dateline_to_start_end_datetime([line], icon_date_format)
-
-                    found_dateline_yes = True
-                    break
+                    dt = parse_date(line, fuzzy=False)
+                    datelines.append(dt)
                 except Exception:
                     continue
-            if found_dateline_yes:
-                break
 
-        if not found_dateline_yes:
-            raise Exception("Could not parse start and end time using supported date formats.")
-        meta_data["start_time"] = start_datetime_converted
-        meta_data["finish_time"] = finish_datetime_converted
+        if len(datelines) < 2:
+            raise Exception("Could not robustly determine start and finish time.")
+
+        start_dt = datelines[0]
+        finish_dt = datelines[-1]
+
+        meta_data["start_time"] = start_dt.strftime(DATETIME_FORMAT)
+        meta_data["finish_time"] = finish_dt.strftime(DATETIME_FORMAT)
+
 
         # get meta data from ICON log (in the form "Key : Value")
         revision = re.search(
