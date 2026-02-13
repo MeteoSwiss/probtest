@@ -8,11 +8,10 @@ import sys
 from datetime import datetime
 
 import numpy as np
+from dateutil.parser import parse as parse_date
 
 from util.constants import DATETIME_FORMAT
 from util.log_handler import logger
-from dateutil.parser import parse as parse_date
-
 
 TIMING_START_REGEX = r"\s+L?\s*[a-zA-Z_.]+"
 TIMING_ELEMENT_REGEX = r"(?:\[?\d+[.msh]?\d*s?\]? +)"
@@ -34,9 +33,10 @@ dateline_regexs = (
 icon_date_formats = ("%a %b %d %H:%M:%S %Z %Y", "%a %d %b %Y %H:%M:%S %p %Z")
 
 
-#icon_date_formats = ("%a %b %d %H:%M:%S %Z %Y", "%a %d %b %Y %H:%M:%S %p %Z")
+# icon_date_formats = ("%a %b %d %H:%M:%S %Z %Y", "%a %d %b %Y %H:%M:%S %p %Z")
 
 DICT_REGEX = r"^\s*{} *: *(.*)"
+
 
 def parse_datetime_string(date_str):
     for fmt in icon_date_formats:
@@ -45,6 +45,7 @@ def parse_datetime_string(date_str):
         except ValueError:
             continue
     return None
+
 
 def _convert_dateline_to_start_end_datetime(dateline, icon_date_format):
     # LOG.check files have more dates than we need
@@ -70,9 +71,7 @@ def read_logfile(filename):
         data = [e for e in full_file.split("\n") if e != ""]
 
         # filter by timing headers and elements
-        data = [
-            e for e in data if re.search(HEADER_REGEX, e) or re.search(LOG_FILE, e)
-        ]
+        data = [e for e in data if re.search(HEADER_REGEX, e) or re.search(LOG_FILE, e)]
 
         # store line numbers of timing table headers
         header_lines = [i for i, e in enumerate(data) if re.search(HEADER_REGEX, e)]
@@ -153,7 +152,6 @@ def read_logfile(filename):
 
         meta_data["start_time"] = start_dt.strftime(DATETIME_FORMAT)
         meta_data["finish_time"] = finish_dt.strftime(DATETIME_FORMAT)
-
 
         # get meta data from ICON log (in the form "Key : Value")
         revision = re.search(
