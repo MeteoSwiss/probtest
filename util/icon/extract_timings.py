@@ -24,46 +24,7 @@ MINUTE_REGEX = r"(\d+[.]?\d*)m(\d+[.]?\d*)s"
 SEC_REGEX = r"(\d+[.]?\d*)s"
 NUMBER_REGEX = r"(\d+[.]?\d*)"
 
-dateline_regexs = (
-    r"(?:[A-Z][a-z]{2} +){2}\d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{3,4} 20\d{2}",
-    (
-        r"(?:[A-Z][a-z]{2} +)\d{1,2} (?:[A-Z][a-z]{2} +)20\d{2} \d{2}:\d{2}:\d{2} "
-        "[A-Z]{2} [A-Z]{3,4}"
-    ),
-)
-icon_date_formats = ("%a %b %d %H:%M:%S %Z %Y", "%a %d %b %Y %H:%M:%S %p %Z")
-
-
-# icon_date_formats = ("%a %b %d %H:%M:%S %Z %Y", "%a %d %b %Y %H:%M:%S %p %Z")
-
 DICT_REGEX = r"^\s*{} *: *(.*)"
-
-
-def parse_datetime_string(date_str):
-    for fmt in icon_date_formats:
-        try:
-            return datetime.strptime(date_str.strip(), fmt)
-        except ValueError:
-            continue
-    return None
-
-
-def _convert_dateline_to_start_end_datetime(dateline, icon_date_format):
-    # LOG.check files have more dates than we need
-    # The dates we are interested in are always at the same position relative to the
-    #  other dates
-    if len(dateline) > 2:
-        dateline = [dateline[1], dateline[2]]
-    start_time, finish_time = dateline
-
-    finish_datetime = datetime.strptime(finish_time, icon_date_format)
-    finish_datetime_converted = finish_datetime.strftime(DATETIME_FORMAT)
-
-    start_datetime = datetime.strptime(start_time, icon_date_format)
-    start_datetime_converted = start_datetime.strftime(DATETIME_FORMAT)
-
-    return (start_datetime_converted, finish_datetime_converted)
-
 
 def read_logfile(filename):
     with open(filename, "r", encoding="latin-1") as f:
