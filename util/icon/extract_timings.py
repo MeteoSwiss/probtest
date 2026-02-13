@@ -5,7 +5,6 @@ timing data.
 
 import re
 import sys
-from datetime import datetime
 
 import numpy as np
 from dateutil.parser import ParserError
