@@ -25,6 +25,7 @@ NUMBER_REGEX = r"(\d+[.]?\d*)"
 
 DICT_REGEX = r"^\s*{} *: *(.*)"
 
+
 def read_logfile(filename):
     with open(filename, "r", encoding="latin-1") as f:
         # read file into list of lines, remove empty lines
