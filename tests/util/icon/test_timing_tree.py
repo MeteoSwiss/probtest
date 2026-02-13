@@ -51,10 +51,7 @@ def test_read_timing():
 
 def test_json_load():
     tt_json = TimingTree.from_json(JSON_REFERENCE)
-    print(tt_json)
     tt = TimingTree.from_logfile(TIMING_FILE_1, read_logfile)
-    print([df.shape for df in tt.data])
-    print([df.shape for df in tt_json.data])
 
     assert_trees_equal(tt_json, tt)
 

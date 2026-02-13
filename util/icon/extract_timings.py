@@ -8,8 +8,8 @@ import sys
 from datetime import datetime
 
 import numpy as np
-from dateutil.parser import parse as parse_date
 from dateutil.parser import ParserError
+from dateutil.parser import parse as parse_date
 
 from util.constants import DATETIME_FORMAT
 from util.log_handler import logger
