@@ -9,6 +9,7 @@ from datetime import datetime
 
 import numpy as np
 from dateutil.parser import parse as parse_date
+from dateutil.parser import ParserError
 
 from util.constants import DATETIME_FORMAT
 from util.log_handler import logger
@@ -141,7 +142,7 @@ def read_logfile(filename):
                 try:
                     dt = parse_date(line, fuzzy=False)
                     datelines.append(dt)
-                except Exception:
+                except (ParserError, ValueError):
                     continue
 
         if len(datelines) < 2:
