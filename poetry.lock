@@ -2635,22 +2635,13 @@ test = ["argcomplete (>=3.0.3)", "mypy (>=1.7.0)", "pre-commit", "pytest (>=7.0,
 
 [[package]]
 name = "typer"
-<<<<<<< HEAD
 version = "0.23.1"
-=======
-version = "0.22.0"
->>>>>>> origin/main
 description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
 optional = false
 python-versions = ">=3.9"
 files = [
-<<<<<<< HEAD
     {file = "typer-0.23.1-py3-none-any.whl", hash = "sha256:3291ad0d3c701cbf522012faccfbb29352ff16ad262db2139e6b01f15781f14e"},
     {file = "typer-0.23.1.tar.gz", hash = "sha256:2070374e4d31c83e7b61362fd859aa683576432fd5b026b060ad6b4cd3b86134"},
-=======
-    {file = "typer-0.22.0-py3-none-any.whl", hash = "sha256:7005624db6209bc9228572d7faa3a3a4ebe6b7a3e157c63d34d4b8f17137888b"},
-    {file = "typer-0.22.0.tar.gz", hash = "sha256:3cab90c100ca37be24f8b4c942fdb95fc41a96145192af0fd34e0567e83c3880"},
->>>>>>> origin/main
 ]
 
 [package.dependencies]
@@ -2658,7 +2649,6 @@ annotated-doc = ">=0.0.2"
 click = ">=8.0.0"
 rich = ">=10.11.0"
 shellingham = ">=1.3.0"
-<<<<<<< HEAD
 
 [[package]]
 name = "types-python-dateutil"
@@ -2670,8 +2660,6 @@ files = [
     {file = "types_python_dateutil-2.9.0.20260124-py3-none-any.whl", hash = "sha256:f802977ae08bf2260142e7ca1ab9d4403772a254409f7bbdf652229997124951"},
     {file = "types_python_dateutil-2.9.0.20260124.tar.gz", hash = "sha256:7d2db9f860820c30e5b8152bfe78dbdf795f7d1c6176057424e8b3fdd1f581af"},
 ]
-=======
->>>>>>> origin/main
 
 [[package]]
 name = "typing-extensions"
