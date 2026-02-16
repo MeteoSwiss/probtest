@@ -300,6 +300,20 @@ poetry run pytest -s -v path/to/your/test.py
 
 Reference data, crucial for validating the outcomes of our tests and detecting any deviations in `probtests` results, is maintained in the [tests/data](tests/data) directory. This approach guarantees that our tests are both comprehensive and reliable, safeguarding the integrity of our codebase.
 
+### Update references for pytests
+Some code changes might require to update the references in `tests/data`.
+1. Check where new references are stored for example:
+   ```bash
+   pytest -s -v tests
+   ....
+   New reference data will be stored in /tmp/tmpg92cbw4z
+   ```
+2. Move new references to current reference location:
+   ```bash
+   cp -v /tmp/tmpg92cbw4z/* /path/to/repo/tests/data
+   ```
+3. Commit new references.
+
 ### Formatting probtest source code
 
 The probtest source code is formatted using multiple formatters.
