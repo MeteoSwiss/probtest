@@ -16,6 +16,7 @@ from engine.fof_compare import fof_compare
 from engine.init import init
 from engine.performance import performance
 from engine.performance_check import performance_check
+from engine.performance_stats import performance_stats
 from engine.perturb import perturb
 from engine.run_ensemble import run_ensemble
 from engine.select_members import select_members
@@ -59,6 +60,7 @@ cli.add_command(check_plot)
 cli.add_command(performance_plot)
 cli.add_command(performance_meta_data)
 cli.add_command(performance_check)
+cli.add_command(performance_stats)
 cli.add_command(cdo_table)
 cli.add_command(cdo_table_reader)
 cli.add_command(fof_compare)
