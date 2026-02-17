@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
 
+import numpy as np
+
 
 def unique_elements(inlist):
     unique = []
@@ -35,7 +37,7 @@ def numbers(s):
     return int("".join(re.findall(r"\d+", s)))
 
 
-def get_seed_from_member_id(member_id: int) -> int:
+def get_seed_from_member_id(member_id: int) -> np.int32:
     """
     Returns the seed corresponding to the given member number.
     """
@@ -169,7 +171,7 @@ def get_seed_from_member_id(member_id: int) -> int:
 
     seed = seeds[member_id - 1]
 
-    return seed
+    return np.abs(np.uint32(seed).view(np.int32))
 
 
 def to_list(value):
