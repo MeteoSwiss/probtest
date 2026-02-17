@@ -15,8 +15,13 @@ import xarray as xr
 
 from util.constants import CHECK_THRESHOLD, compute_statistics
 from util.file_system import file_names_from_pattern
-from util.fof_utils import compare_var_and_attr_ds, split_feedback_dataset
-from util.log_handler import logger
+from util.fof_utils import (
+    clean_logger_file_if_only_details,
+    compare_var_and_attr_ds,
+    get_log_file_name,
+    split_feedback_dataset,
+)
+from util.log_handler import get_detailed_logger, logger
 from util.model_output_parser import model_output_parser
 from util.utils import FileInfo, FileType
 
@@ -336,7 +341,7 @@ def check_file_with_tolerances(
     if input_file_ref.file_type != input_file_cur.file_type:
         logger.critical(
             "The current and the reference files are not of the same type; "
-            "it is impossible to calculate the tolerances. Abort."
+            "it is impossible to compare them. Abort."
         )
         sys.exit(1)
 
@@ -345,12 +350,15 @@ def check_file_with_tolerances(
     )
 
     if input_file_ref.file_type == FileType.FOF:
-        errors = check_multiple_solutions_from_dict(df_ref, df_cur, rules)
+        log_file_name = get_log_file_name(input_file_ref.path)
+        errors = check_multiple_solutions_from_dict(
+            df_ref, df_cur, rules, log_file_name
+        )
 
         if errors:
             logger.error("RESULT: check FAILED")
-            sys.exit(1)
-
+            err = pd.DataFrame()
+            return False, err, 0
     else:
         # check if variables are available in reference file
         skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
@@ -402,97 +410,81 @@ file_name_parser = {
 
 
 def parse_rules(rules):
-    if isinstance(rules, str):
-        rules = rules.strip()
-        return ast.literal_eval(rules) if rules else {}
     if isinstance(rules, dict):
         return rules
+
+    if isinstance(rules, str) and rules.strip():
+        return ast.literal_eval(rules)
+
     return {}
 
 
-def compare_cells(ref_df, cur_df, cols_present, rules_dict):
+def compare_cells_rules(ref_df, cur_df, cols, rules_dict, detailed_logger):
     """
     This function compares two DataFrames cell by cell for a selected set of columns.
     For each row and column, it ignores values that are equal or whose differences
     are allowed by predefined rules.
-    All other differences are collected and returned as a list of error descriptions.
+    All other differences not admitted are stored in a log file.
     """
-    errors = []
-    for i in range(len(ref_df)):
-        row1 = ref_df.iloc[i]
-        row2 = cur_df.iloc[i]
-
-        for col in cols_present:
-            val1 = row1[col]
-            val2 = row2[col]
+    errors = False
+    for row_idx, (row1, row2) in enumerate(
+        zip(ref_df.itertuples(), cur_df.itertuples())
+    ):
+        for col in cols:
+            val1 = getattr(row1, col)
+            val2 = getattr(row2, col)
 
             if val1 == val2:
                 continue
-            if val1 in rules_dict[col] and val2 in rules_dict[col]:
+
+            allowed = rules_dict.get(col, [])
+            if val1 in allowed and val2 in allowed:
                 continue
 
-            errors.append(
-                {
-                    "row": i,
-                    "column": col,
-                    "file1": val1,
-                    "file2": val2,
-                    "error": "values different and not admitted",
-                }
+            detailed_logger.info(
+                "Values different and not admitted | "
+                "row=%s, column=%s, file1=%s, file2=%s",
+                row_idx,
+                col,
+                val1,
+                val2,
             )
+            errors = True
     return errors
 
 
-def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules):
+def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, log_file_name):
     """
-    This function compares two Python dictionaries—each containing DataFrames under
-    the keys "reports" and "observation"—row by row and column by column, according
-    to rules defined in a separate dictionary. If the corresponding cells are
-    different and the values are not allowed by the rules, it records an error.
-    It returns a list indicating the row, the column and which values are wrong.
+    This function compares two Python dictionaries, each containing DataFrames under
+    the keys "reports" and "observation", row by row and column by column, according
+    to rules defined in a separate dictionary. If the variable does not need to follow
+    specific rules, the values must be identical.
+    It records the row, column and invalid values in a log file.
     """
 
     rules_dict = parse_rules(rules)
-    errors = []
+    errors = False
+    detailed_logger = get_detailed_logger(log_file_name)
 
-    for key in dict_ref.keys():
-        ref_df = dict_ref[key]
+    for key, ref_df in dict_ref.items():
         cur_df = dict_cur[key]
+        common_cols = [col for col in ref_df.columns if col in cur_df.columns]
 
-        cols_present = [
-            col
-            for col in rules_dict.keys()
-            if col in ref_df.columns and col in cur_df.columns
-        ]
+        cols_with_rules = [col for col in common_cols if col in rules_dict]
+        cols_without_rules = [col for col in common_cols if col not in rules_dict]
 
-        cols_other = [
-            col
-            for col in ref_df.columns
-            if col not in cols_present and col in cur_df.columns
-        ]
-
-        if cols_other:
-            ref_df_xr = ref_df[cols_other].to_xarray()
-            cur_df_xr = cur_df[cols_other].to_xarray()
-
+        if cols_without_rules:
             t, e = compare_var_and_attr_ds(
-                ref_df_xr, cur_df_xr, nl=5, output=False, location=None
+                ref_df[list(cols_without_rules)].to_xarray(),
+                cur_df[list(cols_without_rules)].to_xarray(),
+                detailed_logger,
             )
             if t != e:
-                return errors == 1
+                return True
 
-        if cols_present:
-            errors.extend(compare_cells(ref_df, cur_df, cols_present, rules_dict))
-
-    if errors:
-        logger.error("Errors found while comparing the files:")
-        for e in errors:
-            logger.error(
-                "Row %s - Column '%s': file1=%s, file2=%s → %s",
-                e["row"],
-                e["column"],
-                e["file1"],
-                e["file2"],
-                e["error"],
+        if cols_with_rules:
+            errors = compare_cells_rules(
+                ref_df, cur_df, cols_with_rules, rules_dict, detailed_logger
             )
+    clean_logger_file_if_only_details(log_file_name)
     return errors

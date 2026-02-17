@@ -3,11 +3,12 @@ This module contains functions for handling fof files
 """
 
 import os
-import shutil
 
 import numpy as np
 import pandas as pd
 import xarray as xr
+
+from util.log_handler import logger
 
 
 def get_report_variables(ds):
@@ -92,12 +93,13 @@ def compare_arrays(arr1, arr2, var_name):
         mask_equal = arr1 == arr2
         equal = mask_equal.sum()
         percent = (equal / total) * 100
-        print(
-            f"Differences in '{var_name}': {percent:.2f}% equal. "
-            f"{total} total entries for this variable"
+        logger.info(
+            "Differences in '%s': %.2f%% equal. %s total entries for this variable",
+            var_name,
+            percent,
+            total,
         )
-        diff_idx = np.where(~mask_equal.ravel())[0]
-        diff = diff_idx
+        diff = np.where(~mask_equal.ravel())[0]
 
     return total, equal, diff
 
@@ -117,167 +119,142 @@ def clean_value(x):
     alignment when printing the value.
     """
     if isinstance(x, bytes):
-        return x.decode().rstrip(" '")
+        return x.decode("utf-8", errors="replace").rstrip(" '")
     return str(x).rstrip(" '")
 
 
-def print_entire_line(ds1, ds2, diff):
+def write_lines_log(ds1, ds2, diff, detailed_logger):
     """
-    If the specific option is called, this function print
-    the entire line in which differences are found.
+    This function writes the differences detected between
+    two files to a detailed log file.
     """
-    if diff.size > 0:
-        da1 = ds1.to_dataframe().reset_index()
-        da2 = ds2.to_dataframe().reset_index()
 
-        for i in diff:
-            col_width = 13
-            row1 = "|".join(f"{clean_value(x):<{col_width}}" for x in da1.loc[i])
+    da1 = ds1.to_dataframe().reset_index()
+    da2 = ds2.to_dataframe().reset_index()
+    col_width = 13
+    index = "|".join(f"{str(x):<{col_width}}" for x in da1.columns)
 
-            row2 = "|".join(f"{clean_value(x):<{col_width}}" for x in da2.loc[i])
+    for i in diff:
+        row1 = "|".join(f"{clean_value(x):<{col_width}}" for x in da1.loc[i])
+        row2 = "|".join(f"{clean_value(x):<{col_width}}" for x in da2.loc[i])
 
-            diff_row = []
-            for x, y in zip(da1.loc[i], da2.loc[i]):
-                if pd.api.types.is_number(x) and pd.api.types.is_number(y):
-                    row_diff = x - y
-                else:
-                    row_diff = "nan"
+        diff_vals = []
+        for x, y in zip(da1.loc[i], da2.loc[i]):
+            if pd.api.types.is_number(x) and pd.api.types.is_number(y):
+                diff_vals.append(x - y)
+            else:
+                diff_vals.append("nan")
 
-                diff_row.append(row_diff)
+        row_diff = "|".join(f"{str(x):<{col_width}}" for x in diff_vals)
 
-            row_diff = "|".join(f"{str(x):<{col_width}}" for x in diff_row)
-
-            index = "|".join(f"{str(x):<{col_width}}" for x in da1.columns)
-
-            print(f"\033[1mid\033[0m  : {index}")
-            print(f"\033[1mref\033[0m : {row1}")
-            print(f"\033[1mcur\033[0m : {row2}")
-            print(f"\033[1mdiff\033[0m: {row_diff}")
-            term_width = shutil.get_terminal_size().columns
-            print("-" * term_width)
+        detailed_logger.info("id  : %s", index)
+        detailed_logger.info("ref  : %s", row1)
+        detailed_logger.info("cur  : %s", row2)
+        detailed_logger.info("diff : %s", row_diff)
+        detailed_logger.info("")
 
 
-def write_lines(ds1, ds2, diff, path_name):
+def write_different_size_log(var, size1, size2, detailed_logger):
     """
-    If the specific option is called, this function save
-    the lines in which differences are found.
+    This function is triggered when the array sizes do not match and records
+    in the log file that a comparison is not possible.
     """
-    if diff.size > 0:
-        da1 = ds1.to_dataframe().reset_index()
-        da2 = ds2.to_dataframe().reset_index()
-        col_width = 13
-        index = "|".join(f"{str(x):<{col_width}}" for x in da1.columns)
-        for i in diff:
 
-            row1 = "|".join(f"{clean_value(x):<{col_width}}" for x in da1.loc[i])
-
-            row2 = "|".join(f"{clean_value(x):<{col_width}}" for x in da2.loc[i])
-
-            diff_row = []
-            for x, y in zip(da1.loc[i], da2.loc[i]):
-                if pd.api.types.is_number(x) and pd.api.types.is_number(y):
-                    row_diff = x - y
-                else:
-                    row_diff = "nan"
-
-                diff_row.append(row_diff)
-
-            row_diff = "|".join(f"{str(x):<{col_width}}" for x in diff_row)
-
-            with open(path_name, "a", encoding="utf-8") as f:
-                f.write(f"id  : {index}" + "\n")
-                f.write(f"ref  : {row1}" + "\n")
-                f.write(f"cur  : {row2}" + "\n")
-                f.write(f"diff : {row_diff}" + "\n")
+    detailed_logger.info(
+        "variable  : %s -> datasets have different lengths "
+        "(%s vs. %s), comparison not possible\n",
+        var,
+        size1,
+        size2,
+    )
 
 
-def write_different_size(output, nl, path_name, var, sizes):
-    if output:
-        with open(path_name, "a", encoding="utf-8") as f:
-            f.write(
-                f"variable  : {var} -> datasets have different lengths "
-                f"({sizes[0]} vs. {sizes[1]} ), comparison not possible" + "\n"
-            )
-        if nl != 0:
-            print(
-                f"\033[1mvar\033[0m : {var} -> datasets have different lengths "
-                f"({sizes[0]} vs. {sizes[1]} ), comparison not possible"
-            )
-
-
-def compare_var_and_attr_ds(ds1, ds2, nl, output, location):
+def compare_var_and_attr_ds(ds1, ds2, detailed_logger):
     """
     Variable by variable and attribute by attribute,
-    comparison of the two files.
+    comparison of the two datasets.
     """
 
     total_all, equal_all = 0, 0
-    list_to_skip = ["source", "i_body", "l_body"]
+    # total, equal = 0, 0
+    list_to_skip = ["source", "i_body", "l_body", "veri_data"]
 
-    if output:
-        if location:
-            path_name = location
-        else:
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-            path_name = os.path.join(script_dir, "differences.csv")
-
-        with open(path_name, "w", encoding="utf-8") as f:
-            f.write("Differences\n")
-
-    for var in set(ds1.data_vars).union(ds2.data_vars):
+    for var in sorted(set(ds1.data_vars).union(ds2.data_vars)):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
 
-            arr1 = fill_nans_for_float32(ds1[var].values)
-            arr2 = fill_nans_for_float32(ds2[var].values)
-
-            if arr1.size == arr2.size:
-                t, e, diff = compare_arrays(arr1, arr2, var)
-
-                if output:
-                    write_lines(ds1, ds2, diff, path_name)
-
-                if nl != 0:
-                    diff = diff[:nl]
-                    print_entire_line(ds1, ds2, diff)
-
-            else:
-                t, e = max(arr1.size, arr2.size), 0
-                write_different_size(output, nl, path_name, var, [arr1.size, arr2.size])
-
-            total_all += t
-            equal_all += e
+            total, equal = process_var(ds1, ds2, var, detailed_logger)
+            total_all += total
+            equal_all += equal
 
         if var in ds1.attrs and var in ds2.attrs and var not in list_to_skip:
-            arr1 = np.array(ds1.attrs[var], dtype=object)
-            arr2 = np.array(ds2.attrs[var], dtype=object)
-            if arr1.size == arr2.size:
-                t, e, diff = compare_arrays(arr1, arr2, var)
 
-                if output:
-                    write_lines(ds1, ds2, diff, path_name)
-
-                if nl != 0:
-                    diff = diff[:nl]
-                    print_entire_line(ds1, ds2, diff)
-
-            else:
-                t, e = max(arr1.size, arr2.size), 0
-                write_different_size(output, nl, path_name, var, [arr1.size, arr2.size])
-
-            total_all += t
-            equal_all += e
+            total, equal = process_var(ds1, ds2, var, detailed_logger)
+            total_all += total
+            equal_all += equal
 
     return total_all, equal_all
 
 
-def primary_check(file1, file2):
+def process_var(ds1, ds2, var, detailed_logger):
     """
-    Test that the two files are of the same type.
+    This function first checks whether two arrays have the same size.
+    If they do, their values are compared.
+    If they don't, the differences are written to a log file.
+    The function outputs the total number of elements and the
+    number of matching elements.
     """
-    name1 = os.path.basename(file1)
-    name2 = os.path.basename(file2)
 
-    name1_core = name1.replace("fof", "").replace(".nc", "")
-    name2_core = name2.replace("fof", "").replace(".nc", "")
+    arr1 = fill_nans_for_float32(ds1[var].values)
+    arr2 = fill_nans_for_float32(ds2[var].values)
+    if arr1.size == arr2.size:
+        t, e, diff = compare_arrays(arr1, arr2, var)
+        if diff.size != 0:
+            write_lines_log(ds1, ds2, diff, detailed_logger)
 
-    return name1_core == name2_core
+    else:
+        t, e = max(arr1.size, arr2.size), 0
+        write_different_size_log(var, arr1.size, arr2.size, detailed_logger)
+
+    return t, e
+
+
+def create_tolerance_csv(n_rows, tol):
+    """
+    This function generates a file with the same number of lines as the file being
+    analyzed, where each line contains the tolerances specified when fof-compare
+    is called.
+    """
+    tolerance_file_name = "tolerance_file.csv"
+    df = pd.DataFrame({"tolerance": [tol] * n_rows})
+    df.to_csv(tolerance_file_name)
+
+    return tolerance_file_name
+
+
+def get_log_file_name(file_path):
+    """
+    This function gives the name of the detailed log file,
+    according to the file path.
+    """
+
+    core_name = os.path.basename(file_path).replace(".nc", "")
+    log_file_name = f"error_{core_name}.log"
+    return log_file_name
+
+
+def clean_logger_file_if_only_details(file_path):
+    """
+    This function deletes the detailed log file if it doesn't
+    contain anything.
+    """
+    target_line = "initialized named logger 'DETAILS'"
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    stripped_lines = [line.strip() for line in lines if line.strip()]
+
+    if 0 < len(stripped_lines) <= 2 and all(
+        line == target_line for line in stripped_lines
+    ):
+        os.remove(file_path)
