@@ -147,9 +147,11 @@ cli_help = {
     "current_files": r"List of current files to be tested, "
     + r"both for stats and fof files",
     "factor": r"Relaxation factor for the tolerance values.",
-    "timing_regex": r"Regex for the file that contains the latest log.",
+    "log_file": r"Regex for the file that contains the latest log.",
     "timing_names": r"The name of the timing entries to be displayed.",
-    "timing_database": r"A persistent file to keep track of performance history.",
+    "timing_database": r"Path to the timing database files used for performance "
+    + r"reference or performance checks. This consists of three files (_meta.json, "
+    + r"_0_tree.json, _0_meta.json) that store timing information.",
     "append_time": r"If true: append to the performance data; If false: overwrite the "
     + r"performance data (default: false).",
     "run_dir": r"Directory from where the run is started "
