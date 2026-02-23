@@ -20,6 +20,7 @@ pathlib = ">=1.0.1"
 pandas = ">=2.2.3"
 regex = ">=2024.11.6"
 xarray = ">=2024.11.0"
+types-python-dateutil = "^2.9.0"
 
 [tool.mypy]
 allow_untyped_defs = true
@@ -46,7 +47,6 @@ rope = ">=1.13.0"
 rstcheck = ">=6.2.4"
 
 # Testing tools: pytest & coverage
-types-python-dateutil = "^2.9.0.20260124"
 [tool.poetry.group.test.dependencies]
 pytest = ">=8.3.3"
 pytest-cov = ">=6.0.0"
