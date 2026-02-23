@@ -33,7 +33,9 @@ def read_logfile(filename):
         data = [e for e in full_file.split("\n") if e != ""]
 
         # filter by timing headers and elements
-        data = [e for e in data if re.search(HEADER_REGEX, e) or re.search(TIMING_REGEX, e)]
+        data = [
+            e for e in data if re.search(HEADER_REGEX, e) or re.search(TIMING_REGEX, e)
+        ]
 
         # store line numbers of timing table headers
         header_lines = [i for i, e in enumerate(data) if re.search(HEADER_REGEX, e)]
