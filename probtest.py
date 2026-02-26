@@ -34,10 +34,17 @@ matplotlib.use("Agg")
 
 
 @click.group()
-@click.option("--log-level", type=str, default="INFO")
+@click.option(
+    "--log-level",
+    type=str,
+    default="INFO",
+    help="Set the logging verbosity. "
+    "Available levels: DEBUG, INFO, WARNING, ERROR, CRITICAL",
+)
 @click.option("--log-file", type=str, default="probtest.log")
 @click.pass_context
-def cli(ctx, log_level, log_file):
+def cli(ctx: click.Context, log_level: str, log_file: str) -> None:
+    """Probtest: Python suite for testing weather and climate models."""
     initialize_logger(log_level=log_level.upper(), log_file=log_file)
     subcommand = ctx.invoked_subcommand
     # the section is the first part of the subcommand (e.g. cdo-table -> cdo)
