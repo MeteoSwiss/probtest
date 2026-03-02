@@ -21,7 +21,7 @@ from util.fof_utils import (
     get_log_file_name,
     split_feedback_dataset,
 )
-from util.log_handler import get_detailed_logger, logger
+from util.log_handler import initialize_detailed_logger, logger
 from util.model_output_parser import model_output_parser
 from util.utils import FileType
 
@@ -373,6 +373,7 @@ def check_file_with_tolerances(
     if input_file_ref.file_type == FileType.FOF:
         df_ref = df_ref["observation"]["veri_data"]
         df_cur = df_cur["observation"]["veri_data"]
+        print(df_tol)
         df_tol.columns = ["veri_data"]
 
     # compute relative difference
@@ -459,7 +460,9 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, log_file_name)
 
     rules_dict = parse_rules(rules)
     errors = False
-    detailed_logger = get_detailed_logger(log_file_name)
+    detailed_logger = initialize_detailed_logger(
+        "DETAILS", log_level="DEBUG", log_file=log_file_name
+    )
 
     for key, ref_df in dict_ref.items():
         cur_df = dict_cur[key]

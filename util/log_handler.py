@@ -57,10 +57,3 @@ def initialize_detailed_logger(
 
     detailed_logger.info("initialized named logger '%s'", name)
     return detailed_logger
-
-
-def get_detailed_logger(log_file_name, logger_name="DETAILS", log_level="DEBUG"):
-
-    return initialize_detailed_logger(
-        logger_name, log_level=log_level, log_file=log_file_name
-    )

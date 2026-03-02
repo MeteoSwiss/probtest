@@ -16,7 +16,7 @@ from util.fof_utils import (  # write_lines,
     get_report_variables,
     split_feedback_dataset,
 )
-from util.log_handler import get_detailed_logger
+from util.log_handler import initialize_detailed_logger
 
 
 @pytest.fixture(name="ds1", scope="function")
@@ -278,7 +278,10 @@ def test_compare_var_and_attr_ds(ds1, ds2):
     the variables are the same and in which they differ.
     """
     with patch("builtins.open", mock_open()):
-        detailed_logger = get_detailed_logger("test_log.log")
+
+        detailed_logger = initialize_detailed_logger(
+            "DETAILS", log_level="DEBUG", log_file="test_log.log"
+        )
 
         total1, equal1 = compare_var_and_attr_ds(ds1, ds2, detailed_logger)
         total2, equal2 = compare_var_and_attr_ds(ds1, ds2, detailed_logger)

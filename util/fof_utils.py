@@ -218,19 +218,6 @@ def process_var(ds1, ds2, var, detailed_logger):
     return t, e
 
 
-def create_tolerance_csv(n_rows, tol):
-    """
-    This function generates a file with the same number of lines as the file being
-    analyzed, where each line contains the tolerances specified when fof-compare
-    is called.
-    """
-    tolerance_file_name = "tolerance_file.csv"
-    df = pd.DataFrame({"tolerance": [tol] * n_rows})
-    df.to_csv(tolerance_file_name)
-
-    return tolerance_file_name
-
-
 def get_log_file_name(file_path):
     """
     This function gives the name of the detailed log file,
