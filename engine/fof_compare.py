@@ -35,38 +35,50 @@ from util.utils import FileInfo
     default=1e-12,
 )
 def fof_compare(file1, file2, fof_types, tolerance):
+    try:
+        for fof_type in fof_types:
+            file1_path = file1.format(fof_type=fof_type)
+            file2_path = file2.format(fof_type=fof_type)
 
-    for fof_type in fof_types:
-        file1_path = file1.format(fof_type=fof_type)
-        file2_path = file2.format(fof_type=fof_type)
+            n_rows_file1 = xr.open_dataset(file1_path).sizes["d_body"]
+            n_rows_file2 = xr.open_dataset(file2_path).sizes["d_body"]
 
-        n_rows = xr.open_dataset(file1_path).sizes["d_body"]
-        tolerance_file = create_tolerance_csv(n_rows, tolerance)
 
-        out, err, tol = check_file_with_tolerances(
-            tolerance_file,
-            FileInfo(file1_path),
-            FileInfo(file2_path),
-            factor=1,
-            rules="",
-        )
+            if n_rows_file1 != n_rows_file2:
+                raise ValueError("Files have different numbers of lines!")
 
-        log_file_name = get_log_file_name(file1_path)
-        if out:
-            logger.info("Files are consistent!")
 
-        else:
-            logger.info("Files are NOT consistent!")
+            tolerance_file = create_tolerance_csv(n_rows_file1, tolerance)
 
-            logger.info("Complete output available in %s", log_file_name)
-            if not err.empty:
-                detailed_logger = get_detailed_logger(log_file_name)
-                detailed_logger.info(
-                    "Differences, veri_data outside of tolerance range"
-                )
-                detailed_logger.info(err)
-                detailed_logger.info(tol)
+            out, err, tol = check_file_with_tolerances(
+                tolerance_file,
+                FileInfo(file1_path),
+                FileInfo(file2_path),
+                factor=1,
+                rules="",
+            )
 
+            log_file_name = get_log_file_name(file1_path)
+            if out:
+                logger.info("Files are consistent!")
+
+            else:
+                logger.info("Files are NOT consistent!")
+
+                logger.info("Complete output available in %s", log_file_name)
+                if not err.empty:
+                    detailed_logger = get_detailed_logger(log_file_name)
+                    detailed_logger.info(
+                        "Differences, veri_data outside of tolerance range"
+                    )
+                    detailed_logger.info(err)
+                    detailed_logger.info(tol)
+
+    except Exception as e:
+        print(f"Errore: {e}")
+        raise
+
+    finally:
         if os.path.exists(tolerance_file):
             os.remove(tolerance_file)
 
