@@ -34,7 +34,8 @@ from util.utils import FileInfo
     "--tolerance",
     default=1e-12,
 )
-def fof_compare(file1, file2, fof_types, tolerance):
+@click.option("--rules", default="")
+def fof_compare(file1, file2, fof_types, tolerance, rules):
 
     for fof_type in fof_types:
         file1_path = file1.format(fof_type=fof_type)
@@ -46,8 +47,9 @@ def fof_compare(file1, file2, fof_types, tolerance):
         if n_rows_file1 != n_rows_file2:
             raise ValueError("Files have different numbers of lines!")
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=True, dir="/dev/shm"
-) as tmp:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".csv", delete=True, dir="/dev/shm"
+        ) as tmp:
             df = pd.DataFrame({"tolerance": [tolerance] * n_rows_file1})
             df.to_csv(tmp.name)
 
@@ -56,7 +58,7 @@ def fof_compare(file1, file2, fof_types, tolerance):
                 FileInfo(file1_path),
                 FileInfo(file2_path),
                 factor=1,
-                rules="",
+                rules=rules,
             )
 
             if out:
