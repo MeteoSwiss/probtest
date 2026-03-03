@@ -46,7 +46,8 @@ def fof_compare(file1, file2, fof_types, tolerance):
         if n_rows_file1 != n_rows_file2:
             raise ValueError("Files have different numbers of lines!")
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=True) as tmp:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=True, dir="/dev/shm"
+) as tmp:
             df = pd.DataFrame({"tolerance": [tolerance] * n_rows_file1})
             df.to_csv(tmp.name)
 
