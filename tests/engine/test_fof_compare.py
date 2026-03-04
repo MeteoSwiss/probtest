@@ -14,14 +14,13 @@ from engine.fof_compare import fof_compare
 
 
 @pytest.fixture(name="fof_datasets", scope="function")
-def fixture_fof_datasets(fof_datasets_base):
+def fixture_fof_datasets(fof_datasets_base, tmp_dir):
     """
     FOF datasets written to disk, returns file paths.
     """
     ds1, ds2, _, _ = fof_datasets_base
     ds3 = ds2.copy(deep=True)
     ds3["flags"] = (("d_body",), ds3["flags"].values * 1.55)
-    tmp_dir = Path(".").resolve()
 
     ds1_file = os.path.join(tmp_dir, "fof1_SYNOP.nc")
     ds2_file = os.path.join(tmp_dir, "fof2_SYNOP.nc")
