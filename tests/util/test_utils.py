@@ -2,6 +2,7 @@
 This module contains unit tests for the `utils.py` module.
 """
 
+import numpy as np
 import pytest
 
 from util.utils import (
@@ -44,6 +45,15 @@ def test_get_seed_from_member_id_unique_seeds():
     """
     seeds = [get_seed_from_member_id(i) for i in range(1, 121)]
     assert len(seeds) == len(set(seeds)), "Seeds are not unique!"
+
+
+def test_get_seed_from_member_id_returns_int32():
+    """
+    Test that the function always returns an np.int32.
+    """
+    for i in range(1, 121):
+        seed = get_seed_from_member_id(i)
+        assert isinstance(seed, np.int32), f"Seed for member {i} is not np.int32"
 
 
 def test_prepend_type_to_member_id():

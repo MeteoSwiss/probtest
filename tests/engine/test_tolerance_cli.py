@@ -7,7 +7,7 @@ and check for discrepancies.
 
 import pytest
 
-from tests.cli.test_tolerance_cli_split import (
+from tests.engine.test_tolerance_cli_split import (
     test_tolerance_cli_fof,
     test_tolerance_cli_stats,
 )

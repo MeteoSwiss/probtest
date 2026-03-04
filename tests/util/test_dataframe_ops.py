@@ -671,21 +671,11 @@ def fixture_dataframes():
 
 
 @pytest.fixture(name="fof_datasets", scope="function")
-def fixture_fof_datasets(sample_dataset_fof):
+def fixture_fof_datasets(fof_datasets_base):
     """
-    Create fof dataset and reference tolerances.
+    FoF datasets returned as in-memory objects.
     """
-    ds1 = sample_dataset_fof
-    ds2 = ds1.copy(deep=True)
-
-    ds2["veri_data"] = (("d_body",), ds2["veri_data"].values * 1.55)
-
-    n_body_size = ds1.sizes["d_body"]
-
-    tol_large = pd.DataFrame({"veri_data": np.full(n_body_size, 5)})
-    tol_small = pd.DataFrame({"veri_data": np.full(n_body_size, 0.06)})
-
-    return ds1, ds2, tol_large, tol_small
+    return fof_datasets_base
 
 
 def _check(df1, df2, tol_large, tol_small, file_type):
