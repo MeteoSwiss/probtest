@@ -49,7 +49,9 @@ def test_fof_compare_works(fof_datasets, tmp_dir, monkeypatch):
     result = runner.invoke(
         fof_compare,
         [
+            "--file1",
             df1,
+            "--file2",
             df2,
             "--fof-types",
             "SYNOP",
@@ -83,7 +85,18 @@ def test_fof_compare_not_consistent(fof_datasets, tmp_dir, monkeypatch, caplog):
     with caplog.at_level(logging.INFO):
         runner.invoke(
             fof_compare,
-            [df1, df3, "--fof-types", "SYNOP", "--tolerance", "5", "--rules", rules],
+            [
+                "--file1",
+                df1,
+                "--file2",
+                df3,
+                "--fof-types",
+                "SYNOP",
+                "--tolerance",
+                "5",
+                "--rules",
+                rules,
+            ],
         )
 
     assert "Files are NOT consistent!" in caplog.text
@@ -105,7 +118,18 @@ def test_fof_compare_consistent(fof_datasets, tmp_dir, monkeypatch, caplog):
     with caplog.at_level(logging.INFO):
         runner.invoke(
             fof_compare,
-            [df1, df2, "--fof-types", "SYNOP", "--tolerance", "5", "--rules", rules],
+            [
+                "--file1",
+                df1,
+                "--file2",
+                df2,
+                "--fof-types",
+                "SYNOP",
+                "--tolerance",
+                "5",
+                "--rules",
+                rules,
+            ],
         )
 
     assert "Files are consistent!" in caplog.text

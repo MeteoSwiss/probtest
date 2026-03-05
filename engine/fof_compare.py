@@ -22,12 +22,20 @@ from util.utils import FileInfo
 
 
 @click.command()
-@click.argument("file1")
-@click.argument("file2")
+@click.option(
+    "--file1",
+    required=True,
+    help="Path to the file 1; it must contain the {fof_type} " "placeholder.",
+)
+@click.option(
+    "--file2",
+    required=True,
+    help="Path to the file 2; it must contain the {fof_type} " "placeholder.",
+)
 @click.option(
     "--fof-types",
     type=CommaSeparatedStrings(),
-    default="",
+    required=True,
     help=cli_help["fof_types"],
 )
 @click.option(

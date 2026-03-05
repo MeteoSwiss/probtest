@@ -378,7 +378,6 @@ def check_file_with_tolerances(
     if input_file_ref.file_type == FileType.FOF:
         df_ref = df_ref["observation"]["veri_data"]
         df_cur = df_cur["observation"]["veri_data"]
-        print(df_tol)
         df_tol.columns = ["veri_data"]
 
     # compute relative difference
