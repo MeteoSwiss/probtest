@@ -25,12 +25,12 @@ from util.utils import FileInfo
 @click.option(
     "--file1",
     required=True,
-    help="Path to the file 1; it must contain the {fof_type} " "placeholder.",
+    help="Path to the file 1; it must contain the {fof_type} placeholder.",
 )
 @click.option(
     "--file2",
     required=True,
-    help="Path to the file 2; it must contain the {fof_type} " "placeholder.",
+    help="Path to the file 2; it must contain the {fof_type} placeholder.",
 )
 @click.option(
     "--fof-types",
