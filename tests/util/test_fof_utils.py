@@ -237,41 +237,6 @@ def fixture_sample_dataset_2(sample_dataset_fof):
     return data
 
 
-# def test_write_lines(ds1, ds2, tmp_path):
-#     """
-#     Test that if there are any differences, they are saved in a separate csv file.
-#     """
-#     file_path = tmp_path / "differences.csv"
-#     diff = np.array([5])
-#     write_lines(ds1, ds2, diff, file_path)
-
-#     content = file_path.read_text(encoding="utf-8")
-
-#     expected = (
-#         "id  : d_hdr        |d_body       |lat          |lon          |varno        "
-#         "|statid       |time_nomi    |codetype     |level        |l_body       "
-#         "|i_body       |veri_data    |obs          |bcor         |level_typ    "
-#         "|level_sig    |state        |flags        |check        |e_o          "
-#         "|qual         |plevel       \n"
-#         "ref  : 0            |5            |1            |5            |4            "
-#         "|a            |0            |5            |750          |1            "
-#         "|1            |78           |0.155        |0.969        |0.524        "
-#         "|0.366        |1            |9            |13           |0.52         "
-#         "|0.138        |0.755        \n"
-#         "cur  : 0            |5            |1            |5            |4            "
-#         "|a            |0            |5            |750          |1            "
-#         "|1            |78           |0.155        |0.969        |0.524        "
-#         "|0.366        |1            |9            |13           |0.52         "
-#         "|0.138        |0.755        \n"
-#         "diff : 0            |0            |0            |0            |0            "
-#         "|nan          |0            |0            |0            |0            "
-#         "|0            |0            |0.0          |0.0          |0.0          "
-#         "|0.0          |0            |0            |0            |0.0          "
-#         "|0.0          |0.0          \n"
-#     )
-#     assert content == expected
-
-
 def test_compare_var_and_attr_ds(ds1, ds2):
     """
     Test that, given two datasets, returns the number of elements in which
