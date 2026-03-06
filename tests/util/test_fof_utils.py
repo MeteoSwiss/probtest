@@ -193,7 +193,7 @@ def fixture_arr():
 
 def test_fill_nans_for_float32_nan(arr_nan):
     """
-    Test that if an array containign nan is given, these values are replaced
+    Test that if an array containing nan is given, these values are replaced
     by -9.99999e05.
     """
     array = fill_nans_for_float32(arr_nan)
