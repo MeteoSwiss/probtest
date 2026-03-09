@@ -199,7 +199,7 @@ def test_fill_nans_for_float32_nan(arr_nan):
     by -9.99999e05.
     """
     array = replace_nan_with_sentinel(arr_nan)
-    expected = np.array([1.0, -9.99999e05, 3.0, 4.0, -9.99999e05], dtype=np.float32)
+    expected = np.array([1.0, -9.99999e05, 3.0, 4.0, -9.99999e05], dtype=np.float64)
     assert np.array_equal(array, expected)
 
 
