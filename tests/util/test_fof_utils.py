@@ -4,6 +4,8 @@ This module contains unit tests for the `util/fof_utils.py` module.
 import os
 from unittest.mock import mock_open, patch
 
+from unittest.mock import mock_open, patch
+
 import numpy as np
 import pytest
 
