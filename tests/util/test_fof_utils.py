@@ -1,9 +1,8 @@
 """
 This module contains unit tests for the `util/fof_utils.py` module.
 """
-import os
-from unittest.mock import mock_open, patch
 
+import os
 from unittest.mock import mock_open, patch
 
 import numpy as np
@@ -15,8 +14,8 @@ from util.fof_utils import (  # write_lines,
     compare_var_and_attr_ds,
     get_observation_variables,
     get_report_variables,
+    replace_nan_with_sentinel,
     split_feedback_dataset,
-    replace_nan_with_sentinel
 )
 from util.log_handler import initialize_detailed_logger
 

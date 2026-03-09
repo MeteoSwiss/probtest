@@ -106,14 +106,16 @@ def compare_arrays(arr1, arr2, var_name):
 
 def replace_nan_with_sentinel(arr):
     """
-    To make sure nan values are recognised.
+    If the input array has a floating dtype, it is cast to float64
+    and all NaN values are replaced with the sentinel value -999999.
+    If the array does not have a floating dtype, it is returned unchanged.
     """
     if not np.issubdtype(arr.dtype, np.floating):
         return arr
 
     arr = arr.astype(np.float64, copy=False)
 
-      return np.where(np.isnan(arr), -999999.0, arr)
+    return np.where(np.isnan(arr), -999999.0, arr)
 
 
 def clean_value(x):
