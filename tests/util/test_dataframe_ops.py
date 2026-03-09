@@ -5,7 +5,7 @@ This module contains unit tests for the `dataframe_ops.py` module.
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
-from unittest.mock import patch
+from unittest.mock import mock_open, patch
 
 import numpy as np
 import pandas as pd
@@ -671,21 +671,11 @@ def fixture_dataframes():
 
 
 @pytest.fixture(name="fof_datasets", scope="function")
-def fixture_fof_datasets(sample_dataset_fof):
+def fixture_fof_datasets(fof_datasets_base):
     """
-    Create fof dataset and reference tolerances.
+    FoF datasets returned as in-memory objects.
     """
-    ds1 = sample_dataset_fof
-    ds2 = ds1.copy(deep=True)
-
-    ds2["veri_data"] = (("d_body",), ds2["veri_data"].values * 1.55)
-
-    n_body_size = ds1.sizes["d_body"]
-
-    tol_large = pd.DataFrame({"veri_data": np.full(n_body_size, 5)})
-    tol_small = pd.DataFrame({"veri_data": np.full(n_body_size, 0.06)})
-
-    return ds1, ds2, tol_large, tol_small
+    return fof_datasets_base
 
 
 def _check(df1, df2, tol_large, tol_small, file_type):
@@ -853,8 +843,12 @@ def test_multiple_solutions_from_dict_no_rules(dataframes_dict):
     dict_cur = {key: df.copy() for key, df in dict_ref.items()}
     rules = ""
 
-    errors = check_multiple_solutions_from_dict(dict_ref, dict_cur, rules)
-    assert errors == []
+    with patch("builtins.open", mock_open()):
+        errors = check_multiple_solutions_from_dict(
+            dict_ref, dict_cur, rules, log_file_name="file_name.log"
+        )
+
+    assert errors is False
 
 
 def test_multiple_solutions_from_dict_with_rules(dataframes_dict):
@@ -865,8 +859,11 @@ def test_multiple_solutions_from_dict_with_rules(dataframes_dict):
 
     rules = {"check": [9, 1], "state": [13, 14]}
 
-    errors = check_multiple_solutions_from_dict(dict_ref, dict_cur, rules)
-    assert errors == []
+    with patch("builtins.open", mock_open()):
+        errors = check_multiple_solutions_from_dict(
+            dict_ref, dict_cur, rules, log_file_name="file_name.log"
+        )
+    assert errors is False
 
 
 def test_multiple_solutions_from_dict_with_rules_wrong(dataframes_dict):
@@ -877,15 +874,9 @@ def test_multiple_solutions_from_dict_with_rules_wrong(dataframes_dict):
 
     rules = {"check": [9, 1], "state": [13, 14]}
 
-    errors = check_multiple_solutions_from_dict(dict_ref, dict_cur, rules)
+    with patch("builtins.open", mock_open()):
+        errors = check_multiple_solutions_from_dict(
+            dict_ref, dict_cur, rules, log_file_name="file_name.log"
+        )
 
-    expected = [
-        {
-            "row": 1,
-            "column": "check",
-            "file1": np.int64(9),
-            "file2": np.int64(6),
-            "error": "values different and not admitted",
-        }
-    ]
-    assert errors == expected
+    assert errors is True

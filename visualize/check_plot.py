@@ -19,7 +19,7 @@ from util.click_util import CommaSeparatedStrings, cli_help
 from util.constants import compute_statistics
 from util.dataframe_ops import compute_rel_diff_dataframe, parse_check
 from util.log_handler import logger
-from util.utils import validate_single_stats_file
+from util.utils import FileInfo, validate_single_stats_file
 from util.visualize_util import create_figure
 
 
@@ -73,6 +73,7 @@ def check_plot(tolerance_files, reference_files, current_files, factor, savedir)
     tolerance_file_name = validate_single_stats_file(
         tolerance_files, "tolerance", errors
     )
+
     input_file_ref = validate_single_stats_file(reference_files, "reference", errors)
     input_file_cur = validate_single_stats_file(current_files, "current", errors)
 
@@ -82,9 +83,8 @@ def check_plot(tolerance_files, reference_files, current_files, factor, savedir)
         sys.exit(1)
 
     df_tol, df_ref, df_cur = parse_check(
-        tolerance_file_name, input_file_ref, input_file_cur, factor
+        tolerance_file_name, FileInfo(input_file_cur), FileInfo(input_file_ref), factor
     )
-
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
     # take maximum over height

@@ -7,6 +7,7 @@ import json
 import os
 import sys
 from datetime import datetime
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
@@ -344,3 +345,29 @@ class TimingTree:
             dates = [dates]
         sorted_dates = sorted([datetime.strptime(s, DATETIME_FORMAT) for s in dates])
         return sorted_dates
+
+    def extract_timings(
+        self,
+        i_table: int = -1,
+        timer_sections: Optional[List[str]] = None,
+        time_measure: str = "total max (s)",
+    ) -> pd.Series:
+        """
+        Extract timing values for the given regions in the i_table.
+        """
+        if timer_sections is None:
+            timer_sections = ["total"]
+
+        df = self.data[i_table]
+
+        # Check which timers actually exist
+        existing_timers = df.index.get_level_values(0).unique()
+        missing = set(timer_sections) - set(existing_timers)
+        if missing:
+            raise ValueError(f"Missing timing regions: {', '.join(missing)}")
+
+        values = (
+            df.loc[(timer_sections, slice(None)), time_measure].groupby(level=0).first()
+        )
+
+        return values
