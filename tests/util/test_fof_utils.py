@@ -2,6 +2,7 @@
 This module contains unit tests for the `util/fof_utils.py` module.
 """
 
+import os
 from unittest.mock import mock_open, patch
 
 import numpy as np
@@ -11,9 +12,9 @@ from util.fof_utils import (  # write_lines,
     clean_value,
     compare_arrays,
     compare_var_and_attr_ds,
-    fill_nans_for_float32,
     get_observation_variables,
     get_report_variables,
+    replace_nan_with_sentinel,
     split_feedback_dataset,
 )
 from util.log_handler import initialize_detailed_logger
@@ -196,8 +197,8 @@ def test_fill_nans_for_float32_nan(arr_nan):
     Test that if an array containing nan is given, these values are replaced
     by -9.99999e05.
     """
-    array = fill_nans_for_float32(arr_nan)
-    expected = np.array([1.0, -9.99999e05, 3.0, 4.0, -9.99999e05], dtype=np.float32)
+    array = replace_nan_with_sentinel(arr_nan)
+    expected = np.array([1.0, -9.99999e05, 3.0, 4.0, -9.99999e05], dtype=np.float64)
     assert np.array_equal(array, expected)
 
 
@@ -206,7 +207,7 @@ def test_fill_nans_for_float32(arr1):
     Test that if an array without nan is given, the output of the function
     is the same as the input.
     """
-    array = fill_nans_for_float32(arr1)
+    array = replace_nan_with_sentinel(arr1)
     assert np.array_equal(array, arr1)
 
 
@@ -253,6 +254,13 @@ def test_compare_var_and_attr_ds(ds1, ds2):
 
         assert (total1, equal1) == (103, 102)
         assert (total2, equal2) == (103, 102)
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    grandparent_dir = os.path.dirname(os.path.dirname(script_dir))
+
+    path_name = os.path.join(grandparent_dir, "differences.csv")
+    if os.path.exists(path_name):
+        os.remove(path_name)
 
 
 @pytest.fixture(name="ds3")
