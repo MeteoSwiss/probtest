@@ -113,10 +113,7 @@ def replace_nan_with_sentinel(arr):
 
     arr = arr.astype(np.float64, copy=False)
 
-    if np.isnan(arr).any():
-        return np.where(np.isnan(arr), -999999, arr)
-
-    return arr
+      return np.where(np.isnan(arr), -999999.0, arr)
 
 
 def clean_value(x):
