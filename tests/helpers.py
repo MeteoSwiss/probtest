@@ -81,10 +81,10 @@ def assert_empty_df(df, msg):
     assert len(df.values) == 0, f"{msg}:\n{df}"
 
 
-def run_performance_cli(timing_regex, timing_database):
+def run_performance_cli(log_file, timing_database):
     args = [
-        "--timing-regex",
-        timing_regex,
+        "--log_file",
+        log_file,
         "--timing-database",
         timing_database,
     ]

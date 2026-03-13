@@ -5,16 +5,17 @@ timing data.
 
 import re
 import sys
-from datetime import datetime
 
 import numpy as np
+from dateutil.parser import ParserError
+from dateutil.parser import parse as parse_date
 
 from util.constants import DATETIME_FORMAT
 from util.log_handler import logger
 
-TIMING_START_REGEX = r"(?: +L? ?[a-zA-Z_.]+)"
+TIMING_START_REGEX = r"\s+L?\s*[a-zA-Z_.]+"
 TIMING_ELEMENT_REGEX = r"(?:\[?\d+[.msh]?\d*s?\]? +)"
-TIMING_REGEX = TIMING_START_REGEX + " +" + TIMING_ELEMENT_REGEX + "{6,20} *(?!.)"
+TIMING_REGEX = TIMING_START_REGEX + r"\s+(?:" + TIMING_ELEMENT_REGEX + r"){6,20} *(?!.)"
 HEADER_REGEX = r"name +.*calls.*"
 INDENT_REGEX = r"^ *L? "
 HOUR_REGEX = r"(\d+)h(\d+)m(\d+)s"
@@ -22,33 +23,7 @@ MINUTE_REGEX = r"(\d+[.]?\d*)m(\d+[.]?\d*)s"
 SEC_REGEX = r"(\d+[.]?\d*)s"
 NUMBER_REGEX = r"(\d+[.]?\d*)"
 
-dateline_regexs = (
-    r"(?:[A-Z][a-z]{2} +){2}\d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{3,4} 20\d{2}",
-    (
-        r"(?:[A-Z][a-z]{2} +)\d{1,2} (?:[A-Z][a-z]{2} +)20\d{2} \d{2}:\d{2}:\d{2} "
-        "[A-Z]{2} [A-Z]{3,4}"
-    ),
-)
-icon_date_formats = ("%a %b %d %H:%M:%S %Z %Y", "%a %d %b %Y %H:%M:%S %p %Z")
-
 DICT_REGEX = r"^\s*{} *: *(.*)"
-
-
-def _convert_dateline_to_start_end_datetime(dateline, icon_date_format):
-    # LOG.check files have more dates than we need
-    # The dates we are interested in are always at the same position relative to the
-    #  other dates
-    if len(dateline) > 2:
-        dateline = [dateline[1], dateline[2]]
-    start_time, finish_time = dateline
-
-    finish_datetime = datetime.strptime(finish_time, icon_date_format)
-    finish_datetime_converted = finish_datetime.strftime(DATETIME_FORMAT)
-
-    start_datetime = datetime.strptime(start_time, icon_date_format)
-    start_datetime_converted = start_datetime.strftime(DATETIME_FORMAT)
-
-    return (start_datetime_converted, finish_datetime_converted)
 
 
 def read_logfile(filename):
@@ -121,22 +96,26 @@ def read_logfile(filename):
         meta_data = {}
 
         # get start and finish time from job
-        found_dateline_yes = False
-        start_datetime_converted = ""
-        finish_datetime_converted = ""
-        for dateline_regex, icon_date_format in zip(dateline_regexs, icon_date_formats):
-            dateline = re.findall(dateline_regex, full_file)
+        # --- robust start/finish datetime extraction ---
 
-            if dateline:
-                (
-                    start_datetime_converted,
-                    finish_datetime_converted,
-                ) = _convert_dateline_to_start_end_datetime(dateline, icon_date_format)
-                found_dateline_yes = True
-        if not found_dateline_yes:
-            raise Exception("Could not match any regex for start and end time.")
-        meta_data["start_time"] = start_datetime_converted
-        meta_data["finish_time"] = finish_datetime_converted
+        datelines = []
+
+        for line in full_file.splitlines():
+            if line.count(":") >= 2:
+                try:
+                    dt = parse_date(line, fuzzy=False)
+                    datelines.append(dt)
+                except (ParserError, ValueError):
+                    continue
+
+        if len(datelines) < 2:
+            raise Exception("Could not robustly determine start and finish time.")
+
+        start_dt = datelines[0]
+        finish_dt = datelines[-1]
+
+        meta_data["start_time"] = start_dt.strftime(DATETIME_FORMAT)
+        meta_data["finish_time"] = finish_dt.strftime(DATETIME_FORMAT)
 
         # get meta data from ICON log (in the form "Key : Value")
         revision = re.search(

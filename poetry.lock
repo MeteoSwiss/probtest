@@ -2662,6 +2662,17 @@ rich = ">=12.3.0"
 shellingham = ">=1.3.0"
 
 [[package]]
+name = "types-python-dateutil"
+version = "2.9.0.20260124"
+description = "Typing stubs for python-dateutil"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "types_python_dateutil-2.9.0.20260124-py3-none-any.whl", hash = "sha256:f802977ae08bf2260142e7ca1ab9d4403772a254409f7bbdf652229997124951"},
+    {file = "types_python_dateutil-2.9.0.20260124.tar.gz", hash = "sha256:7d2db9f860820c30e5b8152bfe78dbdf795f7d1c6176057424e8b3fdd1f581af"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.15.0"
 description = "Backported and Experimental Type Hints for Python 3.9+"
@@ -2754,4 +2765,4 @@ viz = ["cartopy", "matplotlib", "nc-time-axis", "seaborn"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "5dbd99db2f4a14cf026d2b1e243748cb39e51fc0828756e8def9cc6782767aea"
+content-hash = "6c318da3280b260c76b1ed7f0eb81a65be464cf34bbec2de00fd5a58b76d51a6"

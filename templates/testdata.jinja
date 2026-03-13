@@ -37,7 +37,7 @@
         "current_files": "{{reference}}/reference/{{experiment_name}}_{{member_id[1] if member_id|length>1 else 2}}.csv"
     },
     "performance": {
-        "timing_regex": "{{codebase_install}}/{{experiment_name}}/LOG.exp.{{experiment_name}}.run.12345678.o",
+        "log_file": "{{codebase_install}}/{{experiment_name}}/LOG.exp.{{experiment_name}}.run.12345678.o",
         "timing_names": ["integrate_nh", "nh_solve", "physics"],
         "timing_database": "{{reference}}/performance/{{experiment_name}}"
     },
