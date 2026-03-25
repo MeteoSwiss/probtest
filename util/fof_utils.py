@@ -169,7 +169,7 @@ def write_different_size_log(var, size1, size2, detailed_logger):
     )
 
 
-def compare_var_and_attr_ds(ds1, ds2, detailed_logger):
+def compare_var_and_attr_ds(ds1, ds2, detailed_logger, key):
     """
     Variable by variable and attribute by attribute,
     comparison of the two datasets.
@@ -178,23 +178,23 @@ def compare_var_and_attr_ds(ds1, ds2, detailed_logger):
     total_all, equal_all = 0, 0
     list_to_skip = ["source", "i_body", "l_body", "veri_data"]
 
-    for var in sorted(set(ds1.data_vars).union(ds2.data_vars)):
-        if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
+    for var in set(ds1.data_vars).intersection(ds2.data_vars):
+        if key == "reports" and var not in list_to_skip:
 
-            total, equal = process_var(ds1, ds2, var, detailed_logger)
+            total, equal = process_var(ds1, ds2, var, detailed_logger, prova="vars")
             total_all += total
             equal_all += equal
 
-        if var in ds1.attrs and var in ds2.attrs and var not in list_to_skip:
+        if key == "observations" and var not in list_to_skip:
 
-            total, equal = process_var(ds1, ds2, var, detailed_logger)
+            total, equal = process_var(ds1, ds2, var, detailed_logger, prova="attrs")
             total_all += total
             equal_all += equal
 
     return total_all, equal_all
 
 
-def process_var(ds1, ds2, var, detailed_logger):
+def process_var(ds1, ds2, var, detailed_logger, prova=None):
     """
     This function first checks whether two arrays have the same size.
     If they do, their values are compared.
@@ -203,8 +203,13 @@ def process_var(ds1, ds2, var, detailed_logger):
     number of matching elements.
     """
 
-    arr1 = fill_nans_for_float32(ds1[var].values)
-    arr2 = fill_nans_for_float32(ds2[var].values)
+    if prova == "attrs":
+        arr1 = np.array(ds1[var], dtype=object)
+        arr2 = np.array(ds2[var], dtype=object)
+    if prova == "vars":
+        arr1 = fill_nans_for_float32(ds1[var].values)
+        arr2 = fill_nans_for_float32(ds2[var].values)
+
     if arr1.size == arr2.size:
         t, e, diff = compare_arrays(arr1, arr2, var)
         if diff.size != 0:

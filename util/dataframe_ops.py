@@ -480,6 +480,7 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, log_file_name)
                 ref_df[list(cols_without_rules)].to_xarray(),
                 cur_df[list(cols_without_rules)].to_xarray(),
                 detailed_logger,
+                key
             )
             if t != e:
                 return True
