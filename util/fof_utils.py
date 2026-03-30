@@ -181,18 +181,68 @@ def compare_var_and_attr_ds(ds1, ds2, detailed_logger, key):
     for var in set(ds1.data_vars).intersection(ds2.data_vars):
         if key == "reports" and var not in list_to_skip:
 
-            total, equal = process_var(ds1, ds2, var, detailed_logger, prova="vars")
-            total_all += total
-            equal_all += equal
+            arr1 = fill_nans_for_float32(ds1[var].values)
+            arr2 = fill_nans_for_float32(ds2[var].values)
+
+            if arr1.size == arr2.size:
+                t, e, diff = compare_arrays(arr1, arr2, var)
+            
+            else:
+                t, e = max(arr1.size, arr2.size), 0
+                write_different_size(var, arr1.size, arr2.size, detailed_logger)
+
+            #total, equal = process_var(ds1, ds2, var, detailed_logger, prova="vars")
+            total_all += t
+            equal_all += e
 
         if key == "observations" and var not in list_to_skip:
 
-            total, equal = process_var(ds1, ds2, var, detailed_logger, prova="attrs")
-            total_all += total
-            equal_all += equal
+            arr1 = np.array(ds1.attrs[var], dtype=object)
+            arr2 = np.array(ds2.attrs[var], dtype=object)
+            if arr1.size == arr2.size:
+                t, e, diff = compare_arrays(arr1, arr2, var)
+
+            else:
+                t, e = max(arr1.size, arr2.size), 0
+                write_different_size_log(var, arr1.size, arr2.size, detailed_logger)
+
+            total_all += t
+            equal_all += e
 
     return total_all, equal_all
 
+
+def compare_arrays(arr1, arr2, var_name):
+    """
+    Comparison of two arrays containing the values of the same variable.
+    If not the same, it tells you in percentage terms how different they are.
+    """
+    total = arr1.size
+
+    if np.array_equal(arr1, arr2):
+        equal = total
+        diff = np.array([])
+
+    elif (
+        np.issubdtype(arr1.dtype, np.number)
+        and np.issubdtype(arr2.dtype, np.number)
+        and np.array_equal(arr1, arr2, equal_nan=True)
+    ):
+        equal = total
+        diff = np.array([])
+
+    else:
+        mask_equal = arr1 == arr2
+        equal = mask_equal.sum()
+        percent = (equal / total) * 100
+        print(
+            f"Differences in '{var_name}': {percent:.2f}% equal. "
+            f"{total} total entries for this variable"
+        )
+        diff_idx = np.where(~mask_equal.ravel())[0]
+        diff = diff_idx
+
+    return total, equal, diff
 
 def process_var(ds1, ds2, var, detailed_logger, prova=None):
     """
