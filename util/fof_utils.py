@@ -179,7 +179,7 @@ def compare_var_and_attr_ds(ds1, ds2, detailed_logger, key):
     list_to_skip = ["source", "i_body", "l_body", "veri_data"]
 
     for var in set(ds1.data_vars).intersection(ds2.data_vars):
-        if key == "observations" and var not in list_to_skip:
+        if key == "reports" and var not in list_to_skip:
 
             arr1 = fill_nans_for_float32(ds1[var].values)
             arr2 = fill_nans_for_float32(ds2[var].values)
@@ -195,10 +195,10 @@ def compare_var_and_attr_ds(ds1, ds2, detailed_logger, key):
             total_all += t
             equal_all += e
 
-        if key == "reports" and var not in list_to_skip:
+        if key == "observations" and var not in list_to_skip:
 
-            arr1 = np.array(ds1.attrs[var], dtype=object)
-            arr2 = np.array(ds2.attrs[var], dtype=object)
+            arr1 = np.array(ds1[var], dtype=object)
+            arr2 = np.array(ds2[var], dtype=object)
             if arr1.size == arr2.size:
                 t, e, diff = compare_arrays(arr1, arr2, var)
 
