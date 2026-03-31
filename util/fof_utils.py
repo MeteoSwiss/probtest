@@ -50,6 +50,7 @@ def split_feedback_dataset(ds):
 
     sort_keys_reports = ["lat", "lon", "statid", "time_nomi", "codetype"]
     ds_report_sorted = ds_reports.sortby(sort_keys_reports)
+    print(ds_report_sorted["r_check"].values)
 
     lbody = ds["l_body"].values
 
@@ -119,7 +120,8 @@ def clean_value(x):
     alignment when printing the value.
     """
     if isinstance(x, bytes):
-        return x.decode("utf-8", errors="replace").rstrip(" '")
+        return x.decode().rstrip(" '")
+       # return x.decode("utf-8", errors="replace").rstrip(" '")
     return str(x).rstrip(" '")
 
 
@@ -169,7 +171,7 @@ def write_different_size_log(var, size1, size2, detailed_logger):
     )
 
 
-def compare_var_and_attr_ds(ds1, ds2, detailed_logger, key):
+def compare_var_and_attr_ds(ds1, ds2, detailed_logger):
     """
     Variable by variable and attribute by attribute,
     comparison of the two datasets.
@@ -178,36 +180,12 @@ def compare_var_and_attr_ds(ds1, ds2, detailed_logger, key):
     total_all, equal_all = 0, 0
     list_to_skip = ["source", "i_body", "l_body", "veri_data"]
 
-    for var in set(ds1.data_vars).intersection(ds2.data_vars):
-        if key == "reports" and var not in list_to_skip:
+    for var in set(ds1.data_vars).union(ds2.data_vars):
+        if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
 
-            arr1 = fill_nans_for_float32(ds1[var].values)
-            arr2 = fill_nans_for_float32(ds2[var].values)
-
-            if arr1.size == arr2.size:
-                t, e, diff = compare_arrays(arr1, arr2, var)
-            
-            else:
-                t, e = max(arr1.size, arr2.size), 0
-                write_different_size(var, arr1.size, arr2.size, detailed_logger)
-
-            #total, equal = process_var(ds1, ds2, var, detailed_logger, prova="vars")
-            total_all += t
-            equal_all += e
-
-        if key == "observations" and var not in list_to_skip:
-
-            arr1 = np.array(ds1[var], dtype=object)
-            arr2 = np.array(ds2[var], dtype=object)
-            if arr1.size == arr2.size:
-                t, e, diff = compare_arrays(arr1, arr2, var)
-
-            else:
-                t, e = max(arr1.size, arr2.size), 0
-                write_different_size_log(var, arr1.size, arr2.size, detailed_logger)
-
-            total_all += t
-            equal_all += e
+            total, equal = process_var(ds1, ds2, var, detailed_logger)
+            total_all += total
+            equal_all += equal
 
     return total_all, equal_all
 
@@ -252,13 +230,8 @@ def process_var(ds1, ds2, var, detailed_logger, prova=None):
     The function outputs the total number of elements and the
     number of matching elements.
     """
-
-    if prova == "attrs":
-        arr1 = np.array(ds1[var], dtype=object)
-        arr2 = np.array(ds2[var], dtype=object)
-    if prova == "vars":
-        arr1 = fill_nans_for_float32(ds1[var].values)
-        arr2 = fill_nans_for_float32(ds2[var].values)
+    arr1 = fill_nans_for_float32(ds1[var].values)
+    arr2 = fill_nans_for_float32(ds2[var].values)
 
     if arr1.size == arr2.size:
         t, e, diff = compare_arrays(arr1, arr2, var)

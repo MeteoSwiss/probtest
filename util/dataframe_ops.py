@@ -82,10 +82,13 @@ def parse_probtest_fof(path):
     and df_obs respectively.
     """
     ds = xr.open_dataset(path)
+    
     ds_report, ds_obs = split_feedback_dataset(ds)
+  
     df_report, df_obs = (
         pd.DataFrame(d.to_dataframe().reset_index()) for d in (ds_report, ds_obs)
     )
+  
 
     return df_report, df_obs
 
@@ -475,12 +478,13 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, log_file_name)
         cols_with_rules = [col for col in common_cols if col in rules_dict]
         cols_without_rules = [col for col in common_cols if col not in rules_dict]
 
+        
+
         if cols_without_rules:
             t, e = compare_var_and_attr_ds(
                 ref_df[list(cols_without_rules)].to_xarray(),
                 cur_df[list(cols_without_rules)].to_xarray(),
-                detailed_logger,
-                key
+                detailed_logger
             )
             if t != e:
                 return True
