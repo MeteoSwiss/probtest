@@ -47,12 +47,17 @@ def compute_rel_diff_dataframe(df1, df2):
     return out
 
 
-def compute_division(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
+def compute_division(df1: pd.DataFrame, df2) -> pd.DataFrame:
     # avoid division by 0 and put nan instead
-    out = df1 / df2.replace({0: np.nan})
-    # put 0 if numerator is 0 as well
+    if np.isscalar(df2):
+        if df2 == 0:
+            return df1 * np.nan
+        out = df1 / df2
+    else:
+        out = df1 / df2.replace({0: np.nan})
+    
     out[df1 == 0] = 0
-    return out
+    return outt
 
 
 def parse_probtest_stats(path, index_col=None):

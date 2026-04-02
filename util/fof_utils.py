@@ -109,9 +109,12 @@ def fill_nans_for_float32(arr):
     """
     To make sure nan values are recognised.
     """
-    if arr.dtype == np.float32 and np.isnan(arr).any():
-        return np.where(np.isnan(arr), -999999, arr)
-    return arr
+    if not np.issubdtype(arr.dtype, np.floating):
+        return arr
+
+    arr = arr.astype(np.float64, copy=False)
+
+    return np.where(np.isnan(arr), -999999.0, arr)
 
 
 def clean_value(x):
@@ -182,7 +185,6 @@ def compare_var_and_attr_ds(ds1, ds2, detailed_logger):
 
     for var in set(ds1.data_vars).union(ds2.data_vars):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
-
             total, equal = process_var(ds1, ds2, var, detailed_logger)
             total_all += total
             equal_all += equal
@@ -222,7 +224,7 @@ def compare_arrays(arr1, arr2, var_name):
 
     return total, equal, diff
 
-def process_var(ds1, ds2, var, detailed_logger, prova=None):
+def process_var(ds1, ds2, var, detailed_logger):
     """
     This function first checks whether two arrays have the same size.
     If they do, their values are compared.
