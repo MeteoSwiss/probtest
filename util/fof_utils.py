@@ -16,7 +16,7 @@ def get_report_variables(ds):
     Get variable names of reports.
     """
     vars_shape_report = []
-    shape_report = ds.attrs["n_hdr"]
+    shape_report = ds["d_hdr"].size
 
     for var in ds.data_vars:
         if ds[var].shape[0] == shape_report:
@@ -30,7 +30,7 @@ def get_observation_variables(ds):
     Get variable names of observations.
     """
     vars_shape_observation = []
-    shape_observation = ds.attrs["n_body"]
+    shape_observation = ds["d_body"].size
 
     for var in ds.data_vars:
         if ds[var].shape[0] == shape_observation:
@@ -52,9 +52,12 @@ def split_feedback_dataset(ds):
     ds_report_sorted = ds_reports.sortby(sort_keys_reports)
 
     lbody = ds["l_body"].values
+    nbody = ds.attrs["n_body"]
+    dbody = ds["d_body"].size
 
     for varname in filter(lambda s: s in ["lat", "lon", "statid", "time_nomi"], ds):
         values = np.repeat(ds[varname], lbody.astype(int))
+        values = np.append(values, np.zeros(dbody - nbody))
         attrs = ds[varname].attrs
         ds = ds.assign({varname: xr.Variable("d_body", values, attrs=attrs)})
 
@@ -65,6 +68,7 @@ def split_feedback_dataset(ds):
 
     ds_obs = ds[observation_variables]
     sort_keys_obs = ["lat", "lon", "statid", "varno", "level", "time_nomi"]
+    #sort_keys_obs = ["dlat", "dlon", "statid", "varno", "level", "time_nomi"] # this can be added at a later stage together with if RADAR statement somewhere
     ds_obs_sorted = ds_obs.sortby(sort_keys_obs)
 
     return ds_report_sorted, ds_obs_sorted
