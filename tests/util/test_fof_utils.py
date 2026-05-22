@@ -11,9 +11,9 @@ from util.fof_utils import (  # write_lines,
     clean_value,
     compare_arrays,
     compare_var_and_attr_ds,
-    fill_nans_for_float32,
     get_observation_variables,
     get_report_variables,
+    replace_nan_with_sentinel_float64,
     split_feedback_dataset,
 )
 from util.log_handler import initialize_detailed_logger
@@ -194,10 +194,10 @@ def fixture_arr():
 def test_fill_nans_for_float32_nan(arr_nan):
     """
     Test that if an array containing nan is given, these values are replaced
-    by -9.99999e05.
+    by -999999.0.
     """
-    array = fill_nans_for_float32(arr_nan)
-    expected = np.array([1.0, -9.99999e05, 3.0, 4.0, -9.99999e05], dtype=np.float32)
+    array = replace_nan_with_sentinel_float64(arr_nan)
+    expected = np.array([1.0, -999999.0, 3.0, 4.0, -999999.0], dtype=np.float64)
     assert np.array_equal(array, expected)
 
 
@@ -206,7 +206,7 @@ def test_fill_nans_for_float32(arr1):
     Test that if an array without nan is given, the output of the function
     is the same as the input.
     """
-    array = fill_nans_for_float32(arr1)
+    array = replace_nan_with_sentinel_float64(arr1)
     assert np.array_equal(array, arr1)
 
 
