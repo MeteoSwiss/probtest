@@ -178,7 +178,7 @@ def compare_var_and_attr_ds(ds1, ds2, detailed_logger):
     total_all, equal_all = 0, 0
     list_to_skip = ["source", "i_body", "l_body", "veri_data"]
 
-    for var in sorted(set(ds1.data_vars).union(ds2.data_vars)):
+    for var in set(ds1.data_vars).union(ds2.data_vars):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
 
             total, equal = process_var(ds1, ds2, var, detailed_logger)
