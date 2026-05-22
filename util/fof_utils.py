@@ -104,10 +104,10 @@ def compare_arrays(arr1, arr2, var_name):
     return total, equal, diff
 
 
-def replace_nan_with_sentinel(arr):
+def replace_nan_with_sentinel_float64(arr):
     """
     If the input array has a floating dtype, it is cast to float64
-    and all NaN values are replaced with the sentinel value -999999.
+    and all NaN values are replaced with the sentinel value -999999.0
     If the array does not have a floating dtype, it is returned unchanged.
     """
     if not np.issubdtype(arr.dtype, np.floating):
@@ -208,8 +208,8 @@ def process_var(ds1, ds2, var, detailed_logger):
     number of matching elements.
     """
 
-    arr1 = replace_nan_with_sentinel(ds1[var].values)
-    arr2 = replace_nan_with_sentinel(ds2[var].values)
+    arr1 = replace_nan_with_sentinel_float64(ds1[var].values)
+    arr2 = replace_nan_with_sentinel_float64(ds2[var].values)
     if arr1.size == arr2.size:
         t, e, diff = compare_arrays(arr1, arr2, var)
         if diff.size != 0:
