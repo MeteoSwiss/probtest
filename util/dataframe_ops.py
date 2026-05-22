@@ -358,7 +358,8 @@ def check_file_with_tolerances(
         if errors:
             logger.error("RESULT: check FAILED")
             err = pd.DataFrame()
-            return False, err, 0
+            tol = pd.DataFrame()
+            return False, err, tol
     else:
         # check if variables are available in reference file
         skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
