@@ -20,6 +20,7 @@ pathlib = ">=1.0.1"
 pandas = ">=2.2.3"
 regex = ">=2024.11.6"
 xarray = ">=2024.11.0"
+types-python-dateutil = "^2.9.0"
 
 [tool.mypy]
 allow_untyped_defs = true
