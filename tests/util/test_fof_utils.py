@@ -194,7 +194,7 @@ def fixture_arr():
 def test_fill_nans_for_float32_nan(arr_nan):
     """
     Test that if an array containing nan is given, these values are replaced
-    by --999999.0.
+    by -999999.0.
     """
     array = replace_nan_with_sentinel_float64(arr_nan)
     expected = np.array([1.0, -999999.0, 3.0, 4.0, -999999.0], dtype=np.float64)
