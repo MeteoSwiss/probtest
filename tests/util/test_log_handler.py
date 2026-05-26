@@ -1,11 +1,15 @@
-import logging
+"""
+This module contains unit tests for the `util/log_handler.py` module.
+"""
+
 import pandas as pd
-import pytest
 
 from util.log_handler import log_dataframe
 
 
-class DummyLogger:
+class DummyLogger:  # pylint: disable=too-few-public-methods
+    """Simple logger that stores messages in memory for testing."""
+
     def __init__(self):
         self.messages = []
 
@@ -21,7 +25,7 @@ def test_log_dataframe_none():
 
     log_dataframe(logger, "TITLE", None)
 
-    assert logger.messages == []
+    assert not logger.messages
 
 
 def test_log_dataframe_empty():
@@ -30,7 +34,7 @@ def test_log_dataframe_empty():
 
     log_dataframe(logger, "TITLE", df)
 
-    assert logger.messages == []
+    assert not logger.messages
 
 
 def test_log_dataframe_non_empty():
@@ -51,7 +55,9 @@ def test_log_dataframe_calls_to_string_format():
     logger = DummyLogger()
 
     class SpyDF(pd.DataFrame):
-        def to_string(self, *args, **kwargs):
+        """DataFrame subclass that overrides to_string for testing."""
+
+        def to_string(self, *_args, **_kwargs):
             return "SPY_OUTPUT"
 
     df = SpyDF({"a": [1]})

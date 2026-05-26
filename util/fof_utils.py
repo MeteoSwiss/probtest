@@ -182,7 +182,14 @@ def compare_var_and_attr_ds(ds1, ds2, detailed_logger):
 
     total_all, equal_all = 0, 0
     list_to_skip = ["source", "i_body", "l_body", "veri_data", "record"]
-    list_to_skip += ["r_state", "r_check", "r_flags", "state", "check", "flags"] # temporarily skipping until tested fortran code is reproducible
+    list_to_skip += [
+        "r_state",
+        "r_check",
+        "r_flags",
+        "state",
+        "check",
+        "flags",
+    ]  # temporarily skipping until tested fortran code is reproducible
 
     for var in set(ds1.data_vars).union(ds2.data_vars):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:
