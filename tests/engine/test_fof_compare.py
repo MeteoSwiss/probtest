@@ -21,6 +21,7 @@ def fixture_fof_datasets(fof_datasets_base, tmp_dir):
     ds1, ds2, _, _ = fof_datasets_base
     ds3 = ds2.copy(deep=True)
     ds3["flags"] = (("d_body",), ds3["flags"].values * 1.55)
+    ds3["e_o"] = (("d_body",), ds3["e_o"].values * 1.55)
 
     ds1_file = os.path.join(tmp_dir, "fof1_SYNOP.nc")
     ds2_file = os.path.join(tmp_dir, "fof2_SYNOP.nc")
