@@ -113,7 +113,7 @@ def test_fof_compare_rules(fof_datasets, tmp_dir, monkeypatch, caplog):
     df3 = df3.replace("SYNOP", "{fof_type}")
     monkeypatch.chdir(tmp_dir)
 
-    rules = '{"flags": [18]}'
+    rules = '{"flags": [9, 18]}'
     runner = CliRunner()
     with caplog.at_level(logging.INFO):
         runner.invoke(
