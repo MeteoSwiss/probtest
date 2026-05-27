@@ -43,7 +43,7 @@ def test_fof_compare_works(fof_datasets, tmp_dir, monkeypatch):
     df1 = df1.replace("SYNOP", "{fof_type}")
     df2 = df2.replace("SYNOP", "{fof_type}")
     monkeypatch.chdir(tmp_dir)
-    rules = ""
+    rules = "{}"
     runner = CliRunner()
 
     result = runner.invoke(
@@ -80,7 +80,7 @@ def test_fof_compare_not_consistent(fof_datasets, tmp_dir, monkeypatch, caplog):
     df3 = df3.replace("SYNOP", "{fof_type}")
     monkeypatch.chdir(tmp_dir)
 
-    rules = ""
+    rules = "{}"
     runner = CliRunner()
     with caplog.at_level(logging.INFO):
         runner.invoke(
@@ -146,7 +146,7 @@ def test_fof_compare_consistent(fof_datasets, tmp_dir, monkeypatch, caplog):
     df2 = df2.replace("SYNOP", "{fof_type}")
     monkeypatch.chdir(tmp_dir)
 
-    rules = ""
+    rules = "{}"
     runner = CliRunner()
     with caplog.at_level(logging.INFO):
         runner.invoke(
