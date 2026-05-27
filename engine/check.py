@@ -14,7 +14,7 @@ import click
 
 from util.click_util import CommaSeparatedStrings, cli_help
 from util.dataframe_ops import check_file_with_tolerances, compute_division
-from util.log_handler import log_dataframe, logger
+from util.log_handler import logger
 from util.utils import FileInfo, expand_fof
 
 
@@ -80,11 +80,12 @@ def check(
             logger.info("RESULT: check PASSED for %s", current_file)
         else:
             logger.info("RESULT: check FAILED for %s", current_file)
-            log_dataframe(logger, "Differences", err)
-            log_dataframe(logger, "\nTolerances", tol)
-            log_dataframe(
-                logger, "\nError relative to tolerance", compute_division(err, tol)
-            )
+            logger.info("Differences")
+            logger.info(err)
+            logger.info("\nTolerance")
+            logger.info(tol)
+            logger.info("\nError relative to tolerance")
+            logger.info(compute_division(err, tol))
             all_out = False
 
     sys.exit(0 if all_out else 1)
