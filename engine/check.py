@@ -7,10 +7,10 @@ It utilizes utility functions for testing statistical and fof files with
 tolerances and computing divergence between DataFrames.
 """
 
+import json
 import sys
 
 import click
-import json
 
 from util.click_util import CommaSeparatedStrings, cli_help
 from util.dataframe_ops import check_file_with_tolerances, compute_division
@@ -55,10 +55,10 @@ def check(
     tolerance_files,
     factor,
     fof_types,
-    rules: dict[str, list[int]],
+    rules: str,
 ):  # pylint: disable=too-many-positional-arguments
 
-    rules = json.loads(rules)
+    parsed_rules = json.loads(rules)
 
     zipped = zip(reference_files, current_files, tolerance_files)
 
@@ -73,7 +73,7 @@ def check(
             FileInfo(reference_file),
             FileInfo(current_file),
             factor,
-            rules,
+            rules=parsed_rules,
         )
 
         if out:

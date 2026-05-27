@@ -5,9 +5,9 @@ It includes utilities to handle data reading, processing, and comparison against
 reference datasets with specified tolerances.
 """
 
-import ast
 import sys
 import warnings
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -328,7 +328,11 @@ def parse_check(
 
 
 def check_file_with_tolerances(
-    tolerance_file_name, input_file_ref, input_file_cur, factor, rules=""
+    tolerance_file_name,
+    input_file_ref,
+    input_file_cur,
+    factor,
+    rules: Optional[dict[str, list[int]]] = None,
 ):
     """
     This function calculates the relative difference between the current file and
@@ -337,6 +341,8 @@ def check_file_with_tolerances(
     For FOF-type files, it also performs an additional check on variables with multiple
     possible values to ensure that any variations remain within the allowed range.
     """
+    if rules is None:
+        rules = {}
 
     if input_file_ref.file_type != input_file_cur.file_type:
         logger.critical(
@@ -410,16 +416,6 @@ file_name_parser = {
 }
 
 
-def parse_rules(rules):
-    if isinstance(rules, dict):
-        return rules
-
-    if isinstance(rules, str) and rules.strip():
-        return ast.literal_eval(rules)
-
-    return {}
-
-
 def compare_cells_rules(ref_df, cur_df, cols, rules_dict, detailed_logger):
     """
     This function compares two DataFrames cell by cell for a selected set of columns.
@@ -454,7 +450,9 @@ def compare_cells_rules(ref_df, cur_df, cols, rules_dict, detailed_logger):
     return errors
 
 
-def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, log_file_name):
+def check_multiple_solutions_from_dict(
+    dict_ref, dict_cur, rules: dict[str, list[int]], log_file_name
+):
     """
     This function compares two Python dictionaries, each containing DataFrames under
     the keys "reports" and "observation", row by row and column by column, according
@@ -464,7 +462,6 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, log_file_name)
     """
 
     rules_dict = rules
-    # rules_dict = parse_rules(rules)
     errors = False
     detailed_logger = initialize_detailed_logger(
         "DETAILS", log_level="DEBUG", log_file=log_file_name
