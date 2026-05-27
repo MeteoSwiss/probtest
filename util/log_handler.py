@@ -8,9 +8,6 @@ This module provides functionality for:
 
 import logging
 import sys
-from typing import Optional
-
-import pandas as pd
 
 mpl_logger = logging.getLogger("matplotlib")
 mpl_logger.setLevel(logging.WARNING)
@@ -60,18 +57,3 @@ def initialize_detailed_logger(
 
     detailed_logger.info("initialized named logger '%s'", name)
     return detailed_logger
-
-
-def log_dataframe(
-    log: logging.Logger,
-    title: str,
-    df: Optional[pd.DataFrame],
-) -> None:
-    """
-    Log a DataFrame only if it contains data.
-    """
-    if df is None or df.empty:
-        return
-
-    log.info(title)
-    log.info("%s", df.to_string(index=False))
