@@ -416,7 +416,9 @@ file_name_parser = {
 }
 
 
-def compare_cells_rules(ref_df, cur_df, cols, rules_dict, detailed_logger):
+def compare_cells_rules(
+    ref_df, cur_df, cols, rules: dict[str, list[int]], detailed_logger
+):
     """
     This function compares two DataFrames cell by cell for a selected set of columns.
     For each row and column, it ignores values that are equal or whose differences
@@ -434,7 +436,7 @@ def compare_cells_rules(ref_df, cur_df, cols, rules_dict, detailed_logger):
             if val1 == val2:
                 continue
 
-            allowed = rules_dict.get(col, [])
+            allowed = rules.get(col, [])
             if val1 in allowed and val2 in allowed:
                 continue
 
@@ -461,7 +463,6 @@ def check_multiple_solutions_from_dict(
     It records the row, column and invalid values in a log file.
     """
 
-    rules_dict = rules
     errors = False
     detailed_logger = initialize_detailed_logger(
         "DETAILS", log_level="DEBUG", log_file=log_file_name
@@ -471,8 +472,8 @@ def check_multiple_solutions_from_dict(
         cur_df = dict_cur[key]
         common_cols = [col for col in ref_df.columns if col in cur_df.columns]
 
-        cols_with_rules = [col for col in common_cols if col in rules_dict]
-        cols_without_rules = [col for col in common_cols if col not in rules_dict]
+        cols_with_rules = [col for col in common_cols if col in rules]
+        cols_without_rules = [col for col in common_cols if col not in rules]
 
         if cols_without_rules:
             t, e = compare_var_and_attr_ds(
@@ -485,7 +486,7 @@ def check_multiple_solutions_from_dict(
 
         if cols_with_rules:
             errors = compare_cells_rules(
-                ref_df, cur_df, cols_with_rules, rules_dict, detailed_logger
+                ref_df, cur_df, cols_with_rules, rules, detailed_logger
             )
     clean_logger_file_if_only_details(log_file_name)
     return errors
