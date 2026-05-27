@@ -7,6 +7,7 @@ It utilizes utility functions for testing statistical and fof files with
 tolerances and computing divergence between DataFrames.
 """
 
+import json
 import sys
 
 import click
@@ -43,10 +44,21 @@ from util.utils import FileInfo, expand_fof
     default="",
     help=cli_help["fof_types"],
 )
-@click.option("--rules", default="")
+@click.option(
+    "--rules",
+    default="{}",
+    help=cli_help["rules"],
+)
 def check(
-    reference_files, current_files, tolerance_files, factor, fof_types, rules
+    reference_files,
+    current_files,
+    tolerance_files,
+    factor,
+    fof_types,
+    rules: str,
 ):  # pylint: disable=too-many-positional-arguments
+
+    parsed_rules = json.loads(rules)
 
     zipped = zip(reference_files, current_files, tolerance_files)
 
@@ -61,7 +73,7 @@ def check(
             FileInfo(reference_file),
             FileInfo(current_file),
             factor,
-            rules,
+            rules=parsed_rules,
         )
 
         if out:
