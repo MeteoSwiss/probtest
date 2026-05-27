@@ -20,8 +20,7 @@ def fixture_fof_datasets(fof_datasets_base, tmp_dir):
     """
     ds1, ds2, _, _ = fof_datasets_base
     ds3 = ds2.copy(deep=True)
-    ds3["flags"] = (("d_body",), ds3["flags"].values * 1.55)
-    ds3["e_o"] = (("d_body",), ds3["e_o"].values * 1.55)
+    ds3["flags"] = (("d_body",), ds3["flags"].values * 2)
 
     ds1_file = os.path.join(tmp_dir, "fof1_SYNOP.nc")
     ds2_file = os.path.join(tmp_dir, "fof2_SYNOP.nc")
@@ -101,6 +100,39 @@ def test_fof_compare_not_consistent(fof_datasets, tmp_dir, monkeypatch, caplog):
         )
 
     assert "Files are NOT consistent!" in caplog.text
+
+
+def test_fof_compare_rules(fof_datasets, tmp_dir, monkeypatch, caplog):
+    """
+    Test that if there are differences in the files, then fof-compare writes
+    in the log file that the files are not consistent.
+    """
+
+    df1, _, df3 = fof_datasets
+    df1 = df1.replace("SYNOP", "{fof_type}")
+    df3 = df3.replace("SYNOP", "{fof_type}")
+    monkeypatch.chdir(tmp_dir)
+
+    rules = '{"flags": [18]}'
+    runner = CliRunner()
+    with caplog.at_level(logging.INFO):
+        runner.invoke(
+            fof_compare,
+            [
+                "--file1",
+                df1,
+                "--file2",
+                df3,
+                "--fof-types",
+                "SYNOP",
+                "--tolerance",
+                "5",
+                "--rules",
+                rules,
+            ],
+        )
+
+    assert "Files are consistent!" in caplog.text
 
 
 def test_fof_compare_consistent(fof_datasets, tmp_dir, monkeypatch, caplog):

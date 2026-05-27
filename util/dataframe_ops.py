@@ -463,7 +463,8 @@ def check_multiple_solutions_from_dict(dict_ref, dict_cur, rules, log_file_name)
     It records the row, column and invalid values in a log file.
     """
 
-    rules_dict = parse_rules(rules)
+    rules_dict = rules
+    # rules_dict = parse_rules(rules)
     errors = False
     detailed_logger = initialize_detailed_logger(
         "DETAILS", log_level="DEBUG", log_file=log_file_name

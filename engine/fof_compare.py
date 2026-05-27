@@ -7,6 +7,7 @@ Veri data are not considered, only reports and observations are compared.
 """
 
 import tempfile
+import json
 
 import click
 import pandas as pd
@@ -42,8 +43,14 @@ from util.utils import FileInfo
     "--tolerance",
     default=1e-12,
 )
-@click.option("--rules", default="")
-def fof_compare(file1, file2, fof_types, tolerance, rules):
+@click.option(
+    "--rules",
+    default="{}",
+    help=cli_help["rules"],
+)
+def fof_compare(file1, file2, fof_types, tolerance, rules: dict[str, list[int]]):
+
+    rules = json.loads(rules)
 
     for fof_type in fof_types:
         file1_path = file1.format(fof_type=fof_type)

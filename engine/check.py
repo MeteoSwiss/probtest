@@ -10,6 +10,7 @@ tolerances and computing divergence between DataFrames.
 import sys
 
 import click
+import json
 
 from util.click_util import CommaSeparatedStrings, cli_help
 from util.dataframe_ops import check_file_with_tolerances, compute_division
@@ -43,10 +44,21 @@ from util.utils import FileInfo, expand_fof
     default="",
     help=cli_help["fof_types"],
 )
-@click.option("--rules", default="")
+@click.option(
+    "--rules",
+    default="{}",
+    help=cli_help["rules"],
+)
 def check(
-    reference_files, current_files, tolerance_files, factor, fof_types, rules
+    reference_files,
+    current_files,
+    tolerance_files,
+    factor,
+    fof_types,
+    rules: dict[str, list[int]],
 ):  # pylint: disable=too-many-positional-arguments
+
+    rules = json.loads(rules)
 
     zipped = zip(reference_files, current_files, tolerance_files)
 

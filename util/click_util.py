@@ -189,6 +189,10 @@ cli_help = {
     + r"than the reference before a warning gets printed.",
     "minimum_tolerance": r"Non-zero value to set variable tolerances to when the "
     + r"calculated tolerances from the ensemble are exactly zero.",
+    "rules": (
+        "JSON object specifying the rules for comparison. "
+        'Example: \'{"check":[13,18,32],"state":[1,5,7,9]}\''
+    ),
 }
 
 del dataframe_ops
