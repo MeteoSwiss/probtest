@@ -45,6 +45,36 @@ def split_feedback_dataset(ds):
     expand lat, lon, statid and time_nomi according to l_body
     and sort them to assure unique order.
     """
+    nhdr = ds.attrs["n_hdr"]
+    nbody = ds.attrs["n_body"]
+
+    # The slice below strips body padding by COUNT, which assumes real
+    # observations are packed contiguously at the front [0:n_body] with padding
+    # as a NaN tail. dlat/dlon are a reliable body padding discriminator (non-NaN
+    # for real obs, NaN for padding) -- unlike veri_data, which is NaN for
+    # real-missing too. Validate the assumption on dlat so a scattered file fails
+    # loudly instead of being silently mis-stripped. (Only radar files have dlat;
+    # non-radar files are not over-allocated.)
+    if "dlat" in ds.data_vars and ds["dlat"].dims == ("d_body",):
+        dlat_isnan = np.isnan(ds["dlat"].values)
+        if dlat_isnan[:nbody].any() or not dlat_isnan[nbody:].all():
+            raise ValueError(
+                "radar fof body is not front-packed: expected dlat to be non-NaN "
+                f"on [0:{nbody}] and NaN on [{nbody}:{ds.sizes['d_body']}]. The "
+                "strip-padding-by-count assumption does not hold for this file."
+            )
+
+    ds = ds.isel(d_hdr=slice(0, nhdr), d_body=slice(0, nbody))
+
+    # veri_data is 2-D (d_veri, d_body). Everything downstream assumes a single
+    # verification run; d_veri > 1 would make to_dataframe() emit n_body * d_veri
+    # rows and silently misalign the comparison. Fail loudly instead.
+    if ds.sizes.get("d_veri", 1) != 1:
+        raise ValueError(
+            f"fof file has d_veri = {ds.sizes['d_veri']} verification runs; "
+            "comparison supports exactly one. Select a single run before comparing."
+        )
+
     report_variables = get_report_variables(ds)
     ds_reports = ds[report_variables]
 
@@ -52,12 +82,9 @@ def split_feedback_dataset(ds):
     ds_report_sorted = ds_reports.sortby(sort_keys_reports)
 
     lbody = ds["l_body"].values
-    nbody = ds.attrs["n_body"]
-    dbody = ds["d_body"].size
 
     for varname in filter(lambda s: s in ["lat", "lon", "statid", "time_nomi"], ds):
         values = np.repeat(ds[varname], lbody.astype(int))
-        values = np.append(values, np.zeros(dbody - nbody))
         attrs = ds[varname].attrs
         ds = ds.assign({varname: xr.Variable("d_body", values, attrs=attrs)})
 
@@ -67,8 +94,10 @@ def split_feedback_dataset(ds):
     observation_variables.append("veri_data")
 
     ds_obs = ds[observation_variables]
-    sort_keys_obs = ["lat", "lon", "statid", "varno", "level", "time_nomi"]
-    #sort_keys_obs = ["dlat", "dlon", "statid", "varno", "level", "time_nomi"] # this can be added at a later stage together with if RADAR statement somewhere
+    if "dlat" in ds.data_vars:
+        sort_keys_obs = ["dlat", "dlon", "statid", "varno", "level", "time_nomi"]
+    else:
+        sort_keys_obs = ["lat", "lon", "statid", "varno", "level", "time_nomi"]
     ds_obs_sorted = ds_obs.sortby(sort_keys_obs)
 
     return ds_report_sorted, ds_obs_sorted

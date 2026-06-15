@@ -7,6 +7,7 @@ import logging
 import os
 from pathlib import Path
 
+import numpy as np
 import pytest
 from click.testing import CliRunner
 
@@ -166,3 +167,102 @@ def test_fof_compare_consistent(fof_datasets, tmp_dir, monkeypatch, caplog):
         )
 
     assert "Files are consistent!" in caplog.text
+
+
+@pytest.fixture(name="radar_fof_paths", scope="function")
+def fixture_radar_fof_paths(sample_dataset_radar_fof, tmp_dir):
+    """
+    Write padded radar fof files to disk and return paths containing the
+    {fof_type} placeholder (resolved to 'MLL'). Variants:
+    - ref/same: identical padded radar files.
+    - pert: one real-region veri_data value pushed far beyond any tolerance.
+    - bigpad: same n_body as ref but a larger d_body (more NaN padding rows) ->
+      exercises the n_body-vs-d_body fix (size gate + tolerance length).
+    """
+    ds = sample_dataset_radar_fof
+
+    same = ds.copy(deep=True)
+
+    pert = ds.copy(deep=True)
+    vd = pert["veri_data"].values.copy()
+    vd[0, 0] = vd[0, 0] + 100.0
+    pert["veri_data"] = (("d_veri", "d_body"), vd)
+
+    bigpad = ds.pad(d_body=(0, 4), constant_values=np.nan)
+    bigpad.attrs = dict(ds.attrs)  # keep the real n_hdr/n_body counts
+
+    # nanfill: a real-region veri_data NaN (an observation missing in ref) becomes
+    # a real value -> NaN-vs-real mismatch that must be flagged, not silently passed.
+    nanfill = ds.copy(deep=True)
+    vdn = nanfill["veri_data"].values.copy()
+    vdn[0, 2] = 3.0  # index 2 is NaN in the fixture's real region
+    nanfill["veri_data"] = (("d_veri", "d_body"), vdn)
+
+    pattern = os.path.join(tmp_dir, "fofRADAR{fof_type}_%s.nc")
+    paths = {}
+    for name, dataset in (
+        ("ref", ds),
+        ("same", same),
+        ("pert", pert),
+        ("bigpad", bigpad),
+        ("nanfill", nanfill),
+    ):
+        placeholder_path = pattern % name
+        dataset.to_netcdf(placeholder_path.format(fof_type="MLL"))
+        paths[name] = placeholder_path
+    return paths
+
+
+def _run_fof_compare(file1, file2, tolerance, tmp_dir, monkeypatch, caplog):
+    monkeypatch.chdir(tmp_dir)
+    runner = CliRunner()
+    with caplog.at_level(logging.INFO):
+        runner.invoke(
+            fof_compare,
+            [
+                "--file1", file1,
+                "--file2", file2,
+                "--fof-types", "MLL",
+                "--tolerance", str(tolerance),
+                "--rules", "",
+            ],
+        )
+
+
+def test_fof_compare_radar_consistent(radar_fof_paths, tmp_dir, monkeypatch, caplog):
+    """Two identical padded radar fof files compare as consistent."""
+    _run_fof_compare(
+        radar_fof_paths["ref"], radar_fof_paths["same"], 1.0, tmp_dir, monkeypatch, caplog
+    )
+    assert "Files are consistent!" in caplog.text
+
+
+def test_fof_compare_radar_not_consistent(radar_fof_paths, tmp_dir, monkeypatch, caplog):
+    """A single real-region veri_data value out of tolerance is detected."""
+    _run_fof_compare(
+        radar_fof_paths["ref"], radar_fof_paths["pert"], 1.0, tmp_dir, monkeypatch, caplog
+    )
+    assert "Files are NOT consistent!" in caplog.text
+
+
+def test_fof_compare_radar_different_padding(radar_fof_paths, tmp_dir, monkeypatch, caplog):
+    """
+    Two radar files with the same n_body but different d_body (padding) must still
+    compare -- the size gate and tolerance length use n_body, not d_body.
+    """
+    _run_fof_compare(
+        radar_fof_paths["ref"], radar_fof_paths["bigpad"], 1.0, tmp_dir, monkeypatch, caplog
+    )
+    assert "Files are consistent!" in caplog.text
+
+
+def test_fof_compare_radar_nan_vs_real(radar_fof_paths, tmp_dir, monkeypatch, caplog):
+    """
+    A veri_data cell that is NaN in one file but a real value in the other (an
+    observation appearing/disappearing) must be flagged, not silently passed --
+    even with a generous tolerance.
+    """
+    _run_fof_compare(
+        radar_fof_paths["ref"], radar_fof_paths["nanfill"], 1.0, tmp_dir, monkeypatch, caplog
+    )
+    assert "Files are NOT consistent!" in caplog.text

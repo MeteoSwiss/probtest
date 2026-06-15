@@ -18,7 +18,7 @@ from util.dataframe_ops import check_file_with_tolerances
 from util.fof_utils import (
     get_log_file_name,
 )
-from util.log_handler import initialize_detailed_logger, logger
+from util.log_handler import initialize_detailed_logger, log_dataframe, logger
 from util.utils import FileInfo
 
 
@@ -57,8 +57,12 @@ def fof_compare(file1, file2, fof_types, tolerance, rules: str):
         file1_path = file1.format(fof_type=fof_type)
         file2_path = file2.format(fof_type=fof_type)
 
-        n_rows_file1 = xr.open_dataset(file1_path).sizes["d_body"]
-        n_rows_file2 = xr.open_dataset(file2_path).sizes["d_body"]
+        # Use the real observation count (n_body), not the allocated/padded
+        # dimension (d_body). For radar fof files d_body > n_body, and the
+        # comparison operates on the n_body real rows after padding is stripped
+        # in split_feedback_dataset.
+        n_rows_file1 = xr.open_dataset(file1_path).attrs["n_body"]
+        n_rows_file2 = xr.open_dataset(file2_path).attrs["n_body"]
 
         if n_rows_file1 != n_rows_file2:
             raise ValueError("Files have different numbers of lines!")
@@ -90,11 +94,12 @@ def fof_compare(file1, file2, fof_types, tolerance, rules: str):
                         "DETAILS", log_level="DEBUG", log_file=log_file_name
                     )
 
-                    detailed_logger.info(
-                        "Differences, veri_data outside of tolerance range"
+                    log_dataframe(
+                        detailed_logger,
+                        "Differences, veri_data outside of tolerance range",
+                        err,
                     )
-                    detailed_logger.info(err)
-                    detailed_logger.info(tol)
+                    log_dataframe(detailed_logger, "Tolerances", tol)
 
 
 if __name__ == "__main__":
