@@ -6,6 +6,7 @@ two given fof files are consistent.
 Veri data are not considered, only reports and observations are compared.
 """
 
+import json
 import tempfile
 
 import click
@@ -42,8 +43,15 @@ from util.utils import FileInfo
     "--tolerance",
     default=1e-12,
 )
-@click.option("--rules", default="")
-def fof_compare(file1, file2, fof_types, tolerance, rules):
+@click.option(
+    "--rules",
+    default="{}",
+    type=str,
+    help=cli_help["rules"],
+)
+def fof_compare(file1, file2, fof_types, tolerance, rules: str):
+
+    parsed_rules = json.loads(rules)
 
     for fof_type in fof_types:
         file1_path = file1.format(fof_type=fof_type)
@@ -66,7 +74,7 @@ def fof_compare(file1, file2, fof_types, tolerance, rules):
                 FileInfo(file1_path),
                 FileInfo(file2_path),
                 factor=1,
-                rules=rules,
+                rules=parsed_rules,
             )
 
             if out:
