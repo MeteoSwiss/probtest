@@ -324,8 +324,8 @@ def fixture_sample_dataset_radar_fof():
     nan = np.nan
 
     # header fields (float; padded tail [n_hdr:d_hdr] = NaN). statid stays string.
-    lat = np.array([10.0, 20.0, 30.0, nan, nan])  # radar-station position
-    lon = np.array([100.0, 110.0, 120.0, nan, nan])
+    lat = np.array([10.0, 10.0, 10.0, nan, nan])  # radar-station position
+    lon = np.array([20.0, 20.0, 20.0, nan, nan])
     statid = ["r1", "r2", "r3", "", ""]
     time_nomi = np.array([0.0, 0.0, 0.0, nan, nan])
     codetype = np.array([22.0, 22.0, 22.0, nan, nan])
@@ -336,15 +336,15 @@ def fixture_sample_dataset_radar_fof():
     # NaN-free in the real region (true in real files) so the sort key is unique.
     dlat = np.array([10.1, 20.1, 20.2, 30.1, 30.2, 30.3, nan, nan])
     dlon = np.array([100.1, 110.1, 110.2, 120.1, 120.2, 120.3, nan, nan])
-    varno = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, nan, nan])
+    varno = np.array([192, 192, 192, 192, 192, 192, nan, nan])
     level = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, nan, nan])
     # real-region veri_data deliberately holds a NaN (index 2) to mimic a
     # missing reflectivity value coexisting with the padding NaNs.
-    veri_data = np.array([[1.0, 2.0, nan, 4.0, 5.0, 6.0, nan, nan]])  # (d_veri, d_body)
-    obs = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, nan, nan])
-    state = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, nan, nan])
+    veri_data = np.array([[10.0, 20.0, nan, 40.0, 50.0, 60.0, nan, nan]])  # (d_veri, d_body)
+    obs = np.array([11.0, nan, 29.8, 41.0, 52.0, 59.0, nan, nan])
+    state = np.array([1.0, 7, 1.0, 1.0, 1.0, 1.0, nan, nan])
     flags = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, nan, nan])
-    check = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, nan, nan])
+    check = np.array([32, 1, 32, 32, 32, 32, nan, nan])
 
     data = xr.Dataset(
         {
