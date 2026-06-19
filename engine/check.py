@@ -49,6 +49,11 @@ from util.utils import FileInfo, expand_fof
     default="{}",
     help=cli_help["rules"],
 )
+@click.option(
+    "--verbose",
+    is_flag=True,
+    help=cli_help["verbose"],
+)
 def check(
     reference_files,
     current_files,
@@ -56,6 +61,7 @@ def check(
     factor,
     fof_types,
     rules: str,
+    verbose: bool,
 ):  # pylint: disable=too-many-positional-arguments
 
     parsed_rules = json.loads(rules)
@@ -80,10 +86,13 @@ def check(
             logger.info("RESULT: check PASSED for %s", current_file)
         else:
             logger.info("RESULT: check FAILED for %s", current_file)
-            log_dataframe(logger, "Differences", err)
-            log_dataframe(logger, "\nTolerances", tol)
+            log_dataframe(logger, "Differences", err, verbose=verbose)
+            log_dataframe(logger, "\nTolerances", tol, verbose=verbose)
             log_dataframe(
-                logger, "\nError relative to tolerance", compute_division(err, tol)
+                logger,
+                "\nError relative to tolerance",
+                compute_division(err, tol),
+                verbose=verbose,
             )
             all_out = False
 

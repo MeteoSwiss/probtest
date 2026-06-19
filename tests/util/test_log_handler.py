@@ -51,6 +51,25 @@ def test_log_dataframe_non_empty():
     assert "2" in logger.messages[1]
 
 
+def test_log_dataframe_verbose():
+    logger = DummyLogger()
+    df = pd.DataFrame(
+        {
+            "a": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            "b": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        }
+    )
+
+    with pd.option_context("display.max_rows", 5):
+        log_dataframe(logger, "TITLE", df, verbose=True)
+
+    assert logger.messages[0] == "TITLE"
+
+    # second message is the formatted dataframe
+    assert "a" in logger.messages[1]
+    assert "5" in logger.messages[1]
+
+
 def test_log_dataframe_calls_to_string_format():
     logger = DummyLogger()
 
