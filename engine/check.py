@@ -61,6 +61,7 @@ def check(
     factor,
     fof_types,
     rules: str,
+    verbose: bool,
 ):  # pylint: disable=too-many-positional-arguments
 
     parsed_rules = json.loads(rules)
