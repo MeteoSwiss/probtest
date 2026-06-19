@@ -96,10 +96,10 @@ def fof_compare(file1, file2, fof_types, tolerance, rules: str):
 
                     log_dataframe(
                         detailed_logger,
-                        "Differences, veri_data outside of tolerance range",
+                        "Differences of veri_data",
                         err,
                     )
-                    log_dataframe(detailed_logger, "Tolerances", tol)
+                    log_dataframe(detailed_logger, "Tolerances of veri_data", tol)
 
 
 if __name__ == "__main__":
