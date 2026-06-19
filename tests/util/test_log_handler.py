@@ -54,10 +54,10 @@ def test_log_dataframe_non_empty():
 def test_log_dataframe_verbose():
     logger = DummyLogger()
     df = pd.DataFrame(
-            {
-                "a": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-                "b": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            }
+        {
+            "a": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            "b": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        }
     )
 
     with pd.option_context("display.max_rows", 5):
