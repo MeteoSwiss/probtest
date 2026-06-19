@@ -89,7 +89,10 @@ def check(
             log_dataframe(logger, "Differences", err, verbose=verbose)
             log_dataframe(logger, "\nTolerances", tol, verbose=verbose)
             log_dataframe(
-                logger, "\nError relative to tolerance", compute_division(err, tol), verbose=verbose,
+                logger,
+                "\nError relative to tolerance",
+                compute_division(err, tol),
+                verbose=verbose,
             )
             all_out = False
 
