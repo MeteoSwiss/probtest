@@ -54,20 +54,20 @@ def test_log_dataframe_non_empty():
 def test_log_dataframe_verbose():
     logger = DummyLogger()
     df = pd.DataFrame(
-            {
-                "a": [1, 1],
-                "b": [2, 2],
-                "c": [3, 3],
-                "d": [4, 4],
-                "e": [5, 5],
-                "f": [6, 6],
-                "g": [7, 7],
-                "h": [8, 8],
-                "i": [9, 9],
-                "l": [10, 10],
-                "m": [11, 11],
-                "n": [12, 12],
-            }
+        {
+            "a": [1, 1],
+            "b": [2, 2],
+            "c": [3, 3],
+            "d": [4, 4],
+            "e": [5, 5],
+            "f": [6, 6],
+            "g": [7, 7],
+            "h": [8, 8],
+            "i": [9, 9],
+            "l": [10, 10],
+            "m": [11, 11],
+            "n": [12, 12],
+        }
     )
 
     log_dataframe(logger, "TITLE", df, verbose=False)
