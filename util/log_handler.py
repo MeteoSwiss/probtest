@@ -66,6 +66,7 @@ def log_dataframe(
     log: logging.Logger,
     title: str,
     df: Optional[pd.DataFrame],
+    verbose: bool = False,
 ) -> None:
     """
     Log a DataFrame only if it contains data.
@@ -74,4 +75,4 @@ def log_dataframe(
         return
 
     log.info(title)
-    log.info("%s", df.to_string(index=False))
+    log.info("%s", df.to_string() if verbose else df)
