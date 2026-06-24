@@ -389,6 +389,16 @@ def check_file_with_tolerances(
 
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
+
+    # A value present (non-NaN) in one file but missing (NaN) in the other is a real
+    # difference -- a field or observation appeared or disappeared. The relative diff
+    # is NaN there and check_variable would treat NaN as within tolerance, silently
+    # passing it; force those cells to fail. Both-NaN stays NaN (and passes), since
+    # both being missing means they are equal. This runs before the STATS reduction
+    # below so the mask aligns with df_ref/df_cur, and because inf survives max().
+    only_one_nan = df_ref.isna() ^ df_cur.isna()
+    diff_df = diff_df.mask(only_one_nan, np.inf)
+
     # if stats, take maximum over height
     if input_file_ref.file_type == FileType.STATS:
         diff_df = diff_df.groupby(["file_ID", "variable"]).max()

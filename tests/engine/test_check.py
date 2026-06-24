@@ -5,6 +5,8 @@ of check CLI commands.
 
 import os
 
+import numpy as np
+import pandas as pd
 import pytest
 from click.testing import CliRunner
 
@@ -76,6 +78,60 @@ def test_check_cli_stats(stats_dataframes):
     )
 
     assert result.exit_code == 0
+
+
+def test_check_cli_stats_nan_mismatch_fails(tmp_dir):
+    """
+    A value present (non-NaN) in one stats file but missing (NaN) in the other is a
+    real difference that must fail, even with a generous tolerance. The two files are
+    otherwise identical (relative diff 0), so without the NaN guard this would pass.
+    Covers the non-FOF path of the appeared/disappeared check.
+    """
+    index = pd.MultiIndex.from_arrays(
+        [["NetCDF:*atm_3d*.nc"] * 2, ["var_1", "var_2"], [0, 0]],
+        names=["file_ID", "variable", "height"],
+    )
+    columns = pd.MultiIndex.from_product(
+        [range(2), ["max", "mean", "min"]], names=["time", "statistic"]
+    )
+    df1 = pd.DataFrame(np.ones((2, 6)), index=index, columns=columns)
+    df2 = df1.copy()
+    # one cell present in the reference but missing in the current file
+    df2.iloc[0, 0] = np.nan
+
+    tol = pd.DataFrame(
+        np.ones((2, 6)) * 1e3,
+        index=pd.Index(["var_1", "var_2"], name="variable"),
+        columns=columns,
+    )
+    tol = pd.concat(
+        [tol], keys=["NetCDF:*atm_3d*.nc"], names=["file_ID", "variable"]
+    )
+
+    df1_file = os.path.join(tmp_dir, "stats_nan1.csv")
+    df2_file = os.path.join(tmp_dir, "stats_nan2.csv")
+    tol_file = os.path.join(tmp_dir, "stats_nan_tol.csv")
+    df1.to_csv(df1_file)
+    df2.to_csv(df2_file)
+    tol.to_csv(tol_file)
+
+    result = CliRunner().invoke(
+        check,
+        [
+            "--reference-files",
+            df1_file,
+            "--current-files",
+            df2_file,
+            "--tolerance-files",
+            tol_file,
+            "--factor",
+            "1.0",
+            "--fof-types",
+            "",
+        ],
+    )
+
+    assert result.exit_code == 1
 
 
 def test_check_cli_fof(fof_datasets):
