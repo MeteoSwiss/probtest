@@ -85,7 +85,6 @@ def test_check_cli_stats_nan_mismatch_fails(tmp_dir):
     A value present (non-NaN) in one stats file but missing (NaN) in the other is a
     real difference that must fail, even with a generous tolerance. The two files are
     otherwise identical (relative diff 0), so without the NaN guard this would pass.
-    Covers the non-FOF path of the appeared/disappeared check.
     """
     index = pd.MultiIndex.from_arrays(
         [["NetCDF:*atm_3d*.nc"] * 2, ["var_1", "var_2"], [0, 0]],
