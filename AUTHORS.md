@@ -10,3 +10,4 @@
 | Giacomo Serafini        | MeteoSwiss                                          |
 | Mikael Stellio          | C2SM                                                |
 | Ben Weber               | MeteoSwiss                                          |
+| Christoph Müller        | MeteoSwiss                                          |

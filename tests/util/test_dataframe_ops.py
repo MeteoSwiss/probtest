@@ -14,6 +14,7 @@ import xarray as xr
 
 from util.constants import CHECK_THRESHOLD
 from util.dataframe_ops import (
+    check_file_with_tolerances,
     check_intersection,
     check_multiple_solutions_from_dict,
     check_variable,
@@ -541,6 +542,49 @@ def test_check_intersection_pass(ds_intersection):
     assert skip_test == 0
     assert df_ref.equals(df1)
     assert df_cur.equals(df2)
+
+
+@pytest.mark.parametrize(
+    "ref_val, cur_val, expected_pass",
+    [
+        # one side NaN, the other a real value -> appeared/disappeared -> must FAIL,
+        # even though the tolerance is huge (the relative diff itself is NaN).
+        (np.nan, 1.0, False),
+        (1.0, np.nan, False),
+        # both NaN -> both missing -> equal -> must PASS.
+        (np.nan, np.nan, True),
+        # both real and identical -> within any tolerance -> must PASS.
+        (1.0, 1.0, True),
+    ],
+)
+@patch("util.dataframe_ops.parse_check")
+def test_check_file_nan_vs_non_nan(mock_parse_check, ref_val, cur_val, expected_pass):
+    """
+    The nan-vs-non-nan guard: a cell present in one file but missing in the other is
+    forced to inf so it fails regardless of tolerance, while both-NaN stays equal.
+    Drives check_file_with_tolerances directly with a generous tolerance so only the
+    NaN handling -- not the magnitude -- decides the outcome.
+    """
+    index = pd.MultiIndex.from_tuples(
+        [("f", "var_1", 0), ("f", "var_2", 0)],
+        names=["file_ID", "variable", "height"],
+    )
+    df_ref = pd.DataFrame({0: [ref_val, 1.0]}, index=index)
+    df_cur = pd.DataFrame({0: [cur_val, 1.0]}, index=index)
+    df_tol = pd.DataFrame(
+        {0: [1e3, 1e3]},
+        index=pd.MultiIndex.from_tuples(
+            [("f", "var_1"), ("f", "var_2")], names=["file_ID", "variable"]
+        ),
+    )
+    mock_parse_check.return_value = (df_tol, df_ref, df_cur)
+
+    ref = WithPath("ref.csv", file_type=FileType.STATS)
+    cur = WithPath("cur.csv", file_type=FileType.STATS)
+
+    out, _, _ = check_file_with_tolerances("tol.csv", ref, cur, 1.0)
+
+    assert out is expected_pass
 
 
 def test_check_variable():

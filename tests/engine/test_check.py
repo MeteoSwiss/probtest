@@ -103,9 +103,7 @@ def test_check_cli_stats_nan_mismatch_fails(tmp_dir):
         index=pd.Index(["var_1", "var_2"], name="variable"),
         columns=columns,
     )
-    tol = pd.concat(
-        [tol], keys=["NetCDF:*atm_3d*.nc"], names=["file_ID", "variable"]
-    )
+    tol = pd.concat([tol], keys=["NetCDF:*atm_3d*.nc"], names=["file_ID", "variable"])
 
     df1_file = os.path.join(tmp_dir, "stats_nan1.csv")
     df2_file = os.path.join(tmp_dir, "stats_nan2.csv")
