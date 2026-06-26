@@ -220,11 +220,16 @@ def _run_fof_compare(file1, file2, tolerance, tmp_dir, monkeypatch, caplog):
         runner.invoke(
             fof_compare,
             [
-                "--file1", file1,
-                "--file2", file2,
-                "--fof-types", "MLL",
-                "--tolerance", str(tolerance),
-                "--rules", "",
+                "--file1",
+                file1,
+                "--file2",
+                file2,
+                "--fof-types",
+                "MLL",
+                "--tolerance",
+                str(tolerance),
+                "--rules",
+                "",
             ],
         )
 
@@ -232,26 +237,45 @@ def _run_fof_compare(file1, file2, tolerance, tmp_dir, monkeypatch, caplog):
 def test_fof_compare_radar_consistent(radar_fof_paths, tmp_dir, monkeypatch, caplog):
     """Two identical padded radar fof files compare as consistent."""
     _run_fof_compare(
-        radar_fof_paths["ref"], radar_fof_paths["same"], 1.0, tmp_dir, monkeypatch, caplog
+        radar_fof_paths["ref"],
+        radar_fof_paths["same"],
+        1.0,
+        tmp_dir,
+        monkeypatch,
+        caplog,
     )
     assert "Files are consistent!" in caplog.text
 
 
-def test_fof_compare_radar_not_consistent(radar_fof_paths, tmp_dir, monkeypatch, caplog):
+def test_fof_compare_radar_not_consistent(
+    radar_fof_paths, tmp_dir, monkeypatch, caplog
+):
     """A single real-region veri_data value out of tolerance is detected."""
     _run_fof_compare(
-        radar_fof_paths["ref"], radar_fof_paths["pert"], 1.0, tmp_dir, monkeypatch, caplog
+        radar_fof_paths["ref"],
+        radar_fof_paths["pert"],
+        1.0,
+        tmp_dir,
+        monkeypatch,
+        caplog,
     )
     assert "Files are NOT consistent!" in caplog.text
 
 
-def test_fof_compare_radar_different_padding(radar_fof_paths, tmp_dir, monkeypatch, caplog):
+def test_fof_compare_radar_different_padding(
+    radar_fof_paths, tmp_dir, monkeypatch, caplog
+):
     """
     Two radar files with the same n_body but different d_body (padding) must still
     compare -- the size gate and tolerance length use n_body, not d_body.
     """
     _run_fof_compare(
-        radar_fof_paths["ref"], radar_fof_paths["bigpad"], 1.0, tmp_dir, monkeypatch, caplog
+        radar_fof_paths["ref"],
+        radar_fof_paths["bigpad"],
+        1.0,
+        tmp_dir,
+        monkeypatch,
+        caplog,
     )
     assert "Files are consistent!" in caplog.text
 
@@ -263,6 +287,11 @@ def test_fof_compare_radar_nan_vs_real(radar_fof_paths, tmp_dir, monkeypatch, ca
     even with a generous tolerance.
     """
     _run_fof_compare(
-        radar_fof_paths["ref"], radar_fof_paths["nanfill"], 1.0, tmp_dir, monkeypatch, caplog
+        radar_fof_paths["ref"],
+        radar_fof_paths["nanfill"],
+        1.0,
+        tmp_dir,
+        monkeypatch,
+        caplog,
     )
     assert "Files are NOT consistent!" in caplog.text

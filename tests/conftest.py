@@ -340,7 +340,9 @@ def fixture_sample_dataset_radar_fof():
     level = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, nan, nan])
     # real-region veri_data deliberately holds a NaN (index 2) to mimic a
     # missing reflectivity value coexisting with the padding NaNs.
-    veri_data = np.array([[10.0, 20.0, nan, 40.0, 50.0, 60.0, nan, nan]])  # (d_veri, d_body)
+    veri_data = np.array(
+        [[10.0, 20.0, nan, 40.0, 50.0, 60.0, nan, nan]]
+    )  # (d_veri, d_body)
     obs = np.array([11.0, nan, 29.8, 41.0, 52.0, 59.0, nan, nan])
     state = np.array([1.0, 7, 1.0, 1.0, 1.0, 1.0, nan, nan])
     flags = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, nan, nan])

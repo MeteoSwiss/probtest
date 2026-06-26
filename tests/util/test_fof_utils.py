@@ -134,6 +134,30 @@ def test_split_report(ds1, ds_report, ds_obs):
     assert reports == ds_report and observations == ds_obs
 
 
+def test_split_multiple_veri_runs(sample_dataset_radar_fof):
+    """
+    LETKF/EKF feedback files carry many verification runs (d_veri > 1): first guess,
+    analysis, ensemble members, diagnostics -- all model output that gets compared.
+    split_feedback_dataset must accept them and keep the full d_veri dimension; the
+    downstream to_dataframe() then emits one row per (d_veri, d_body).
+    """
+    ds = sample_dataset_radar_fof
+    n_body = ds.attrs["n_body"]
+
+    # stack the single run into three distinct verification runs
+    vd = ds["veri_data"].values
+    multi = np.concatenate([vd, vd + 1.0, vd + 2.0], axis=0)  # (3, d_body)
+    ds = ds.drop_vars(["veri_data", "d_veri"])
+    ds = ds.assign(veri_data=(("d_veri", "d_body"), multi))
+    ds = ds.assign_coords(d_veri=np.arange(3))
+
+    reports, observations = split_feedback_dataset(ds)
+
+    # all runs survive, padding stripped on the body axis only
+    assert observations["veri_data"].sizes["d_veri"] == 3
+    assert observations["veri_data"].sizes["d_body"] == n_body
+
+
 def test_split_radar_fof(sample_dataset_radar_fof):
     """
     Radar FOF files have d_hdr > n_hdr and d_body > n_body (NaN-padded tail), carry
@@ -181,7 +205,9 @@ def test_split_radar_fof_scattered_padding_raises(sample_dataset_radar_fof):
         split_feedback_dataset(ds)
 
 
-def test_split_feedback_sort_is_deterministic(sample_dataset_radar_fof, sample_dataset_fof):
+def test_split_feedback_sort_is_deterministic(
+    sample_dataset_radar_fof, sample_dataset_fof
+):
     """
     The pre-comparison sort must yield the SAME canonical order regardless of the
     order observations are stored in -- this is what establishes row correspondence

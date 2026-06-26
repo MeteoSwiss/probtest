@@ -66,15 +66,11 @@ def split_feedback_dataset(ds):
 
     ds = ds.isel(d_hdr=slice(0, nhdr), d_body=slice(0, nbody))
 
-    # veri_data is 2-D (d_veri, d_body). Everything downstream assumes a single
-    # verification run; d_veri > 1 would make to_dataframe() emit n_body * d_veri
-    # rows and silently misalign the comparison. Fail loudly instead.
-    if ds.sizes.get("d_veri", 1) != 1:
-        raise ValueError(
-            f"fof file has d_veri = {ds.sizes['d_veri']} verification runs; "
-            "comparison supports exactly one. Select a single run before comparing."
-        )
-
+    # veri_data is 2-D (d_veri, d_body): LETKF/EKF feedback files normally carry many
+    # verification runs (first guess, analysis, ensemble members, diagnostics). All of
+    # them are model output and get compared. to_dataframe() emits one row per
+    # (d_veri, d_body); d_veri is not sorted, so the comparison relies on both files
+    # storing their runs in the same order -- which holds for files from one workflow.
     report_variables = get_report_variables(ds)
     ds_reports = ds[report_variables]
 
