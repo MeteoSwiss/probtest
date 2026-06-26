@@ -403,6 +403,7 @@ def check_file_with_tolerances(
     if input_file_ref.file_type == FileType.STATS:
         diff_df = diff_df.groupby(["file_ID", "variable"]).max()
 
+    # FOF veri_data is a Series; check_variable expects a DataFrame
     if input_file_ref.file_type == FileType.FOF:
         diff_df = diff_df.to_frame()
 

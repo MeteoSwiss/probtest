@@ -305,6 +305,79 @@ def fixture_sample_dataset_fof():
     return data
 
 
+@pytest.fixture(name="sample_dataset_radar_fof")
+def fixture_sample_dataset_radar_fof():
+    """Radar FOF dataset mirroring the structure of real emvorado radar fof files:
+    - d_hdr > n_hdr and d_body > n_body: the arrays are over-allocated and the
+      tail [n_*:d_*] is NaN-padded (the real counts live in the n_* attributes).
+    - dlat/dlon are the per-observation positions (radar sorts on these; lat/lon
+      is the single radar-station position, constant per radar -> useless for sorting).
+    - veri_data is 2-D (d_veri, d_body) with d_veri == 1.
+    - all numeric fields are float (real files have no integer fields), and the
+      real data region of veri_data itself can contain NaN (missing reflectivity),
+      indistinguishable by value from the padding NaN -> padding is removed by the
+      n_body count, never by NaN.
+    """
+    n_hdr_size, d_hdr_size = 3, 5
+    n_body_size, d_body_size = 6, 8
+    d_veri_size = 1
+    nan = np.nan
+
+    # header fields (float; padded tail [n_hdr:d_hdr] = NaN). statid stays string.
+    lat = np.array([10.0, 10.0, 10.0, nan, nan])  # radar-station position
+    lon = np.array([20.0, 20.0, 20.0, nan, nan])
+    statid = ["r1", "r2", "r3", "", ""]
+    time_nomi = np.array([0.0, 0.0, 0.0, nan, nan])
+    codetype = np.array([22.0, 22.0, 22.0, nan, nan])
+    lbody = np.array([1.0, 2.0, 3.0, nan, nan])  # sum(real) = 6 = n_body
+    ibody = np.array([1.0, 2.0, 4.0, nan, nan])
+
+    # body fields (float; padded tail [n_body:d_body] = NaN). dlat/dlon are
+    # NaN-free in the real region (true in real files) so the sort key is unique.
+    dlat = np.array([10.1, 20.1, 20.2, 30.1, 30.2, 30.3, nan, nan])
+    dlon = np.array([100.1, 110.1, 110.2, 120.1, 120.2, 120.3, nan, nan])
+    varno = np.array([192, 192, 192, 192, 192, 192, nan, nan])
+    level = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, nan, nan])
+    # real-region veri_data deliberately holds a NaN (index 2) to mimic a
+    # missing reflectivity value coexisting with the padding NaNs.
+    veri_data = np.array(
+        [[10.0, 20.0, nan, 40.0, 50.0, 60.0, nan, nan]]
+    )  # (d_veri, d_body)
+    obs = np.array([11.0, nan, 29.8, 41.0, 52.0, 59.0, nan, nan])
+    state = np.array([1.0, 7, 1.0, 1.0, 1.0, 1.0, nan, nan])
+    flags = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, nan, nan])
+    check = np.array([32, 1, 32, 32, 32, 32, nan, nan])
+
+    data = xr.Dataset(
+        {
+            "lat": (("d_hdr",), lat),
+            "lon": (("d_hdr",), lon),
+            "statid": (("d_hdr",), statid),
+            "time_nomi": (("d_hdr",), time_nomi),
+            "codetype": (("d_hdr",), codetype),
+            "l_body": (("d_hdr",), lbody),
+            "i_body": (("d_hdr",), ibody),
+            "dlat": (("d_body",), dlat),
+            "dlon": (("d_body",), dlon),
+            "varno": (("d_body",), varno),
+            "level": (("d_body",), level),
+            "veri_data": (("d_veri", "d_body"), veri_data),
+            "obs": (("d_body",), obs),
+            "state": (("d_body",), state),
+            "flags": (("d_body",), flags),
+            "check": (("d_body",), check),
+        },
+        coords={
+            "d_hdr": np.arange(d_hdr_size),
+            "d_body": np.arange(d_body_size),
+            "d_veri": np.arange(d_veri_size),
+        },
+        attrs={"n_hdr": n_hdr_size, "n_body": n_body_size},
+    )
+
+    return data
+
+
 @pytest.fixture(scope="function")
 def fof_file_set(tmp_dir, sample_dataset_fof):
     """
