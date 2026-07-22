@@ -229,7 +229,7 @@ def _run_fof_compare(file1, file2, tolerance, tmp_dir, monkeypatch, caplog):
                 "--tolerance",
                 str(tolerance),
                 "--rules",
-                "",
+                "{}",
             ],
         )
 
