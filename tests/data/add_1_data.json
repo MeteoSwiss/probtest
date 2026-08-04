@@ -1382,6 +1382,36 @@
       "total avg (s)":0.158
     },
     {
+      "level_0":"upatmo_destruction",
+      "level_1":"2022-06-26T20:11:23",
+      "# calls":16.0,
+      "t_min":0.0,
+      "min rank":2.0,
+      "t_avg":0.0,
+      "t_max":0.00001,
+      "max rank":1.0,
+      "total min (s)":0.0,
+      "total min rank":2.0,
+      "total max (s)":0.0,
+      "total max rank":1.0,
+      "total avg (s)":0.0
+    },
+    {
+      "level_0":"upatmo_destruction",
+      "level_1":"2022-06-26T23:54:52",
+      "# calls":16.0,
+      "t_min":0.0,
+      "min rank":1.0,
+      "t_avg":0.0,
+      "t_max":0.00001,
+      "max rank":0.0,
+      "total min (s)":0.0,
+      "total min rank":6.0,
+      "total max (s)":0.0,
+      "total max rank":0.0,
+      "total avg (s)":0.0
+    },
+    {
       "level_0":"upper_atmosphere",
       "level_1":"2022-06-26T20:11:23",
       "# calls":16.0,

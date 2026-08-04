@@ -25,6 +25,25 @@ NUMBER_REGEX = r"(\d+[.]?\d*)"
 DICT_REGEX = r"^\s*{} *: *(.*)"
 
 
+def _find_target_table(elements, current_table, header_elements_list):
+    """
+    Return the index of the table whose header column count matches
+    `elements`: prefer `current_table`, falling back to any earlier header
+    with a matching column count (needed when two tables' rows interleave).
+    Returns None if no header matches.
+    """
+    if current_table is not None and len(elements) == len(
+        header_elements_list[current_table]
+    ):
+        return current_table
+
+    for k in range(len(header_elements_list) - 1, -1, -1):
+        if k != current_table and len(elements) == len(header_elements_list[k]):
+            return k
+
+    return None
+
+
 def read_logfile(filename):
     with open(filename, "r", encoding="latin-1") as f:
         # read file into list of lines, remove empty lines
@@ -60,11 +79,8 @@ def read_logfile(filename):
         # column count it matches: prefer the most recently seen header, but
         # fall back to any earlier header with a matching column count so
         # interleaved rows still land in their real table
-        # (the historical parser silently dropped the very last matching line
-        # of the file, e.g. in case a job was killed mid-write; kept here for
-        # compatibility)
         current_table = None
-        for i, line in enumerate(data[:-1]):
+        for i, line in enumerate(data):
             if i in header_positions:
                 current_table = header_lines.index(i)
                 continue
@@ -75,18 +91,7 @@ def read_logfile(filename):
                 if e not in ["", "L"]
             ]
 
-            target = None
-            if current_table is not None and len(elements) == len(
-                header_elements_list[current_table]
-            ):
-                target = current_table
-            else:
-                for k in range(len(header_elements_list) - 1, -1, -1):
-                    if k != current_table and len(elements) == len(
-                        header_elements_list[k]
-                    ):
-                        target = k
-                        break
+            target = _find_target_table(elements, current_table, header_elements_list)
 
             if target is None:
                 logger.warning(
