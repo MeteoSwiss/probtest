@@ -4,7 +4,6 @@ timing data.
 """
 
 import re
-import sys
 
 import numpy as np
 from dateutil.parser import ParserError
@@ -39,59 +38,78 @@ def read_logfile(filename):
 
         # store line numbers of timing table headers
         header_lines = [i for i, e in enumerate(data) if re.search(HEADER_REGEX, e)]
+        header_positions = set(header_lines)
 
-        # initialize storage for all tables
-        timing_data = []
-
-        # construct timing tables
-        for k, i_header in enumerate(header_lines):
-            # make sure stay within header_line bounds
-            i_end = header_lines[k + 1] if k + 1 < len(header_lines) else -1
-
-            # get data from this table (starting one line after header)
-            table = data[i_header + 1 : i_end]
-
-            # parse table header
-            header_elements = [
+        # parse each table's header up front, so rows can be routed to the
+        # right table even if two tables' rows end up interleaved in the log
+        # (this can happen with certain MPI rank output orderings)
+        header_elements_list = [
+            [
                 e.lstrip().rstrip()
                 for e in data[i_header].split("  ")
                 if e not in ["", " "]
             ]
-            timing_data_k = {e: [] for e in header_elements}
+            for i_header in header_lines
+        ]
+        timing_data = [
+            {**{e: [] for e in header_elements}, "indent": [], "name": []}
+            for header_elements in header_elements_list
+        ]
 
-            # parse table elements
-            timing_data_k["indent"] = []
-            timing_data_k["name"] = []
+        # walk the file once, routing each row to the table whose header
+        # column count it matches: prefer the most recently seen header, but
+        # fall back to any earlier header with a matching column count so
+        # interleaved rows still land in their real table
+        # (the historical parser silently dropped the very last matching line
+        # of the file, e.g. in case a job was killed mid-write; kept here for
+        # compatibility)
+        current_table = None
+        for i, line in enumerate(data[:-1]):
+            if i in header_positions:
+                current_table = header_lines.index(i)
+                continue
 
-            for table_line in table:
-                elements = [
-                    e.replace("[", "").replace("]", "")
-                    for e in table_line.split(" ")
-                    if e not in ["", "L"]
-                ]
-                if len(elements) != len(header_elements):
-                    logger.critical(
-                        (
-                            "Number of header elements (%s) "
-                            + "does not match number of table elements (%s)"
-                        ),
-                        len(header_elements),
-                        len(elements),
-                    )
-                    logger.critical("header: %s", " -- ".join(header_elements))
-                    logger.critical("table : %s", " -- ".join(elements))
-                    sys.exit(1)
-                # find indentation level for each table line
-                first = re.search(INDENT_REGEX, table_line).group(0)
-                # assume 1 indent is 3 white spaces
-                timing_data_k["indent"].append(len(first) // 3)
+            elements = [
+                e.replace("[", "").replace("]", "")
+                for e in line.split(" ")
+                if e not in ["", "L"]
+            ]
 
-                timing_data_k["name"].append(elements[0])
-                for i in np.arange(1, len(elements)):
-                    timing_data_k[header_elements[i]].append(parse_time(elements[i]))
-            # We are not interested in the small wrt_output table
-            if len(timing_data_k["indent"]) > 5:
-                timing_data.append(timing_data_k)
+            target = None
+            if current_table is not None and len(elements) == len(
+                header_elements_list[current_table]
+            ):
+                target = current_table
+            else:
+                for k in range(len(header_elements_list) - 1, -1, -1):
+                    if k != current_table and len(elements) == len(
+                        header_elements_list[k]
+                    ):
+                        target = k
+                        break
+
+            if target is None:
+                logger.warning(
+                    "Skipping table row that matches no known header: %s", line
+                )
+                continue
+
+            header_elements = header_elements_list[target]
+            timing_data_k = timing_data[target]
+
+            # find indentation level for each table line
+            first = re.search(INDENT_REGEX, line).group(0)
+            # assume 1 indent is 3 white spaces
+            timing_data_k["indent"].append(len(first) // 3)
+
+            timing_data_k["name"].append(elements[0])
+            for i_element in np.arange(1, len(elements)):
+                timing_data_k[header_elements[i_element]].append(
+                    parse_time(elements[i_element])
+                )
+
+        # We are not interested in the small wrt_output table
+        timing_data = [t for t in timing_data if len(t["indent"]) > 5]
         # start parsing meta data from log
         meta_data = {}
 
