@@ -7,12 +7,16 @@ output orderings from ICON).
 
 import logging
 
+import pytest
+
 from util.icon.extract_timings import read_logfile
 
-TIMING_FILE_INTERLEAVED = "tests/data/timing_example_interleaved.txt"
+TIMING_FILE_INTERLEAVED: str = "tests/data/timing_example_interleaved.txt"
 
 
-def test_read_logfile_handles_interleaved_tables(caplog):
+def test_read_logfile_handles_interleaved_tables(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """
     The 13-column ("total" tree) table's header is immediately followed by
     the 8-column ("wrt_output") table's header, and rows from the two tables
@@ -28,7 +32,7 @@ def test_read_logfile_handles_interleaved_tables(caplog):
     # that its rows don't leak into the big table below
     assert meta_data["n_tables"] == 1
 
-    big_table = timing_data[0]
+    big_table: dict[str, list] = timing_data[0]
     assert big_table["name"] == [
         "total",
         "integrate_nh",

@@ -4,6 +4,7 @@ timing data.
 """
 
 import re
+from typing import Optional
 
 import numpy as np
 from dateutil.parser import ParserError
@@ -25,7 +26,11 @@ NUMBER_REGEX = r"(\d+[.]?\d*)"
 DICT_REGEX = r"^\s*{} *: *(.*)"
 
 
-def _find_target_table(elements, current_table, header_elements_list):
+def _find_target_table(
+    elements: list[str],
+    current_table: Optional[int],
+    header_elements_list: list[list[str]],
+) -> Optional[int]:
     """
     Return the index of the table whose header column count matches
     `elements`: prefer `current_table`, falling back to any earlier header
@@ -44,7 +49,7 @@ def _find_target_table(elements, current_table, header_elements_list):
     return None
 
 
-def read_logfile(filename):
+def read_logfile(filename: str) -> tuple[list[dict[str, list]], dict[str, object]]:
     with open(filename, "r", encoding="latin-1") as f:
         # read file into list of lines, remove empty lines
         full_file = f.read()
@@ -57,12 +62,12 @@ def read_logfile(filename):
 
         # store line numbers of timing table headers
         header_lines = [i for i, e in enumerate(data) if re.search(HEADER_REGEX, e)]
-        header_positions = set(header_lines)
+        header_positions: set[int] = set(header_lines)
 
         # parse each table's header up front, so rows can be routed to the
         # right table even if two tables' rows end up interleaved in the log
         # (this can happen with certain MPI rank output orderings)
-        header_elements_list = [
+        header_elements_list: list[list[str]] = [
             [
                 e.lstrip().rstrip()
                 for e in data[i_header].split("  ")
@@ -70,7 +75,7 @@ def read_logfile(filename):
             ]
             for i_header in header_lines
         ]
-        timing_data = [
+        timing_data: list[dict[str, list]] = [
             {**{e: [] for e in header_elements}, "indent": [], "name": []}
             for header_elements in header_elements_list
         ]
@@ -79,19 +84,21 @@ def read_logfile(filename):
         # column count it matches: prefer the most recently seen header, but
         # fall back to any earlier header with a matching column count so
         # interleaved rows still land in their real table
-        current_table = None
+        current_table: Optional[int] = None
         for i, line in enumerate(data):
             if i in header_positions:
                 current_table = header_lines.index(i)
                 continue
 
-            elements = [
+            elements: list[str] = [
                 e.replace("[", "").replace("]", "")
                 for e in line.split(" ")
                 if e not in ["", "L"]
             ]
 
-            target = _find_target_table(elements, current_table, header_elements_list)
+            target: Optional[int] = _find_target_table(
+                elements, current_table, header_elements_list
+            )
 
             if target is None:
                 logger.warning(
@@ -99,11 +106,13 @@ def read_logfile(filename):
                 )
                 continue
 
-            header_elements = header_elements_list[target]
-            timing_data_k = timing_data[target]
+            header_elements: list[str] = header_elements_list[target]
+            timing_data_k: dict[str, list] = timing_data[target]
 
             # find indentation level for each table line
-            first = re.search(INDENT_REGEX, line).group(0)
+            indent_match = re.search(INDENT_REGEX, line)
+            assert indent_match is not None
+            first = indent_match.group(0)
             # assume 1 indent is 3 white spaces
             timing_data_k["indent"].append(len(first) // 3)
 
@@ -116,7 +125,7 @@ def read_logfile(filename):
         # We are not interested in the small wrt_output table
         timing_data = [t for t in timing_data if len(t["indent"]) > 5]
         # start parsing meta data from log
-        meta_data = {}
+        meta_data: dict[str, object] = {}
 
         # get start and finish time from job
         # --- robust start/finish datetime extraction ---
