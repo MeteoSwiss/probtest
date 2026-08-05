@@ -406,7 +406,12 @@ To prepare a new release, use the provided script:
 The script automates creating a release branch, bumping the version in
 `pyproject.toml`, and updating the lock file.
 Open a PR with the release branch.
-After the PR is merged, create a Git tag manually to finalize the release.
+Once the PR is merged into `main`, the
+[`tag-release.yml`](.github/workflows/tag-release.yml) GitHub Actions workflow
+automatically creates the `vX.Y` Git tag and a corresponding GitHub Release
+with auto-generated release notes. Pushing that tag also triggers
+[`deploy-container-for-release.yml`](.github/workflows/deploy-container-for-release.yml),
+which builds and publishes the Docker image.
 
 > **Note:**
 > - The release script automatically updates the version in `pyproject.toml` and
