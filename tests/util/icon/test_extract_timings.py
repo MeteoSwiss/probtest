@@ -28,8 +28,7 @@ def test_read_logfile_handles_interleaved_tables(
         timing_data, meta_data = read_logfile(TIMING_FILE_INTERLEAVED)
 
     # the small (wrt_output) table only has 3 rows and is dropped by the
-    # "not interested in small tables" filter, same as today; what matters is
-    # that its rows don't leak into the big table below
+    # "not interested in small tables" filter
     assert meta_data["n_tables"] == 1
 
     big_table: dict[str, list] = timing_data[0]
