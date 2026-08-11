@@ -404,7 +404,7 @@ To prepare a new release, use the provided script:
 ```
 
 The script automates creating a release branch, bumping the version in
-`pyproject.toml`, and updating the lock file.
+`pyproject.toml`, and updating the `poetry.lock` file.
 Open a PR with the release branch.
 Once the PR is merged into `main`, the
 [`tag-release.yml`](.github/workflows/tag-release.yml) GitHub Actions workflow
