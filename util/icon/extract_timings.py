@@ -122,8 +122,10 @@ def read_logfile(filename: str) -> tuple[list[dict[str, list]], dict[str, object
                     parse_time(elements[i_element])
                 )
 
-        # We are not interested in the small wrt_output table
-        timing_data = [t for t in timing_data if len(t["indent"]) > 5]
+        # skip the small wrt_output table (by name) and any table left empty
+        timing_data = [
+            t for t in timing_data if t["name"] and t["name"][0] != "wrt_output"
+        ]
         # start parsing meta data from log
         meta_data: dict[str, object] = {}
 
