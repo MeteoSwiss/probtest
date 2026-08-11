@@ -1,8 +1,6 @@
 """
 This module contains a focused regression test for read_logfile's handling of
-timing tables whose rows are interleaved in the log file, instead of appearing
-as clean, separate, contiguous blocks (as can happen with certain MPI rank
-output orderings from ICON).
+interleaved timing tables, stray log messages, and truncated rows.
 """
 
 import logging
@@ -31,6 +29,8 @@ def test_read_logfile_handles_interleaved_tables(
     # "not interested in small tables" filter
     assert meta_data["n_tables"] == 1
 
+    # a stray rank message and a truncated row sit between nh_hdiff and
+    # physics but don't match the table-row format, so both are dropped
     big_table: dict[str, list] = timing_data[0]
     assert big_table["name"] == [
         "total",
@@ -42,6 +42,8 @@ def test_read_logfile_handles_interleaved_tables(
         "write_restart",
     ]
 
-    # the orphan row matches no known header's column count and must be
-    # skipped with a warning, not silently mis-assigned or fatal
-    assert any("matches no known header" in record.message for record in caplog.records)
+    # only the orphan row (right shape, wrong column count) should warn
+    warnings = [record.message for record in caplog.records]
+    assert len(warnings) == 1
+    assert "orphan_row" in warnings[0]
+    assert "matches no known header" in warnings[0]
