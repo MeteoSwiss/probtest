@@ -93,7 +93,8 @@ def check(
             err_above_tol = (err_rel_tol - 1.).clip(lower=0.)
             log_dataframe(
                 logger,
-                "\nError relative to tolerance",
+                "\nError relative to tolerance: "
+                "Differences / Tolerances",
                 err_rel_tol,
                 verbose=verbose,
             )
