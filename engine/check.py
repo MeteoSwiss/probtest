@@ -99,7 +99,8 @@ def check(
             )
             log_dataframe(
                 logger,
-                "\nNormalized error above tolerance: max((Differences - Tolerances) / Tolerances, 0)",
+                "\nNormalized error above tolerance: "
+                "max((Differences - Tolerances) / Tolerances, 0)",
                 err_above_tol,
                 verbose=verbose,
             )
