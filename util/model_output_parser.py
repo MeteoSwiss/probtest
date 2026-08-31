@@ -27,6 +27,9 @@ import sys
 from collections.abc import Iterable
 from typing import Any, Dict, List
 
+import earthkit.data
+import eccodes
+import eccodes_cosmo_resources
 import numpy as np
 import pandas as pd
 import xarray
@@ -35,6 +38,28 @@ from util.constants import compute_statistics
 from util.log_handler import logger
 from util.utils import numbers
 from util.xarray_ops import statistics_over_horizontal_dim
+
+# Make eccodes aware of the COSMO/ICON local-table GRIB definitions (e.g. for
+# fields using local parameter/level tables) in addition to the vendor-shipped
+# ones, so GRIB files produced by COSMO/ICON decode correctly.
+_cosmo_definitions_path = eccodes_cosmo_resources.get_definitions_path()
+_vendor_definitions_path = eccodes.codes_definition_path()
+eccodes.codes_set_definitions_path(
+    f"{_cosmo_definitions_path}:{_vendor_definitions_path}"
+)
+
+# Metadata keys used to split a GRIB file into homogeneous hypercubes before
+# conversion to xarray. A single GRIB file commonly mixes fields that cannot
+# share one xarray Dataset (different level types, step types, grids, ...);
+# earthkit-data's `to_xarray(split_dims=...)` groups fields by these keys and
+# returns one Dataset per distinct combination.
+GRIB_SPLIT_DIMS = [
+    "metadata.typeOfLevel",
+    "metadata.stepType",
+    "metadata.gridType",
+    "metadata.numberOfPoints",
+    "metadata.dataType",
+]
 
 
 def parse_netcdf(
@@ -72,6 +97,57 @@ def parse_netcdf(
         var_dfs.append(sub_df)
 
     ds.close()
+    return var_dfs
+
+
+def parse_grib(
+    file_id: str, filename: str, specification: Dict[str, Any]
+) -> List[pd.DataFrame]:
+    """
+    Parse a GRIB file into pandas DataFrames.
+    """
+
+    logger.debug("parse GRIB file %s", filename)
+    time_dim = specification["time_dim"]
+    horizontal_dims = specification["horizontal_dims"]
+    fill_value_key = specification.get("fill_value_key", None)
+    var_excl = specification.get("var_excl", [])
+
+    fieldlist = earthkit.data.from_source("file", filename).to_fieldlist()
+
+    short_names = [
+        v for v in np.unique(fieldlist.metadata("shortName")) if v not in var_excl
+    ]
+
+    var_dfs: List[pd.DataFrame] = []
+    if not short_names:
+        return var_dfs
+
+    fieldlist = fieldlist.sel({"metadata.shortName": short_names})
+
+    # A GRIB file commonly mixes fields that don't share one shape (different
+    # level types, step types, grids, ...), so split it into homogeneous
+    # datasets first; each dataset is then handled like a NetCDF dataset.
+    datasets, _ = fieldlist.to_xarray(split_dims=GRIB_SPLIT_DIMS, ensure_dims=time_dim)
+
+    for ds in datasets:
+        # Convert all float variables to float64
+        for v in ds.data_vars:
+            if np.issubdtype(ds[v].dtype, np.floating):
+                ds[v] = ds[v].astype(np.float64)
+
+        for v in __get_variables(ds, time_dim, horizontal_dims):
+            sub_df = dataframe_from_ncfile(
+                file_id=file_id,
+                filename=filename,
+                varname=v,
+                time_dim=time_dim,
+                horizontal_dims=horizontal_dims,
+                xarray_ds=ds,
+                fill_value_key=fill_value_key,
+            )
+            var_dfs.append(sub_df)
+
     return var_dfs
 
 
@@ -244,4 +320,5 @@ def parse_csv(file_id, filename, specification):
 model_output_parser = {  # global lookup dict
     "netcdf": parse_netcdf,
     "csv": parse_csv,
+    "grib": parse_grib,
 }

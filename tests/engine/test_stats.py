@@ -7,6 +7,7 @@ dataframes from both NetCDF and CSV files.
 import os
 import unittest
 
+import eccodes
 import numpy as np
 from netCDF4 import Dataset  # pylint: disable=no-name-in-module
 
@@ -15,6 +16,11 @@ from engine.stats import create_stats_dataframe
 TIME_DIM_SIZE = 3
 HOR_DIM_SIZE = 100
 HEIGHT_DIM_SIZE = 5
+
+# `reduced_rotated_gg_sfc_grib2.tmpl` is a fixed-grid GRIB2 sample template
+# shipped with eccodes; its grid definition fixes the number of horizontal
+# points to this value.
+HORIZONTAL_DIM_GRIB_SIZE = 6114
 
 
 def initialize_dummy_netcdf_file(name):
@@ -110,6 +116,148 @@ class TestStatsNetcdf(unittest.TestCase):
             np.array_equal(df.values, expected),
             f"stats dataframe incorrect. Difference:\n{df.values == expected}",
         )
+
+
+def add_variable_to_grib(filename, dict_data, type_of_level="surface", level=0):
+    """
+    Write one GRIB2 message per (shortName, values) pair in `dict_data` to
+    `filename`, using eccodes' `reduced_rotated_gg_sfc_grib2.tmpl` sample as a
+    starting point. `centre` is set to "lssw" (MeteoSwiss) so that COSMO/ICON
+    local-table definitions (e.g. renaming "t" at surface level to "T_G")
+    apply, exercising the same definitions path used for real ICON output.
+    """
+    with open(filename, "wb") as f_out:
+        for short_name, values in dict_data.items():
+            gid = eccodes.codes_grib_new_from_samples(
+                "reduced_rotated_gg_sfc_grib2.tmpl"
+            )
+            eccodes.codes_set(gid, "edition", 2)
+            eccodes.codes_set(gid, "centre", "lssw")
+            eccodes.codes_set(gid, "dataDate", 20230913)
+            eccodes.codes_set(gid, "dataTime", 0)
+            eccodes.codes_set(gid, "stepRange", 0)
+            eccodes.codes_set(gid, "typeOfLevel", type_of_level)
+            eccodes.codes_set(gid, "level", level)
+            eccodes.codes_set(gid, "shortName", short_name)
+            eccodes.codes_set_values(gid, values)
+            eccodes.codes_write(gid, f_out)
+            eccodes.codes_release(gid)
+
+
+def test_stats_grib(tmp_path):
+    """
+    Validates statistical calculations from a GRIB file.
+
+    Mirrors TestStatsNetcdf, but the input is a synthetic single-level GRIB2
+    file built directly via the eccodes bindings.
+    """
+    array_t = np.ones(HORIZONTAL_DIM_GRIB_SIZE)
+    array_t[0] = 0
+    array_t[-1] = 2
+
+    array_pres = np.ones(HORIZONTAL_DIM_GRIB_SIZE) * 3
+    array_pres[0] = 2
+    array_pres[-1] = 4
+
+    grib_file_name = "test_stats.grib"
+    # shortName "t" resolves to "T_G" (ground temperature) via the COSMO/ICON
+    # local definitions when typeOfLevel is "surface".
+    add_variable_to_grib(tmp_path / grib_file_name, {"t": array_pres, "v": array_t})
+
+    file_specification = {
+        "Test data": {
+            "format": "grib",
+            "time_dim": "step",
+            "horizontal_dims": ["values"],
+            "var_excl": [],
+            "fill_value_key": "_FillValue",
+        },
+    }
+
+    df = create_stats_dataframe(
+        input_dir=str(tmp_path),
+        file_id=[["Test data", grib_file_name]],
+        stats_file_name=str(tmp_path / "test_stats_grib.csv"),
+        file_specification=file_specification,
+    )
+
+    # check that the mean/max/min are correct, for "T_G" then "V"
+    expected = np.array(
+        [
+            [3.0, 4.0, 2.0],
+            [1.0, 2.0, 0.0],
+        ]
+    )
+
+    assert np.array_equal(
+        df.values, expected
+    ), f"stats dataframe incorrect. Difference:\n{df.values == expected}"
+
+
+def test_stats_grib_multiple_level_types(tmp_path):
+    """
+    Validates that a GRIB file mixing fields that don't share one shape
+    (different typeOfLevel / number of levels) is correctly split into
+    per-shape groups before conversion, rather than erroring out or silently
+    dropping fields.
+    """
+    grib_file_name = "test_stats_multilevel.grib"
+    grib_path = tmp_path / grib_file_name
+
+    surface_values = np.ones(HORIZONTAL_DIM_GRIB_SIZE)
+    surface_values[0] = 0
+    surface_values[-1] = 2
+    add_variable_to_grib(grib_path, {"t": surface_values}, type_of_level="surface")
+
+    # append 3 model-level fields for the same shortName to the same file
+    with open(grib_path, "ab") as f_out:
+        for level in (1, 2, 3):
+            values = np.ones(HORIZONTAL_DIM_GRIB_SIZE) * level
+            gid = eccodes.codes_grib_new_from_samples(
+                "reduced_rotated_gg_sfc_grib2.tmpl"
+            )
+            eccodes.codes_set(gid, "edition", 2)
+            eccodes.codes_set(gid, "centre", "lssw")
+            eccodes.codes_set(gid, "dataDate", 20230913)
+            eccodes.codes_set(gid, "dataTime", 0)
+            eccodes.codes_set(gid, "stepRange", 0)
+            eccodes.codes_set(gid, "typeOfLevel", "hybrid")
+            eccodes.codes_set(gid, "level", level)
+            eccodes.codes_set(gid, "shortName", "t")
+            eccodes.codes_set_values(gid, values)
+            eccodes.codes_write(gid, f_out)
+            eccodes.codes_release(gid)
+
+    file_specification = {
+        "Test data": {
+            "format": "grib",
+            "time_dim": "step",
+            "horizontal_dims": ["values"],
+            "var_excl": [],
+        },
+    }
+
+    df = create_stats_dataframe(
+        input_dir=str(tmp_path),
+        file_id=[["Test data", grib_file_name]],
+        stats_file_name=str(tmp_path / "test_stats_multilevel.csv"),
+        file_specification=file_specification,
+    )
+
+    # one row for the surface field (height -1) and one row per model
+    # level (height 1, 2, 3)
+    expected = np.array(
+        [
+            [1.0, 1.0, 1.0],
+            [2.0, 2.0, 2.0],
+            [3.0, 3.0, 3.0],
+            [1.0, 2.0, 0.0],
+        ]
+    )
+
+    assert np.array_equal(
+        df.values, expected
+    ), f"stats dataframe incorrect. Difference:\n{df.values == expected}"
 
 
 class TestStatsCsv(unittest.TestCase):
