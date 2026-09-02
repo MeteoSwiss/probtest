@@ -88,10 +88,20 @@ def check(
             logger.info("RESULT: check FAILED for %s", current_file)
             log_dataframe(logger, "Differences", err, verbose=verbose)
             log_dataframe(logger, "\nTolerances", tol, verbose=verbose)
+
+            err_rel_tol = compute_division(err, tol)
+            err_above_tol = (err_rel_tol - 1.0).clip(lower=0.0)
             log_dataframe(
                 logger,
-                "\nError relative to tolerance",
-                compute_division(err, tol),
+                "\nError relative to tolerance: " + "Differences / Tolerances",
+                err_rel_tol,
+                verbose=verbose,
+            )
+            log_dataframe(
+                logger,
+                "\nNormalized error above tolerance: "
+                + "max((Differences - Tolerances) / Tolerances, 0)",
+                err_above_tol,
                 verbose=verbose,
             )
             all_out = False
