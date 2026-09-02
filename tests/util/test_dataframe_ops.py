@@ -558,9 +558,7 @@ def test_check_intersection_pass(ds_intersection):
 
 
 @pytest.mark.parametrize("missing_side", ["reference", "current"])
-def test_check_intersection_variable_mismatch(
-    ds_variable_mismatch, missing_side
-):
+def test_check_intersection_variable_mismatch(ds_variable_mismatch, missing_side):
     common, complete = ds_variable_mismatch
     df_ref, df_cur = (
         (common, complete) if missing_side == "reference" else (complete, common)
