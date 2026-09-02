@@ -541,7 +541,7 @@ def test_check_intersection_fail(ds_no_intersection):
     df1, df2 = ds_no_intersection
 
     skip_test, _, _ = check_intersection(df1, df2)
-    assert skip_test == True
+    assert skip_test is True
 
 
 def test_check_intersection_pass(ds_intersection):
@@ -552,7 +552,7 @@ def test_check_intersection_pass(ds_intersection):
 
     skip_test, df_ref, df_cur = check_intersection(df1, df2)
 
-    assert skip_test == False
+    assert skip_test is False
     assert df_ref.equals(df1)
     assert df_cur.equals(df2)
 
@@ -567,7 +567,7 @@ def test_check_intersection_variable_mismatch(ds_variable_mismatch, missing_side
     with pytest.warns(UserWarning, match="extra"):
         skip_test, result_ref, result_cur = check_intersection(df_ref, df_cur)
 
-    assert skip_test == True
+    assert skip_test is True
     assert result_ref.index.equals(common.index)
     assert result_cur.index.equals(common.index)
 
