@@ -245,12 +245,14 @@ def check_intersection(df_ref, df_cur):
             f" reference case and therefore not tested: {', '.join(missing_in_ref)}"
         )
         warnings.warn(warning_msg, UserWarning)
+        skip_test = 1
     if missing_in_cur:
         warning_msg = (
             "WARNING: The following variables are in the reference case but not in the"
             f" test case and therefore not tested: {', '.join(missing_in_cur)}"
         )
         warnings.warn(warning_msg, UserWarning)
+        skip_test = 1
 
     # Remove rows without intersection
     df_ref = df_ref[~df_ref.index.isin(non_common_vars)]
@@ -370,7 +372,7 @@ def check_file_with_tolerances(
         # check if variables are available in reference file
         skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
 
-        if skip_test:  # No intersection
+        if skip_test:  # No intersection or mismatched variable sets
             logger.error("RESULT: check FAILED")
             sys.exit(1)
 

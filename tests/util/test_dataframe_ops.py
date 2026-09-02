@@ -521,6 +521,19 @@ def sample_dataframes_prova():
     return df1, df2
 
 
+@pytest.fixture(name="ds_variable_mismatch", scope="function")
+def sample_dataframes_variable_mismatch():
+    common_var = ("f", "common", 0)
+    extra_var = ("f", "extra", 0)
+
+    common = pd.DataFrame({"value": [1]}, index=[common_var])
+    complete = pd.DataFrame(
+        {"value": [1, 1]},
+        index=[common_var, extra_var],
+    )
+    return common, complete
+
+
 def test_check_intersection_fail(ds_no_intersection):
     """
     Test that with no intersection, check_intersection fails.
@@ -542,6 +555,23 @@ def test_check_intersection_pass(ds_intersection):
     assert skip_test == 0
     assert df_ref.equals(df1)
     assert df_cur.equals(df2)
+
+
+@pytest.mark.parametrize("missing_side", ["reference", "current"])
+def test_check_intersection_variable_mismatch(
+    ds_variable_mismatch, missing_side
+):
+    common, complete = ds_variable_mismatch
+    df_ref, df_cur = (
+        (common, complete) if missing_side == "reference" else (complete, common)
+    )
+
+    with pytest.warns(UserWarning, match="extra"):
+        skip_test, result_ref, result_cur = check_intersection(df_ref, df_cur)
+
+    assert skip_test == 1
+    assert result_ref.index.equals(common.index)
+    assert result_cur.index.equals(common.index)
 
 
 @pytest.mark.parametrize(
