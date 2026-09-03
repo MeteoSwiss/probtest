@@ -16,7 +16,7 @@ def get_report_variables(ds):
     Get variable names of reports.
     """
     vars_shape_report = []
-    shape_report = ds.attrs["n_hdr"]
+    shape_report = ds["d_hdr"].size
 
     for var in ds.data_vars:
         if ds[var].shape[0] == shape_report:
@@ -30,7 +30,7 @@ def get_observation_variables(ds):
     Get variable names of observations.
     """
     vars_shape_observation = []
-    shape_observation = ds.attrs["n_body"]
+    shape_observation = ds["d_body"].size
 
     for var in ds.data_vars:
         if ds[var].shape[0] == shape_observation:
@@ -45,6 +45,32 @@ def split_feedback_dataset(ds):
     expand lat, lon, statid and time_nomi according to l_body
     and sort them to assure unique order.
     """
+    nhdr = ds.attrs["n_hdr"]
+    nbody = ds.attrs["n_body"]
+
+    # The slice below strips body padding by COUNT, which assumes real
+    # observations are packed contiguously at the front [0:n_body] with padding
+    # as a NaN tail. dlat/dlon are a reliable body padding discriminator (non-NaN
+    # for real obs, NaN for padding) -- unlike veri_data, which is NaN for
+    # real-missing too. Validate the assumption on dlat so a scattered file fails
+    # loudly instead of being silently mis-stripped. (Only radar files have dlat;
+    # non-radar files are not over-allocated.)
+    if "dlat" in ds.data_vars and ds["dlat"].dims == ("d_body",):
+        dlat_isnan = np.isnan(ds["dlat"].values)
+        if dlat_isnan[:nbody].any() or not dlat_isnan[nbody:].all():
+            raise ValueError(
+                "radar fof body is not front-packed: expected dlat to be non-NaN "
+                f"on [0:{nbody}] and NaN on [{nbody}:{ds.sizes['d_body']}]. The "
+                "strip-padding-by-count assumption does not hold for this file."
+            )
+
+    ds = ds.isel(d_hdr=slice(0, nhdr), d_body=slice(0, nbody))
+
+    # veri_data is 2-D (d_veri, d_body): LETKF/EKF feedback files normally carry many
+    # verification runs (first guess, analysis, ensemble members, diagnostics). All of
+    # them are model output and get compared. to_dataframe() emits one row per
+    # (d_veri, d_body); d_veri is not sorted, so the comparison relies on both files
+    # storing their runs in the same order -- which holds for files from one workflow.
     report_variables = get_report_variables(ds)
     ds_reports = ds[report_variables]
 
@@ -64,7 +90,10 @@ def split_feedback_dataset(ds):
     observation_variables.append("veri_data")
 
     ds_obs = ds[observation_variables]
-    sort_keys_obs = ["lat", "lon", "statid", "varno", "level", "time_nomi"]
+    if "dlat" in ds.data_vars:
+        sort_keys_obs = ["dlat", "dlon", "statid", "varno", "level", "time_nomi"]
+    else:
+        sort_keys_obs = ["lat", "lon", "statid", "varno", "level", "time_nomi"]
     ds_obs_sorted = ds_obs.sortby(sort_keys_obs)
 
     return ds_report_sorted, ds_obs_sorted
