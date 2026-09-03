@@ -23,10 +23,15 @@ Each parser returns a list of Pandas DataFrame:
   return [pd.DataFrame(matrix, index=index, columns=columns)]
 """
 
+import os
+import re
 import sys
 from collections.abc import Iterable
 from typing import Any, Dict, List
 
+import earthkit.data
+import eccodes
+import eccodes_cosmo_resources
 import numpy as np
 import pandas as pd
 import xarray
@@ -35,6 +40,29 @@ from util.constants import compute_statistics
 from util.log_handler import logger
 from util.utils import numbers
 from util.xarray_ops import statistics_over_horizontal_dim
+
+# Make eccodes aware of the COSMO/ICON local-table GRIB definitions (e.g. for
+# fields using local parameter/level tables) in addition to the vendor-shipped
+# ones, so GRIB files produced by COSMO/ICON decode correctly.
+_cosmo_definitions_path = eccodes_cosmo_resources.get_definitions_path()
+_vendor_definitions_path = eccodes.codes_definition_path()
+eccodes.codes_set_definitions_path(
+    f"{_cosmo_definitions_path}:{_vendor_definitions_path}"
+)
+
+# Metadata keys used to split a GRIB file into homogeneous groups before
+# building a dataset out of each. A single GRIB file commonly mixes fields
+# that cannot share one xarray Dataset (different level types, step types,
+# grids, ...); see `parse_grib`/`__grib_dataset_from_group` for why this is
+# done with plain per-field metadata reads instead of
+# `FieldList.to_xarray(split_dims=...)`.
+GRIB_SPLIT_KEYS = [
+    "typeOfLevel",
+    "stepType",
+    "gridType",
+    "numberOfPoints",
+    "dataType",
+]
 
 
 def parse_netcdf(
@@ -72,6 +100,182 @@ def parse_netcdf(
         var_dfs.append(sub_df)
 
     ds.close()
+    return var_dfs
+
+
+def __grib_dataset_from_group(
+    fieldlist, group: pd.DataFrame, time_dim: str
+) -> xarray.Dataset:
+    """
+    Build a minimal xarray.Dataset directly from a homogeneous group of GRIB
+    fields (same typeOfLevel/stepType/gridType/numberOfPoints/dataType),
+    without going through earthkit-data's `to_xarray()`.
+
+    This deliberately bypasses `to_xarray()`'s geometry ("gridSpec")
+    resolution: for ICON's native unstructured grid, whose UUID is not
+    registered with eckit-geo, that resolution fails unconditionally --
+    `to_xarray()` raises `GridUnknownError`/`GribGeographyBuilder: cannot use
+    unstructured grid because gridSpec is not available` even when no
+    lat/lon coordinates are requested (e.g. `add_geo_coords=False`), because
+    it needs geometry to determine the dataset's shape/index, not just its
+    coordinates. Only the raw grid-point dimension ("values", per
+    `horizontal_dims` in the ICON template) is needed for stats, so fields
+    are read here via plain per-field metadata/values access, which does not
+    touch geometry at all.
+
+    Each variable gets its own uniquely-named level dimension
+    (`level__<shortName>`), since different variables in the same group can
+    span different sets of levels (e.g. different numbers of pressure
+    levels) and xarray requires same-named dimensions to share a length.
+    """
+    n_points = int(group["numberOfPoints"].iloc[0])
+    steps = np.sort(group["step"].unique())
+
+    data_vars = {}
+    for var_name, var_group in group.groupby("shortName", sort=False):
+        levels = np.sort(var_group["level"].unique())
+        if len(levels) == 1:
+            # No vertical variation for this variable in this group (e.g. a
+            # surface field): omit the level dimension entirely, matching
+            # `dataframe_from_ncfile`'s convention of a plain (time, values)
+            # array (which it reports with the height=-1 sentinel) rather
+            # than a spurious size-1 level dimension.
+            flat_matrix = np.full((len(steps), n_points), np.nan, dtype=np.float64)
+            for _, row in var_group.iterrows():
+                s_idx = np.searchsorted(steps, row["step"])
+                flat_matrix[s_idx, :] = fieldlist[int(row["idx"])].to_numpy(
+                    dtype=np.float64
+                )
+            data_vars[var_name] = xarray.Variable((time_dim, "values"), flat_matrix)
+            continue
+
+        level_dim = f"level__{var_name}"
+        leveled_matrix = np.full(
+            (len(steps), len(levels), n_points), np.nan, dtype=np.float64
+        )
+        for _, row in var_group.iterrows():
+            s_idx = np.searchsorted(steps, row["step"])
+            l_idx = np.searchsorted(levels, row["level"])
+            leveled_matrix[s_idx, l_idx, :] = fieldlist[int(row["idx"])].to_numpy(
+                dtype=np.float64
+            )
+        data_vars[var_name] = xarray.Variable(
+            (time_dim, level_dim, "values"), leveled_matrix
+        )
+        data_vars[f"__coord_{level_dim}"] = xarray.Variable((level_dim,), levels)
+
+    ds = xarray.Dataset(data_vars, coords={time_dim: steps})
+    # move the per-variable level coordinates out of data_vars and into coords
+    for name in list(ds.data_vars):
+        if name.startswith("__coord_"):
+            level_dim = name[len("__coord_") :]
+            ds = ds.assign_coords({level_dim: ds[name].values})
+            ds = ds.drop_vars(name)
+    return ds
+
+
+def __lead_time_seconds_from_filename(filename: str) -> "int | None":
+    """
+    Extract the forecast lead time (in seconds) from an ICON GRIB output
+    filename following the `lfff<DDHHMMSS>` / `lffm<DDHHMMSS>` naming
+    convention (elapsed days/hours/minutes/seconds since the start of the
+    run), e.g. `lfff00000010p` -> 10s, `lfff00000100p` -> 60s. Returns None
+    if `filename` doesn't look like that convention (e.g. an arbitrary/test
+    file name), so the caller can fall back to the GRIB message's own
+    `step`/`forecastTime` metadata.
+
+    This is preferred over that metadata where it does apply: for some ICON
+    output (e.g. sub-hourly intervals encoded with `stepUnits` in whole
+    hours), that metadata is coarser than the actual output interval and
+    cannot distinguish between files of the same file_id pattern at
+    different lead times -- every message then reports `step=0`, e.g.
+    `lfff00000000p`, `lfff00000010p` and `lfff00000020p` (leads 0s/10s/20s)
+    all report `step=0`, which silently loses the actual lead time.
+    Combining several such files under one file_id pattern (as `stats` does
+    for a multi-file glob) then fails with "cannot reindex on an axis with
+    duplicate labels" -- see `parse_grib`.
+    """
+    match = re.fullmatch(r"[A-Za-z_]+(\d{8})[A-Za-z0-9_]*", os.path.basename(filename))
+    if not match:
+        return None
+    days, hours, minutes, seconds = (
+        int(match.group(1)[0:2]),
+        int(match.group(1)[2:4]),
+        int(match.group(1)[4:6]),
+        int(match.group(1)[6:8]),
+    )
+    return ((days * 24 + hours) * 60 + minutes) * 60 + seconds
+
+
+def parse_grib(
+    file_id: str, filename: str, specification: Dict[str, Any]
+) -> List[pd.DataFrame]:
+    """
+    Parse a GRIB file into pandas DataFrames.
+    """
+
+    logger.debug("parse GRIB file %s", filename)
+    time_dim = specification["time_dim"]
+    horizontal_dims = specification["horizontal_dims"]
+    fill_value_key = specification.get("fill_value_key", None)
+    var_excl = specification.get("var_excl", [])
+
+    fieldlist = earthkit.data.from_source("file", filename).to_fieldlist()
+
+    var_dfs: List[pd.DataFrame] = []
+    if len(fieldlist) == 0:
+        return var_dfs
+
+    lead_time_seconds = __lead_time_seconds_from_filename(filename)
+
+    # Gather the per-field metadata needed to (a) filter out excluded
+    # variables and (b) split the file into homogeneous groups, all via
+    # plain scalar metadata keys. These are safe to read directly (unlike
+    # going through `to_xarray()`, see `__grib_dataset_from_group`).
+    fields = pd.DataFrame(
+        {
+            "idx": np.arange(len(fieldlist)),
+            "shortName": fieldlist.metadata("shortName"),
+            "typeOfLevel": fieldlist.metadata("typeOfLevel"),
+            "stepType": fieldlist.metadata("stepType"),
+            "gridType": fieldlist.metadata("gridType"),
+            "numberOfPoints": fieldlist.metadata("numberOfPoints"),
+            "dataType": fieldlist.metadata("dataType"),
+            "level": fieldlist.metadata("level"),
+            # Prefer the lead time encoded in the filename over the GRIB
+            # message's own step/forecastTime metadata where it applies
+            # (lead_time_seconds is None, not 0, for a non-ICON-convention
+            # filename); fall back to that metadata otherwise. See
+            # __lead_time_seconds_from_filename.
+            "step": (
+                fieldlist.metadata("step", astype=int)
+                if lead_time_seconds is None
+                else lead_time_seconds
+            ),
+        }
+    )
+    fields = fields[~fields["shortName"].isin(var_excl)]
+    if fields.empty:
+        return var_dfs
+
+    # A GRIB file commonly mixes fields that don't share one shape (different
+    # level types, step types, grids, ...), so split it into homogeneous
+    # groups first; each group is then handled like a NetCDF dataset.
+    for _, group in fields.groupby(GRIB_SPLIT_KEYS, sort=True):
+        ds = __grib_dataset_from_group(fieldlist, group, time_dim)
+
+        for v in __get_variables(ds, time_dim, horizontal_dims):
+            sub_df = dataframe_from_ncfile(
+                file_id=file_id,
+                filename=filename,
+                varname=v,
+                time_dim=time_dim,
+                horizontal_dims=horizontal_dims,
+                xarray_ds=ds,
+                fill_value_key=fill_value_key,
+            )
+            var_dfs.append(sub_df)
+
     return var_dfs
 
 
@@ -244,4 +448,5 @@ def parse_csv(file_id, filename, specification):
 model_output_parser = {  # global lookup dict
     "netcdf": parse_netcdf,
     "csv": parse_csv,
+    "grib": parse_grib,
 }
