@@ -180,3 +180,36 @@ def test_check_cli_fof(fof_datasets):
     )
 
     assert result.exit_code == 0
+
+
+def test_check_cli_fof_tolerance_length_mismatch(fof_datasets, tmp_dir):
+    """
+    A tolerance file whose length does not match the veri_data rows (stale file,
+    different n_body or d_veri) fails loudly instead of leaving rows unchecked.
+    """
+    df1, df2, tol_large, _ = fof_datasets
+    short_tol = os.path.join(tmp_dir, "fof_tol_short.csv")
+    tol = pd.read_csv(tol_large, index_col=0)
+    tol.iloc[:-1].to_csv(short_tol)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        check,
+        [
+            "--reference-files",
+            df1,
+            "--current-files",
+            df2,
+            "--tolerance-files",
+            short_tol,
+            "--factor",
+            "1.0",
+            "--fof-types",
+            "",
+            "--rules",
+            '{"check": [13, 18, 32], "state": [1, 5, 7, 9]}',
+        ],
+    )
+
+    assert isinstance(result.exception, ValueError)
+    assert "rows" in str(result.exception)

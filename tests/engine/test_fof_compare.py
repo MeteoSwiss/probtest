@@ -295,3 +295,52 @@ def test_fof_compare_radar_nan_vs_real(radar_fof_paths, tmp_dir, monkeypatch, ca
         caplog=caplog,
     )
     assert "Files are NOT consistent!" in caplog.text
+
+
+def test_fof_compare_radar_multiple_veri_runs(
+    sample_dataset_radar_fof, tmp_dir, monkeypatch, caplog
+):
+    """
+    With several verification runs (d_veri > 1, e.g. LETKF files) every run is
+    compared, not only the first n_body rows. The last run is changed only for the
+    observations that sort last (largest dlat), whose rows lie beyond n_body.
+    """
+    ds = sample_dataset_radar_fof
+    n_body = ds.attrs["n_body"]
+    vd = ds["veri_data"].values
+    multi = np.concatenate([vd, vd + 1.0, vd + 2.0], axis=0)
+    ref = ds.drop_vars(["veri_data", "d_veri"])
+    ref = ref.assign(veri_data=(("d_veri", "d_body"), multi))
+
+    dlat = ds["dlat"].values[:n_body]
+    late = np.zeros(ds.sizes["d_body"], dtype=bool)
+    late[:n_body] = dlat > np.nanmedian(dlat)
+    assert np.isfinite(multi[2, late]).any()
+    changed = multi.copy()
+    changed[2, late] += 100.0
+    pert = ref.assign(veri_data=(("d_veri", "d_body"), changed))
+
+    pattern = os.path.join(tmp_dir, "fofRADAR{fof_type}_%s.nc")
+    for name, dataset in (("multi_ref", ref), ("multi_pert", pert)):
+        dataset.to_netcdf((pattern % name).format(fof_type="MLL"))
+
+    _run_fof_compare(
+        pattern % "multi_ref",
+        pattern % "multi_ref",
+        1.0,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
+    )
+    assert "Files are consistent!" in caplog.text
+    caplog.clear()
+
+    _run_fof_compare(
+        pattern % "multi_ref",
+        pattern % "multi_pert",
+        1.0,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
+    )
+    assert "Files are NOT consistent!" in caplog.text

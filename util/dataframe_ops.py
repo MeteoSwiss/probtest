@@ -388,6 +388,14 @@ def check_file_with_tolerances(
         df_ref = df_ref["observation"]["veri_data"]
         df_cur = df_cur["observation"]["veri_data"]
         df_tol.columns = ["veri_data"]
+        # Rows are aligned by index; a tolerance row that is missing would leave the
+        # matching veri_data row unchecked, so the lengths must agree exactly.
+        if len(df_tol) != len(df_ref):
+            raise ValueError(
+                f"tolerance has {len(df_tol)} rows but veri_data has {len(df_ref)} "
+                f"rows in {input_file_ref.path}: stale tolerance file, or a different "
+                "n_body or number of verification runs (d_veri)."
+            )
 
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)

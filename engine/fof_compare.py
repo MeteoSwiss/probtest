@@ -3,7 +3,8 @@ CLI for checking two fof files
 
 This module provides a command-line interface (CLI) to check that
 two given fof files are consistent.
-Veri data are not considered, only reports and observations are compared.
+Reports and observations must match exactly (apart from --rules); veri_data
+is compared within the given relative tolerance.
 """
 
 import json
@@ -20,6 +21,12 @@ from util.fof_utils import (
 )
 from util.log_handler import initialize_detailed_logger, log_dataframe, logger
 from util.utils import FileInfo
+
+
+def _fof_sizes(file_path):
+    """Real observation count n_body and number of verification runs d_veri."""
+    with xr.open_dataset(file_path) as ds:
+        return int(ds.attrs["n_body"]), ds.sizes.get("d_veri", 1)
 
 
 @click.command()
@@ -60,12 +67,18 @@ def fof_compare(file1, file2, fof_types, tolerance, rules: str):
         # Use the real observation count (n_body), not the allocated/padded
         # dimension (d_body). For radar fof files d_body > n_body, and the
         # comparison operates on the n_body real rows after padding is stripped
-        # in split_feedback_dataset.
-        n_rows_file1 = xr.open_dataset(file1_path).attrs["n_body"]
-        n_rows_file2 = xr.open_dataset(file2_path).attrs["n_body"]
+        # in split_feedback_dataset. veri_data has one row per (d_body, d_veri), so
+        # with several verification runs (e.g. LETKF) the tolerance needs
+        # n_body * d_veri rows; with n_body only, the later rows go unchecked.
+        sizes_file1 = _fof_sizes(file1_path)
+        sizes_file2 = _fof_sizes(file2_path)
 
-        if n_rows_file1 != n_rows_file2:
-            raise ValueError("Files have different numbers of lines!")
+        if sizes_file1 != sizes_file2:
+            raise ValueError(
+                f"Files differ in size: (n_body, d_veri) = {sizes_file1} vs "
+                f"{sizes_file2}"
+            )
+        n_rows_file1 = sizes_file1[0] * sizes_file1[1]
 
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".csv", delete=True, dir="/dev/shm"
