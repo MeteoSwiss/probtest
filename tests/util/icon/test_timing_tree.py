@@ -112,6 +112,7 @@ def test_intersection():
         "root>total>integrate_nh>physics>phys_acc_sync",
         "root>total>integrate_nh>physics>radheat",
         "root>total>integrate_nh>physics>nwp_radiation>nwp_ecrad_ecrad",
+        "root>upper_atmosphere>upatmo_destruction",
     }
 
     assert names == ref_names, "set of intersecting nodes does not match reference"

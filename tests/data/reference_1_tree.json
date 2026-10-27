@@ -480,7 +480,16 @@
       "ancestry": [
         "root"
       ],
-      "children": []
+      "children": [
+        {
+          "name": "upatmo_destruction",
+          "ancestry": [
+            "root",
+            "upper_atmosphere"
+          ],
+          "children": []
+        }
+      ]
     }
   ]
 }

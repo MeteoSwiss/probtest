@@ -125,11 +125,11 @@ def fixture_nc_with_t_u_v(tmp_dir) -> str:
     """
     # Define dimensions
     time = np.arange(0, 5)
-    lat = np.linspace(-90, 90, 10)
-    lon = np.linspace(-180, 180, 10)
+    lat_1d = np.linspace(-90, 90, 10)
+    lon_1d = np.linspace(-180, 180, 10)
 
     # Create a meshgrid for lat and lon
-    lon, lat = np.meshgrid(lon, lat)
+    lon, lat = np.meshgrid(lon_1d, lat_1d)
 
     # Generate non-random data for variables T,V and U
     t = 20 + 5 * np.sin(
