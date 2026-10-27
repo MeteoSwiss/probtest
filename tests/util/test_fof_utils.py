@@ -151,7 +151,7 @@ def test_split_multiple_veri_runs(sample_dataset_radar_fof):
     ds = ds.assign(veri_data=(("d_veri", "d_body"), multi))
     ds = ds.assign_coords(d_veri=np.arange(3))
 
-    reports, observations = split_feedback_dataset(ds)
+    _, observations = split_feedback_dataset(ds)
 
     # all runs survive, padding stripped on the body axis only
     assert observations["veri_data"].sizes["d_veri"] == 3

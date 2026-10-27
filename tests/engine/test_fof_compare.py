@@ -213,7 +213,7 @@ def fixture_radar_fof_paths(sample_dataset_radar_fof, tmp_dir):
     return paths
 
 
-def _run_fof_compare(file1, file2, tolerance, tmp_dir, monkeypatch, caplog):
+def _run_fof_compare(file1, file2, tolerance, *, tmp_dir, monkeypatch, caplog):
     monkeypatch.chdir(tmp_dir)
     runner = CliRunner()
     with caplog.at_level(logging.INFO):
@@ -240,9 +240,9 @@ def test_fof_compare_radar_consistent(radar_fof_paths, tmp_dir, monkeypatch, cap
         radar_fof_paths["ref"],
         radar_fof_paths["same"],
         1.0,
-        tmp_dir,
-        monkeypatch,
-        caplog,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
     )
     assert "Files are consistent!" in caplog.text
 
@@ -255,9 +255,9 @@ def test_fof_compare_radar_not_consistent(
         radar_fof_paths["ref"],
         radar_fof_paths["pert"],
         1.0,
-        tmp_dir,
-        monkeypatch,
-        caplog,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
     )
     assert "Files are NOT consistent!" in caplog.text
 
@@ -273,9 +273,9 @@ def test_fof_compare_radar_different_padding(
         radar_fof_paths["ref"],
         radar_fof_paths["bigpad"],
         1.0,
-        tmp_dir,
-        monkeypatch,
-        caplog,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
     )
     assert "Files are consistent!" in caplog.text
 
@@ -290,8 +290,8 @@ def test_fof_compare_radar_nan_vs_real(radar_fof_paths, tmp_dir, monkeypatch, ca
         radar_fof_paths["ref"],
         radar_fof_paths["nanfill"],
         1.0,
-        tmp_dir,
-        monkeypatch,
-        caplog,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
     )
     assert "Files are NOT consistent!" in caplog.text
