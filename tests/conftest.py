@@ -307,18 +307,9 @@ def fixture_sample_dataset_fof():
 
 @pytest.fixture(name="sample_dataset_radar_fof")
 def fixture_sample_dataset_radar_fof():
-    """Radar FOF dataset mirroring the structure of real emvorado radar fof files:
-    - d_hdr > n_hdr and d_body > n_body: the arrays are over-allocated and the
-      tail [n_*:d_*] is NaN-padded (the real counts live in the n_* attributes).
-    - dlat/dlon are the per-observation positions (radar sorts on these; lat/lon
-      is the single radar-station position, constant per radar -> useless for sorting).
-    - obstype is 13 for every real report: that is what marks a radar file (other
-      fof files, e.g. TEMP, can contain dlat/dlon as well).
-    - veri_data is 2-D (d_veri, d_body) with d_veri == 1.
-    - all numeric fields are float (real files have no integer fields), and the
-      real data region of veri_data itself can contain NaN (missing reflectivity),
-      indistinguishable by value from the padding NaN -> padding is removed by the
-      n_body count, never by NaN.
+    """
+    Radar fof dataset like EMVORADO files: obstype 13, padded with NaN after
+    n_hdr/n_body, dlat/dlon per observation, one missing value in veri_data.
     """
     n_hdr_size, d_hdr_size = 3, 5
     n_body_size, d_body_size = 6, 8
@@ -335,14 +326,12 @@ def fixture_sample_dataset_radar_fof():
     lbody = np.array([1.0, 2.0, 3.0, nan, nan])  # sum(real) = 6 = n_body
     ibody = np.array([1.0, 2.0, 4.0, nan, nan])
 
-    # body fields (float; padded tail [n_body:d_body] = NaN). dlat/dlon are
-    # NaN-free in the real region (true in real files) so the sort key is unique.
+    # body fields, NaN after n_body
     dlat = np.array([10.1, 20.1, 20.2, 30.1, 30.2, 30.3, nan, nan])
     dlon = np.array([100.1, 110.1, 110.2, 120.1, 120.2, 120.3, nan, nan])
     varno = np.array([192, 192, 192, 192, 192, 192, nan, nan])
     level = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, nan, nan])
-    # real-region veri_data deliberately holds a NaN (index 2) to mimic a
-    # missing reflectivity value coexisting with the padding NaNs.
+    # index 2: missing value inside the real region
     veri_data = np.array(
         [[10.0, 20.0, nan, 40.0, 50.0, 60.0, nan, nan]]
     )  # (d_veri, d_body)
@@ -382,9 +371,7 @@ def fixture_sample_dataset_radar_fof():
     return data
 
 
-# Non-radar fof file families, shaped like real files (ICON fofSYNOP/fofTEMP,
-# LETKF ekfSYNOP/ekfTEMP): (obstype, number of verification runs, all-NaN
-# dlat/dlon as in TEMP files, LETKF body variables h_loc/v_loc).
+# (obstype, verification runs, all-NaN dlat/dlon, LETKF h_loc/v_loc)
 CONVENTIONAL_FOF_FAMILIES = {
     "icon_synop": (1.0, 1, False, False),
     "icon_temp": (5.0, 1, True, False),
@@ -399,13 +386,7 @@ CONVENTIONAL_FOF_FAMILIES = {
     ids=list(CONVENTIONAL_FOF_FAMILIES),
 )
 def fixture_conventional_fof(request):
-    """Non-radar fof dataset as written by ICON and LETKF:
-    - no padding: d_hdr == n_hdr and d_body == n_body;
-    - veri_data is 2-D (d_veri, d_body): one run in ICON files; first guess and
-      analysis of every ensemble member plus a few more in LETKF files (86 runs for
-      40 members);
-    - TEMP files contain dlat/dlon with all values NaN (not radar: obstype != 13).
-    """
+    """Non-radar fof dataset like ICON and LETKF files (not padded)."""
     obstype, n_veri, all_nan_dlat, letkf_vars = request.param
     n_hdr, n_body = 3, 6
 

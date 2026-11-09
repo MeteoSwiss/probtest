@@ -64,12 +64,7 @@ def fof_compare(file1, file2, fof_types, tolerance, rules: str):
         file1_path = file1.format(fof_type=fof_type)
         file2_path = file2.format(fof_type=fof_type)
 
-        # Use the real observation count (n_body), not the allocated/padded
-        # dimension (d_body). For radar fof files d_body > n_body, and the
-        # comparison operates on the n_body real rows after padding is stripped
-        # in split_feedback_dataset. veri_data has one row per (d_body, d_veri), so
-        # with several verification runs (e.g. LETKF) the tolerance needs
-        # n_body * d_veri rows; with n_body only, the later rows go unchecked.
+        # real counts (radar files are padded); veri_data has n_body * d_veri rows
         sizes_file1 = _fof_sizes(file1_path)
         sizes_file2 = _fof_sizes(file2_path)
 

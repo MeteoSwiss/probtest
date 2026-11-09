@@ -10,23 +10,16 @@ import xarray as xr
 
 from util.log_handler import logger
 
-# obstype of radar reports in fof files
 OBSTYPE_RADAR = 13
 
 
 def get_report_variables(ds):
-    """
-    Get variable names of reports: the variables along d_hdr. Selected by dimension,
-    not size -- d_hdr, d_body and d_veri can have the same size.
-    """
+    """Names of the variables along d_hdr (by dimension: sizes can coincide)."""
     return [var for var in ds.data_vars if ds[var].dims[:1] == ("d_hdr",)]
 
 
 def get_observation_variables(ds):
-    """
-    Get variable names of observations: the variables along d_body. Selected by
-    dimension, not size -- d_hdr, d_body and d_veri can have the same size.
-    """
+    """Names of the variables along d_body (by dimension: sizes can coincide)."""
     return [var for var in ds.data_vars if ds[var].dims[:1] == ("d_body",)]
 
 
@@ -39,10 +32,7 @@ def split_feedback_dataset(ds):
     nhdr = ds.attrs["n_hdr"]
     nbody = ds.attrs["n_body"]
 
-    # Radar fof files carry a per-observation position dlat/dlon (the header lat/lon
-    # is the radar site, the same for all observations of a radar). Other fof files
-    # can contain dlat/dlon too (TEMP files: all NaN), so a radar file is recognised
-    # by obstype, not by dlat.
+    # by obstype: TEMP files also have dlat/dlon (all NaN)
     is_radar = (
         "obstype" in ds.data_vars
         and "dlat" in ds.data_vars
@@ -51,30 +41,18 @@ def split_feedback_dataset(ds):
         and bool(np.all(ds["obstype"].values[:nhdr] == OBSTYPE_RADAR))
     )
 
-    # The slice below strips body padding by COUNT, which assumes real
-    # observations are packed contiguously at the front [0:n_body] with padding
-    # as a NaN tail. In radar files dlat is a reliable body padding discriminator
-    # (non-NaN for real obs, NaN for padding) -- unlike veri_data, which is NaN for
-    # real-missing too. Validate the assumption on dlat so a scattered file fails
-    # loudly instead of being silently mis-stripped. Non-radar files are not
-    # over-allocated (n_body == d_body), so the slice does not change them.
+    # padding is stripped by count: real radar observations must fill [0:n_body]
     if is_radar:
         dlat_isnan = np.isnan(ds["dlat"].values)
         if dlat_isnan[:nbody].any() or not dlat_isnan[nbody:].all():
             raise ValueError(
-                "radar fof body is not front-packed: expected dlat to be non-NaN "
-                f"on [0:{nbody}] and NaN on [{nbody}:{ds.sizes['d_body']}]. The "
-                "strip-padding-by-count assumption does not hold for this file."
+                "radar fof body is not front-packed: dlat must be non-NaN on "
+                f"[0:{nbody}] and NaN after"
             )
 
     ds = ds.isel(d_hdr=slice(0, nhdr), d_body=slice(0, nbody))
 
-    # veri_data is 2-D (d_veri, d_body): LETKF/EKF feedback files normally carry many
-    # verification runs (first guess, analysis, ensemble members, diagnostics). All of
-    # them are model output and get compared. to_dataframe() emits one row per (d_body,
-    # d_veri) pair, the runs of one observation next to each other; d_veri is not
-    # sorted, so the comparison relies on both files storing their runs in the same
-    # order -- which holds for files from one workflow.
+    # all verification runs are compared; both files must store them in the same order
     report_variables = get_report_variables(ds)
     ds_reports = ds[report_variables]
 

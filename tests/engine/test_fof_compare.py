@@ -172,12 +172,8 @@ def test_fof_compare_consistent(fof_datasets, tmp_dir, monkeypatch, caplog):
 @pytest.fixture(name="radar_fof_paths", scope="function")
 def fixture_radar_fof_paths(sample_dataset_radar_fof, tmp_dir):
     """
-    Write padded radar fof files to disk and return paths containing the
-    {fof_type} placeholder (resolved to 'MLL'). Variants:
-    - ref/same: identical padded radar files.
-    - pert: one real-region veri_data value pushed far beyond any tolerance.
-    - bigpad: same n_body as ref but a larger d_body (more NaN padding rows) ->
-      exercises the n_body-vs-d_body fix (size gate + tolerance length).
+    Padded radar fof files: ref/same identical, pert one value changed, bigpad
+    more padding, nanfill one missing value filled.
     """
     ds = sample_dataset_radar_fof
 
@@ -191,8 +187,6 @@ def fixture_radar_fof_paths(sample_dataset_radar_fof, tmp_dir):
     bigpad = ds.pad(d_body=(0, 4), constant_values=np.nan)
     bigpad.attrs = dict(ds.attrs)  # keep the real n_hdr/n_body counts
 
-    # nanfill: a real-region veri_data NaN (an observation missing in ref) becomes
-    # a real value -> NaN-vs-real mismatch that must be flagged, not silently passed.
     nanfill = ds.copy(deep=True)
     vdn = nanfill["veri_data"].values.copy()
     vdn[0, 2] = 3.0  # index 2 is NaN in the fixture's real region
@@ -235,15 +229,10 @@ def _run_fof_compare(file1, file2, tolerance, *, tmp_dir, monkeypatch, caplog):
 
 
 def test_fof_compare_conventional_fof(conventional_fof, tmp_dir, monkeypatch, caplog):
-    """
-    ICON and LETKF fof files: a file compared with itself is consistent, and one
-    value changed in the last verification run is detected.
-    (fof-compare tolerances are relative: |a - b| / (1 + |a|).)
-    """
+    """ICON/LETKF files: consistent with themselves, a changed value is detected."""
     ref = conventional_fof
     vd = ref["veri_data"].values.copy()
-    vd[-1, 2] += 100.0  # observation 2 sorts last: with several runs its row lies
-    # beyond the first n_body rows
+    vd[-1, 2] += 100.0  # sorts last: with several runs its row is beyond n_body
     pert = ref.assign(veri_data=(("d_veri", "d_body"), vd))
 
     pattern = os.path.join(tmp_dir, "fofCONV{fof_type}_%s.nc")
@@ -276,12 +265,7 @@ def test_fof_compare_conventional_fof(conventional_fof, tmp_dir, monkeypatch, ca
 def test_fof_compare_one_observation_per_report(
     conventional_fof, n_reports, tmp_dir, monkeypatch, caplog
 ):
-    """
-    Files with one observation per report have n_hdr == n_body. They compare like
-    any other file: consistent with themselves, a changed value is detected. (With
-    a single report all sizes are 1; the d_veri == n_hdr case is covered by
-    test_get_variables_by_dimension_not_size.)
-    """
+    """Files with one observation per report (n_hdr == n_body) compare normally."""
     ref = conventional_fof.isel(
         d_hdr=slice(0, n_reports), d_body=[0, 1][:n_reports]
     ).assign(
@@ -366,11 +350,7 @@ def test_fof_compare_radar_different_padding(
 
 
 def test_fof_compare_radar_nan_vs_real(radar_fof_paths, tmp_dir, monkeypatch, caplog):
-    """
-    A veri_data cell that is NaN in one file but a real value in the other (an
-    observation appearing/disappearing) must be flagged, not silently passed --
-    even with a generous tolerance.
-    """
+    """A value missing in one file but present in the other is flagged."""
     _run_fof_compare(
         radar_fof_paths["ref"],
         radar_fof_paths["nanfill"],
@@ -385,11 +365,7 @@ def test_fof_compare_radar_nan_vs_real(radar_fof_paths, tmp_dir, monkeypatch, ca
 def test_fof_compare_radar_multiple_veri_runs(
     sample_dataset_radar_fof, tmp_dir, monkeypatch, caplog
 ):
-    """
-    With several verification runs (d_veri > 1, e.g. LETKF files) every run is
-    compared, not only the first n_body rows. The last run is changed only for the
-    observations that sort last (largest dlat), whose rows lie beyond n_body.
-    """
+    """With several verification runs every run is compared."""
     ds = sample_dataset_radar_fof
     n_body = ds.attrs["n_body"]
     vd = ds["veri_data"].values

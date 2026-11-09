@@ -125,12 +125,7 @@ def fixture_sample_dataset_veri(sample_dataset_fof):
 
 
 def test_get_variables_by_dimension_not_size():
-    """
-    Report and observation variables are told apart by their dimension, not their
-    size: in a file with one observation per report d_hdr and d_body have the same
-    size, and with a single report also d_veri (ICON files have one run). Radar
-    metadata (d_radar) and 0-d variables are neither.
-    """
+    """Variables are selected by dimension, not size (all sizes are 2 here)."""
     ds = xr.Dataset(
         {
             "lat": (("d_hdr",), [46.5, 47.2]),
@@ -159,12 +154,7 @@ def test_split_report(ds1, ds_report, ds_obs):
 
 
 def test_split_multiple_veri_runs(sample_dataset_radar_fof):
-    """
-    LETKF/EKF feedback files carry many verification runs (d_veri > 1): first guess,
-    analysis, ensemble members, diagnostics -- all model output that gets compared.
-    split_feedback_dataset must accept them and keep the full d_veri dimension; the
-    downstream to_dataframe() then emits one row per (d_veri, d_body).
-    """
+    """All verification runs are kept (d_veri > 1, as in LETKF files)."""
     ds = sample_dataset_radar_fof
     n_body = ds.attrs["n_body"]
 
@@ -184,10 +174,8 @@ def test_split_multiple_veri_runs(sample_dataset_radar_fof):
 
 def test_split_radar_fof(sample_dataset_radar_fof):
     """
-    Radar FOF files have d_hdr > n_hdr and d_body > n_body (NaN-padded tail), carry
-    dlat/dlon per-observation positions, and a 2-D veri_data (d_veri, d_body).
-    split_feedback_dataset must strip the padding by the n_* counts (NOT by NaN),
-    keep real-region NaNs, and sort observations by dlat/dlon.
+    Radar padding is stripped by the n_* counts, real NaNs are kept, observations
+    are sorted by dlat.
     """
     ds = sample_dataset_radar_fof
     n_hdr = ds.attrs["n_hdr"]
@@ -214,14 +202,9 @@ def test_split_radar_fof(sample_dataset_radar_fof):
 
 
 def test_split_radar_fof_scattered_padding_raises(sample_dataset_radar_fof):
-    """
-    The strip-by-count assumes real observations are front-packed (padding is a
-    NaN tail). A file with a real observation scattered into the padding region
-    must fail loudly rather than be silently mis-stripped. dlat is the discriminator.
-    """
+    """A real radar observation inside the padding raises."""
     ds = sample_dataset_radar_fof.copy(deep=True)
-    # swap a real dlat (index 5) with a padding NaN (index 7): now a non-NaN dlat
-    # sits beyond n_body and a NaN sits inside the real region.
+    # move a real observation into the padding
     dlat = ds["dlat"].values.copy()
     dlat[5], dlat[7] = dlat[7], dlat[5]
     ds["dlat"] = (("d_body",), dlat)
@@ -232,14 +215,7 @@ def test_split_radar_fof_scattered_padding_raises(sample_dataset_radar_fof):
 def test_split_feedback_sort_is_deterministic(
     sample_dataset_radar_fof, sample_dataset_fof
 ):
-    """
-    The pre-comparison sort must yield the SAME canonical order regardless of the
-    order observations are stored in -- this is what establishes row correspondence
-    between the two files being compared. Reorder observations within a header block
-    (a valid permutation that preserves the i_body/l_body structure) and confirm the
-    split output is identical. Covers the radar (dlat/dlon) and non-radar (lat/lon)
-    sort branches.
-    """
+    """The order after splitting does not depend on the stored order."""
     cases = [
         # reverse the 3 observations of the last header block (body indices 3,4,5)
         (sample_dataset_radar_fof, [0, 1, 2, 5, 4, 3, 6, 7]),
@@ -267,9 +243,8 @@ def test_split_fof_sort_keys_follow_obstype(
     sample_dataset_radar_fof, obstypes, expected_levels
 ):
     """
-    Observations of radar files (obstype 13 in every report) are sorted by
-    dlat/dlon, those of all other files by lat/lon. In the last report dlat
-    decreases while level increases, so the two sort orders differ.
+    Radar files (obstype 13 in every report) are sorted by dlat/dlon, others by
+    lat/lon.
     """
     ds = sample_dataset_radar_fof.copy(deep=True)
     dlat = ds["dlat"].values.copy()
@@ -291,9 +266,8 @@ def test_split_fof_sort_keys_follow_obstype(
 
 def test_split_conventional_fof(conventional_fof):
     """
-    ICON and LETKF fof files (all verification runs, TEMP with all-NaN dlat) split
-    into all reports and observations, keep every run, are sorted by lat/lon, and
-    the order does not depend on how the observations are stored.
+    ICON/LETKF files keep all reports, observations and runs, sorted by lat/lon
+    independently of the stored order.
     """
     ds = conventional_fof
 
@@ -320,12 +294,7 @@ def test_split_conventional_fof(conventional_fof):
     ids=["all_nan", "partly_set"],
 )
 def test_split_non_radar_fof_with_dlat(sample_dataset_fof, dlat_body):
-    """
-    Non-radar fof files can contain dlat/dlon too: all NaN (ICON and LETKF TEMP
-    files), or possibly set for some observations only (e.g. sonde drift; not seen
-    in real files). They are not radar files (obstype != 13): no front-packing
-    check, and the observations keep the lat/lon sort, exactly as without dlat.
-    """
+    """Non-radar files with dlat/dlon (all NaN, or partly set) split as without."""
     base = sample_dataset_fof.assign(obstype=(("d_hdr",), np.full(5, 5.0)))
     dlat = np.array(dlat_body)
     ds = base.assign(dlat=(("d_body",), dlat), dlon=(("d_body",), dlat + 1.0))
