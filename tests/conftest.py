@@ -312,6 +312,8 @@ def fixture_sample_dataset_radar_fof():
       tail [n_*:d_*] is NaN-padded (the real counts live in the n_* attributes).
     - dlat/dlon are the per-observation positions (radar sorts on these; lat/lon
       is the single radar-station position, constant per radar -> useless for sorting).
+    - obstype is 13 for every real report: that is what marks a radar file (other
+      fof files, e.g. TEMP, can contain dlat/dlon as well).
     - veri_data is 2-D (d_veri, d_body) with d_veri == 1.
     - all numeric fields are float (real files have no integer fields), and the
       real data region of veri_data itself can contain NaN (missing reflectivity),
@@ -329,6 +331,7 @@ def fixture_sample_dataset_radar_fof():
     statid = ["r1", "r2", "r3", "", ""]
     time_nomi = np.array([0.0, 0.0, 0.0, nan, nan])
     codetype = np.array([22.0, 22.0, 22.0, nan, nan])
+    obstype = np.array([13.0, 13.0, 13.0, nan, nan])
     lbody = np.array([1.0, 2.0, 3.0, nan, nan])  # sum(real) = 6 = n_body
     ibody = np.array([1.0, 2.0, 4.0, nan, nan])
 
@@ -355,6 +358,7 @@ def fixture_sample_dataset_radar_fof():
             "statid": (("d_hdr",), statid),
             "time_nomi": (("d_hdr",), time_nomi),
             "codetype": (("d_hdr",), codetype),
+            "obstype": (("d_hdr",), obstype),
             "l_body": (("d_hdr",), lbody),
             "i_body": (("d_hdr",), ibody),
             "dlat": (("d_body",), dlat),
@@ -376,6 +380,76 @@ def fixture_sample_dataset_radar_fof():
     )
 
     return data
+
+
+# Non-radar fof file families, shaped like real files (ICON fofSYNOP/fofTEMP,
+# LETKF ekfSYNOP/ekfTEMP): (obstype, number of verification runs, all-NaN
+# dlat/dlon as in TEMP files, LETKF body variables h_loc/v_loc).
+CONVENTIONAL_FOF_FAMILIES = {
+    "icon_synop": (1.0, 1, False, False),
+    "icon_temp": (5.0, 1, True, False),
+    "letkf_synop": (1.0, 4, False, True),
+    "letkf_temp": (5.0, 4, True, True),
+}
+
+
+@pytest.fixture(
+    name="conventional_fof",
+    params=list(CONVENTIONAL_FOF_FAMILIES.values()),
+    ids=list(CONVENTIONAL_FOF_FAMILIES),
+)
+def fixture_conventional_fof(request):
+    """Non-radar fof dataset as written by ICON and LETKF:
+    - no padding: d_hdr == n_hdr and d_body == n_body;
+    - veri_data is 2-D (d_veri, d_body): one run in ICON files; first guess and
+      analysis of every ensemble member plus a few more in LETKF files (86 runs for
+      40 members);
+    - TEMP files contain dlat/dlon with all values NaN (not radar: obstype != 13).
+    """
+    obstype, n_veri, all_nan_dlat, letkf_vars = request.param
+    n_hdr, n_body = 3, 6
+
+    header = {
+        "lat": [46.5, 47.2, 45.9],
+        "lon": [7.4, 8.5, 9.1],
+        "statid": ["06610", "06670", "06770"],
+        "time_nomi": [0.0, 0.0, 30.0],
+        "codetype": [11.0, 11.0, 11.0],
+        "obstype": [obstype] * n_hdr,
+        "l_body": [1.0, 2.0, 3.0],
+        "i_body": [1.0, 2.0, 4.0],
+    }
+    obs = np.array([281.2, 275.4, 3.1, 262.8, 5.6, 248.9])
+    body = {
+        "varno": [2.0, 2.0, 3.0, 2.0, 3.0, 2.0],
+        "level": [850.0, 850.0, 700.0, 850.0, 700.0, 500.0],
+        "obs": obs,
+        "bcor": np.zeros(n_body),
+        "e_o": np.full(n_body, 1.2),
+        "state": np.ones(n_body),
+        "flags": np.zeros(n_body),
+        "check": np.full(n_body, 32.0),
+    }
+    if all_nan_dlat:
+        body["dlat"] = np.full(n_body, np.nan)
+        body["dlon"] = np.full(n_body, np.nan)
+    if letkf_vars:
+        body["h_loc"] = np.full(n_body, 300.0)
+        body["v_loc"] = np.full(n_body, 0.3)
+    veri_data = np.stack([obs + 0.5 + 0.01 * run for run in range(n_veri)])
+
+    data_vars = {k: (("d_hdr",), v) for k, v in header.items()}
+    data_vars.update({k: (("d_body",), v) for k, v in body.items()})
+    data_vars["veri_data"] = (("d_veri", "d_body"), veri_data)
+    return xr.Dataset(
+        data_vars,
+        coords={
+            "d_hdr": np.arange(n_hdr),
+            "d_body": np.arange(n_body),
+            "d_veri": np.arange(n_veri),
+        },
+        attrs={"n_hdr": n_hdr, "n_body": n_body},
+    )
 
 
 @pytest.fixture(scope="function")

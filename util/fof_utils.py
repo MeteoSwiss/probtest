@@ -10,6 +10,9 @@ import xarray as xr
 
 from util.log_handler import logger
 
+# obstype of radar reports in fof files
+OBSTYPE_RADAR = 13
+
 
 def get_report_variables(ds):
     """
@@ -48,14 +51,26 @@ def split_feedback_dataset(ds):
     nhdr = ds.attrs["n_hdr"]
     nbody = ds.attrs["n_body"]
 
+    # Radar fof files carry a per-observation position dlat/dlon (the header lat/lon
+    # is the radar site, the same for all observations of a radar). Other fof files
+    # can contain dlat/dlon too (TEMP files: all NaN), so a radar file is recognised
+    # by obstype, not by dlat.
+    is_radar = (
+        "obstype" in ds.data_vars
+        and "dlat" in ds.data_vars
+        and "dlon" in ds.data_vars
+        and ds["dlat"].dims == ("d_body",)
+        and bool(np.all(ds["obstype"].values[:nhdr] == OBSTYPE_RADAR))
+    )
+
     # The slice below strips body padding by COUNT, which assumes real
     # observations are packed contiguously at the front [0:n_body] with padding
-    # as a NaN tail. dlat/dlon are a reliable body padding discriminator (non-NaN
-    # for real obs, NaN for padding) -- unlike veri_data, which is NaN for
+    # as a NaN tail. In radar files dlat is a reliable body padding discriminator
+    # (non-NaN for real obs, NaN for padding) -- unlike veri_data, which is NaN for
     # real-missing too. Validate the assumption on dlat so a scattered file fails
-    # loudly instead of being silently mis-stripped. (Only radar files have dlat;
-    # non-radar files are not over-allocated.)
-    if "dlat" in ds.data_vars and ds["dlat"].dims == ("d_body",):
+    # loudly instead of being silently mis-stripped. Non-radar files are not
+    # over-allocated (n_body == d_body), so the slice does not change them.
+    if is_radar:
         dlat_isnan = np.isnan(ds["dlat"].values)
         if dlat_isnan[:nbody].any() or not dlat_isnan[nbody:].all():
             raise ValueError(
@@ -91,7 +106,7 @@ def split_feedback_dataset(ds):
     observation_variables.append("veri_data")
 
     ds_obs = ds[observation_variables]
-    if "dlat" in ds.data_vars:
+    if is_radar:
         sort_keys_obs = ["dlat", "dlon", "statid", "varno", "level", "time_nomi"]
     else:
         sort_keys_obs = ["lat", "lon", "statid", "varno", "level", "time_nomi"]

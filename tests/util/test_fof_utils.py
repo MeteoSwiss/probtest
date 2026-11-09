@@ -229,6 +229,90 @@ def test_split_feedback_sort_is_deterministic(
         xr.testing.assert_identical(rep1, rep2)
 
 
+@pytest.mark.parametrize(
+    "obstypes, expected_levels",
+    [
+        ([13.0, 13.0, 13.0], [1, 2, 3, 6, 5, 4]),
+        ([5.0, 5.0, 5.0], [1, 2, 3, 4, 5, 6]),
+        ([1.0, 1.0, 1.0], [1, 2, 3, 4, 5, 6]),
+        ([13.0, 13.0, 5.0], [1, 2, 3, 4, 5, 6]),
+    ],
+    ids=["radar", "temp", "synop", "mixed"],
+)
+def test_split_fof_sort_keys_follow_obstype(
+    sample_dataset_radar_fof, obstypes, expected_levels
+):
+    """
+    Observations of radar files (obstype 13 in every report) are sorted by
+    dlat/dlon, those of all other files by lat/lon. In the last report dlat
+    decreases while level increases, so the two sort orders differ.
+    """
+    ds = sample_dataset_radar_fof.copy(deep=True)
+    dlat = ds["dlat"].values.copy()
+    dlon = ds["dlon"].values.copy()
+    dlat[3:6] = dlat[3:6][::-1]
+    dlon[3:6] = dlon[3:6][::-1]
+    obst = ds["obstype"].values.copy()
+    obst[: ds.attrs["n_hdr"]] = obstypes
+    ds = ds.assign(
+        dlat=(("d_body",), dlat),
+        dlon=(("d_body",), dlon),
+        obstype=(("d_hdr",), obst),
+    )
+
+    _, observations = split_feedback_dataset(ds)
+
+    assert list(observations["level"].values) == expected_levels
+
+
+def test_split_conventional_fof(conventional_fof):
+    """
+    ICON and LETKF fof files (all verification runs, TEMP with all-NaN dlat) split
+    into all reports and observations, keep every run, are sorted by lat/lon, and
+    the order does not depend on how the observations are stored.
+    """
+    ds = conventional_fof
+
+    reports, observations = split_feedback_dataset(ds.copy(deep=True))
+
+    assert reports.sizes["d_hdr"] == ds.attrs["n_hdr"]
+    assert observations.sizes["d_body"] == ds.attrs["n_body"]
+    assert observations["veri_data"].sizes["d_veri"] == ds.sizes["d_veri"]
+    lat = list(observations["lat"].values)
+    assert lat == sorted(lat)
+
+    # reverse the three observations of the last report
+    rep2, obs2 = split_feedback_dataset(ds.isel(d_body=[0, 1, 2, 5, 4, 3]))
+    xr.testing.assert_identical(observations, obs2)
+    xr.testing.assert_identical(reports, rep2)
+
+
+@pytest.mark.parametrize(
+    "dlat_body",
+    [
+        [np.nan] * 6,
+        [47.3, 47.2, 47.1, np.nan, np.nan, np.nan],
+    ],
+    ids=["all_nan", "partly_set"],
+)
+def test_split_non_radar_fof_with_dlat(sample_dataset_fof, dlat_body):
+    """
+    Non-radar fof files can contain dlat/dlon too: all NaN (ICON and LETKF TEMP
+    files), or possibly set for some observations only (e.g. sonde drift; not seen
+    in real files). They are not radar files (obstype != 13): no front-packing
+    check, and the observations keep the lat/lon sort, exactly as without dlat.
+    """
+    base = sample_dataset_fof.assign(obstype=(("d_hdr",), np.full(5, 5.0)))
+    dlat = np.array(dlat_body)
+    ds = base.assign(dlat=(("d_body",), dlat), dlon=(("d_body",), dlat + 1.0))
+
+    rep_ref, obs_ref = split_feedback_dataset(base.copy(deep=True))
+    rep, obs = split_feedback_dataset(ds)
+
+    xr.testing.assert_identical(rep, rep_ref)
+    xr.testing.assert_identical(obs.drop_vars(["dlat", "dlon"]), obs_ref)
+
+
 @pytest.fixture(name="arr1", scope="function")
 def fixture_arr1():
     return np.array([1.0, 5.0, 3.0, 4.0, 7.0], dtype=np.float32)
