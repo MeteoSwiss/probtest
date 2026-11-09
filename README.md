@@ -32,6 +32,8 @@ Reads and modifies model namelists to run a perturbed model ensemble.
 
 Generates a `csv` file containing the min, max and mean values for each of the selected fields on each model level and for each time step.
 
+Model output can be read as NetCDF, CSV, or GRIB, depending on the `format` set for each entry of `file_specification` in the configuration file (see `templates/ICON.jinja` for examples). For GRIB, probtest reads fields via [earthkit-data](https://earthkit-data.readthedocs.io) and automatically registers MeteoSwiss's [`eccodes-cosmo-resources-python`](https://github.com/MeteoSwiss/eccodes-cosmo-resources-python) COSMO/ICON local GRIB definitions with eccodes, so no manual `ECCODES_DEFINITION_PATH` setup is needed. A single GRIB file is commonly not one homogeneous array (it mixes different level types, step types, grids, ...), so it is automatically split into homogeneous groups before conversion; `var_excl` can be used to drop constant grid-geometry fields (e.g. `lon`/`lat`/orography) that should not be tested.
+
 ### tolerance
 
 Computes the maximum spread in each of the selected variables for each time step within a perturbed model ensemble. This step is applied to both files generated with `stats` and fof files from each perturbed ensemble.
