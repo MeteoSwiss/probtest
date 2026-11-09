@@ -272,6 +272,53 @@ def test_fof_compare_conventional_fof(conventional_fof, tmp_dir, monkeypatch, ca
     assert "Files are NOT consistent!" in caplog.text
 
 
+@pytest.mark.parametrize("n_reports", [1, 2])
+def test_fof_compare_one_observation_per_report(
+    conventional_fof, n_reports, tmp_dir, monkeypatch, caplog
+):
+    """
+    Files with one observation per report have n_hdr == n_body. They compare like
+    any other file: consistent with themselves, a changed value is detected. (With
+    a single report all sizes are 1; the d_veri == n_hdr case is covered by
+    test_get_variables_by_dimension_not_size.)
+    """
+    ref = conventional_fof.isel(
+        d_hdr=slice(0, n_reports), d_body=[0, 1][:n_reports]
+    ).assign(
+        l_body=(("d_hdr",), np.ones(n_reports)),
+        i_body=(("d_hdr",), np.arange(1.0, n_reports + 1)),
+    )
+    ref.attrs.update(n_hdr=n_reports, n_body=n_reports)
+    vd = ref["veri_data"].values.copy()
+    vd[-1, -1] += 100.0
+    pert = ref.assign(veri_data=(("d_veri", "d_body"), vd))
+
+    pattern = os.path.join(tmp_dir, "fofONE{fof_type}_%s.nc")
+    for name, dataset in (("ref", ref), ("pert", pert)):
+        dataset.to_netcdf((pattern % name).format(fof_type="MLL"))
+
+    _run_fof_compare(
+        pattern % "ref",
+        pattern % "ref",
+        0.01,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
+    )
+    assert "Files are consistent!" in caplog.text
+    caplog.clear()
+
+    _run_fof_compare(
+        pattern % "ref",
+        pattern % "pert",
+        0.01,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
+    )
+    assert "Files are NOT consistent!" in caplog.text
+
+
 def test_fof_compare_radar_consistent(radar_fof_paths, tmp_dir, monkeypatch, caplog):
     """Two identical padded radar fof files compare as consistent."""
     _run_fof_compare(

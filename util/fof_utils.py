@@ -16,30 +16,18 @@ OBSTYPE_RADAR = 13
 
 def get_report_variables(ds):
     """
-    Get variable names of reports.
+    Get variable names of reports: the variables along d_hdr. Selected by dimension,
+    not size -- d_hdr, d_body and d_veri can have the same size.
     """
-    vars_shape_report = []
-    shape_report = ds["d_hdr"].size
-
-    for var in ds.data_vars:
-        if ds[var].shape[0] == shape_report:
-            vars_shape_report.append(var)
-
-    return vars_shape_report
+    return [var for var in ds.data_vars if ds[var].dims[:1] == ("d_hdr",)]
 
 
 def get_observation_variables(ds):
     """
-    Get variable names of observations.
+    Get variable names of observations: the variables along d_body. Selected by
+    dimension, not size -- d_hdr, d_body and d_veri can have the same size.
     """
-    vars_shape_observation = []
-    shape_observation = ds["d_body"].size
-
-    for var in ds.data_vars:
-        if ds[var].shape[0] == shape_observation:
-            vars_shape_observation.append(var)
-
-    return vars_shape_observation
+    return [var for var in ds.data_vars if ds[var].dims[:1] == ("d_body",)]
 
 
 def split_feedback_dataset(ds):

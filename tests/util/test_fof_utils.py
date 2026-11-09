@@ -124,6 +124,30 @@ def fixture_sample_dataset_veri(sample_dataset_fof):
     return ds_veri
 
 
+def test_get_variables_by_dimension_not_size():
+    """
+    Report and observation variables are told apart by their dimension, not their
+    size: in a file with one observation per report d_hdr and d_body have the same
+    size, and with a single report also d_veri (ICON files have one run). Radar
+    metadata (d_radar) and 0-d variables are neither.
+    """
+    ds = xr.Dataset(
+        {
+            "lat": (("d_hdr",), [46.5, 47.2]),
+            "statid": (("d_hdr",), ["a", "b"]),
+            "obs": (("d_body",), [1.0, 2.0]),
+            "varno": (("d_body",), [2.0, 3.0]),
+            "veri_data": (("d_veri", "d_body"), [[1.5, 2.5], [1.6, 2.6]]),
+            "veri_model": (("d_veri",), ["m1", "m2"]),
+            "radar_azimuth": (("d_radar",), [0.0, 1.0]),
+            "scalar": ((), 1.0),
+        }
+    )
+
+    assert get_report_variables(ds) == ["lat", "statid"]
+    assert get_observation_variables(ds) == ["obs", "varno"]
+
+
 def test_split_report(ds1, ds_report, ds_obs):
     """
     Test that the dataset is correctly split into reports, observations
