@@ -305,6 +305,134 @@ def fixture_sample_dataset_fof():
     return data
 
 
+@pytest.fixture(name="sample_dataset_radar_fof")
+def fixture_sample_dataset_radar_fof():
+    """
+    Radar fof dataset like EMVORADO files: obstype 13, padded with NaN after
+    n_hdr/n_body, dlat/dlon per observation, one missing value in veri_data.
+    """
+    n_hdr_size, d_hdr_size = 3, 5
+    n_body_size, d_body_size = 6, 8
+    d_veri_size = 1
+    nan = np.nan
+
+    # header fields (float; padded tail [n_hdr:d_hdr] = NaN). statid stays string.
+    lat = np.array([10.0, 10.0, 10.0, nan, nan])  # radar-station position
+    lon = np.array([20.0, 20.0, 20.0, nan, nan])
+    statid = ["r1", "r2", "r3", "", ""]
+    time_nomi = np.array([0.0, 0.0, 0.0, nan, nan])
+    codetype = np.array([22.0, 22.0, 22.0, nan, nan])
+    obstype = np.array([13.0, 13.0, 13.0, nan, nan])
+    lbody = np.array([1.0, 2.0, 3.0, nan, nan])  # sum(real) = 6 = n_body
+    ibody = np.array([1.0, 2.0, 4.0, nan, nan])
+
+    # body fields, NaN after n_body
+    dlat = np.array([10.1, 20.1, 20.2, 30.1, 30.2, 30.3, nan, nan])
+    dlon = np.array([100.1, 110.1, 110.2, 120.1, 120.2, 120.3, nan, nan])
+    varno = np.array([192, 192, 192, 192, 192, 192, nan, nan])
+    level = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, nan, nan])
+    # index 2: missing value inside the real region
+    veri_data = np.array(
+        [[10.0, 20.0, nan, 40.0, 50.0, 60.0, nan, nan]]
+    )  # (d_veri, d_body)
+    obs = np.array([11.0, nan, 29.8, 41.0, 52.0, 59.0, nan, nan])
+    state = np.array([1.0, 7, 1.0, 1.0, 1.0, 1.0, nan, nan])
+    flags = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, nan, nan])
+    check = np.array([32, 1, 32, 32, 32, 32, nan, nan])
+
+    data = xr.Dataset(
+        {
+            "lat": (("d_hdr",), lat),
+            "lon": (("d_hdr",), lon),
+            "statid": (("d_hdr",), statid),
+            "time_nomi": (("d_hdr",), time_nomi),
+            "codetype": (("d_hdr",), codetype),
+            "obstype": (("d_hdr",), obstype),
+            "l_body": (("d_hdr",), lbody),
+            "i_body": (("d_hdr",), ibody),
+            "dlat": (("d_body",), dlat),
+            "dlon": (("d_body",), dlon),
+            "varno": (("d_body",), varno),
+            "level": (("d_body",), level),
+            "veri_data": (("d_veri", "d_body"), veri_data),
+            "obs": (("d_body",), obs),
+            "state": (("d_body",), state),
+            "flags": (("d_body",), flags),
+            "check": (("d_body",), check),
+        },
+        coords={
+            "d_hdr": np.arange(d_hdr_size),
+            "d_body": np.arange(d_body_size),
+            "d_veri": np.arange(d_veri_size),
+        },
+        attrs={"n_hdr": n_hdr_size, "n_body": n_body_size},
+    )
+
+    return data
+
+
+# (obstype, verification runs, all-NaN dlat/dlon, LETKF h_loc/v_loc)
+CONVENTIONAL_FOF_FAMILIES = {
+    "icon_synop": (1.0, 1, False, False),
+    "icon_temp": (5.0, 1, True, False),
+    "letkf_synop": (1.0, 4, False, True),
+    "letkf_temp": (5.0, 4, True, True),
+}
+
+
+@pytest.fixture(
+    name="conventional_fof",
+    params=list(CONVENTIONAL_FOF_FAMILIES.values()),
+    ids=list(CONVENTIONAL_FOF_FAMILIES),
+)
+def fixture_conventional_fof(request):
+    """Non-radar fof dataset like ICON and LETKF files (not padded)."""
+    obstype, n_veri, all_nan_dlat, letkf_vars = request.param
+    n_hdr, n_body = 3, 6
+
+    header = {
+        "lat": [46.5, 47.2, 45.9],
+        "lon": [7.4, 8.5, 9.1],
+        "statid": ["06610", "06670", "06770"],
+        "time_nomi": [0.0, 0.0, 30.0],
+        "codetype": [11.0, 11.0, 11.0],
+        "obstype": [obstype] * n_hdr,
+        "l_body": [1.0, 2.0, 3.0],
+        "i_body": [1.0, 2.0, 4.0],
+    }
+    obs = np.array([281.2, 275.4, 3.1, 262.8, 5.6, 248.9])
+    body = {
+        "varno": [2.0, 2.0, 3.0, 2.0, 3.0, 2.0],
+        "level": [850.0, 850.0, 700.0, 850.0, 700.0, 500.0],
+        "obs": obs,
+        "bcor": np.zeros(n_body),
+        "e_o": np.full(n_body, 1.2),
+        "state": np.ones(n_body),
+        "flags": np.zeros(n_body),
+        "check": np.full(n_body, 32.0),
+    }
+    if all_nan_dlat:
+        body["dlat"] = np.full(n_body, np.nan)
+        body["dlon"] = np.full(n_body, np.nan)
+    if letkf_vars:
+        body["h_loc"] = np.full(n_body, 300.0)
+        body["v_loc"] = np.full(n_body, 0.3)
+    veri_data = np.stack([obs + 0.5 + 0.01 * run for run in range(n_veri)])
+
+    data_vars = {k: (("d_hdr",), v) for k, v in header.items()}
+    data_vars.update({k: (("d_body",), v) for k, v in body.items()})
+    data_vars["veri_data"] = (("d_veri", "d_body"), veri_data)
+    return xr.Dataset(
+        data_vars,
+        coords={
+            "d_hdr": np.arange(n_hdr),
+            "d_body": np.arange(n_body),
+            "d_veri": np.arange(n_veri),
+        },
+        attrs={"n_hdr": n_hdr, "n_body": n_body},
+    )
+
+
 @pytest.fixture(scope="function")
 def fof_file_set(tmp_dir, sample_dataset_fof):
     """
