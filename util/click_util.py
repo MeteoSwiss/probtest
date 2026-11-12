@@ -191,8 +191,10 @@ cli_help = {
     + r"calculated tolerances from the ensemble are exactly zero.",
     "verbose": r"Always provide the full DataFrame output.",
     "rules": (
-        "JSON object specifying the rules for comparison. "
-        'Example: \'{"check":[13,18,32],"state":[1,5,7,9]}\''
+        "JSON object specifying the rules for comparison: a list gives values that "
+        "may replace each other, a number the admitted relative difference "
+        "|ref - cur| / (1 + |ref|), not scaled by --factor. "
+        'Example: \'{"check":[13,18,32],"state":[1,5,7,9],"plevel":1e-6}\''
     ),
 }
 
