@@ -20,8 +20,10 @@ pandas = "^2.2"
 regex = "^2024.11"
 xarray = "^2024.11"
 types-python-dateutil = "^2.9.0"
-earthkit-data = "^1.2"
-eccodes-cosmo-resources-python = "2.44.0.1"
+earthkit-data = "~1.2"
+eccodes-cosmo-resources-python = "2.47.0.1"
+eccodes = "2.47.0"
+eccodeslib = ">=2.47,<2.48"
 
 [tool.mypy]
 allow_untyped_defs = true

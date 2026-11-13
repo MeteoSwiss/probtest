@@ -481,17 +481,17 @@ earthkit-data==1.2.2 ; python_version >= "3.10" and python_version < "4.0" \
 earthkit-utils==1.0.2 ; python_version >= "3.10" and python_version < "4.0" \
     --hash=sha256:eef89a1f6a3f03d4cca2b82975a3f4548d3db43a17646014952453b00d98edb8 \
     --hash=sha256:f5e69be87ebfffb2ef5556a0f7439fee6746198c62aa3fe83498e8d327a9fa55
-eccodes-cosmo-resources-python==2.44.0.1 ; python_version >= "3.10" and python_version < "4.0" \
-    --hash=sha256:73e63fac03763cd1ecbb331a7e18a5c6cfed6a0f3d2a707cb2d425e805b0aa85 \
-    --hash=sha256:90d0e2858523bfd795a10ff341d1b11f6cf898c7731dd5edc02852a208da1698
-eccodes==2.48.0 ; python_version >= "3.10" and python_version < "4.0" \
-    --hash=sha256:470eed1c5ba0aa9062a345ac0806cb887e5395263243b2d93c88e45002a035aa \
-    --hash=sha256:764834c8e01580e8a9977876da5e4c988fb2e9fa2d111f4047e97bcd1aab7e75 \
-    --hash=sha256:7ea659eb15044f6ac809636ca1712cd026cdbfad5a189f4c55d86a8711ab1a9d \
-    --hash=sha256:9f4258b1d338cb482284b622e6d363f9121f45959c176f16c7842b024d79e5a0 \
-    --hash=sha256:ae555c99abe13331d5f4a5dd4b4b6ca2ac39aefdc68037b7ebb623df16963778 \
-    --hash=sha256:c1ab184308dc7f132ac0ee7c22521bf8f586b83f9d1a2a82a368c1e641a435b1 \
-    --hash=sha256:e4f2fb293a978117b18c34404c0260868112966be1fd4b6ee8ac947c1552e7c7
+eccodes-cosmo-resources-python==2.47.0.1 ; python_version >= "3.10" and python_version < "4.0" \
+    --hash=sha256:0f929b7d864545ce1ef5e00c1b5d4cb85325b70d5784e6302b5be78c6d4ec67f \
+    --hash=sha256:54aa41a4d755b7c3b2cb860af8297b54c7073c872e80b85a00d83f3041f956ce
+eccodes==2.47.0 ; python_version >= "3.10" and python_version < "4.0" \
+    --hash=sha256:13d0b28bd58e94e2c303f42415ca0dcc56ab3febf0f52b1fb0f1d4aa5e7db8e1 \
+    --hash=sha256:3a7438b259188821a5b05e5dd814f83924936ff9fe0897f6a157506fcaea9baf \
+    --hash=sha256:3b71ae31bca13e4b62712405d7eb3c988b71b0b0bbd85fe4d3eacac7fc67ae27 \
+    --hash=sha256:7ab3b689fd3caa07451f7bcf07329b2268acdc7434bcedac8b13d1f20d3389c0 \
+    --hash=sha256:867419198114f1a4620f0df00a0c17a4b3a8d4c5f284c14fd23e3d2723494580 \
+    --hash=sha256:ae9207ef27c67656d068aab97f172abeb85fc3620f56faa22fdac5b1be75de69 \
+    --hash=sha256:f5f9b71b6e2cb8c9b8349b88a09791e8fb6d51a4396d7160b3da2a83149a4973
 eccodeslib==2.47.3.21 ; python_version >= "3.10" and python_version < "4.0" \
     --hash=sha256:0b7801f2a34ae49a125941509b3645a31e489a25fc34324f0dfc8d5eca99d1be \
     --hash=sha256:12b1ada1078a40a28b12e4c0b906eee4599f640e205e5172a6ac80243d2cd4c7 \
