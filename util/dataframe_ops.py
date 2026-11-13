@@ -388,6 +388,12 @@ def check_file_with_tolerances(
         df_ref = df_ref["observation"]["veri_data"]
         df_cur = df_cur["observation"]["veri_data"]
         df_tol.columns = ["veri_data"]
+        # a missing tolerance row would leave its veri_data row unchecked
+        if len(df_tol) != len(df_ref):
+            raise ValueError(
+                f"tolerance has {len(df_tol)} rows but veri_data has {len(df_ref)} "
+                f"rows in {input_file_ref.path}"
+            )
 
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
@@ -405,6 +411,7 @@ def check_file_with_tolerances(
     if input_file_ref.file_type == FileType.STATS:
         diff_df = diff_df.groupby(["file_ID", "variable"]).max()
 
+    # FOF veri_data is a Series; check_variable expects a DataFrame
     if input_file_ref.file_type == FileType.FOF:
         diff_df = diff_df.to_frame()
 

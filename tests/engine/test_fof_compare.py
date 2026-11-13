@@ -7,6 +7,7 @@ import logging
 import os
 from pathlib import Path
 
+import numpy as np
 import pytest
 from click.testing import CliRunner
 
@@ -166,3 +167,241 @@ def test_fof_compare_consistent(fof_datasets, tmp_dir, monkeypatch, caplog):
         )
 
     assert "Files are consistent!" in caplog.text
+
+
+@pytest.fixture(name="radar_fof_paths", scope="function")
+def fixture_radar_fof_paths(sample_dataset_radar_fof, tmp_dir):
+    """
+    Padded radar fof files: ref/same identical, pert one value changed, bigpad
+    more padding, nanfill one missing value filled.
+    """
+    ds = sample_dataset_radar_fof
+
+    same = ds.copy(deep=True)
+
+    pert = ds.copy(deep=True)
+    vd = pert["veri_data"].values.copy()
+    vd[0, 0] = vd[0, 0] + 100.0
+    pert["veri_data"] = (("d_veri", "d_body"), vd)
+
+    bigpad = ds.pad(d_body=(0, 4), constant_values=np.nan)
+    bigpad.attrs = dict(ds.attrs)  # keep the real n_hdr/n_body counts
+
+    nanfill = ds.copy(deep=True)
+    vdn = nanfill["veri_data"].values.copy()
+    vdn[0, 2] = 3.0  # index 2 is NaN in the fixture's real region
+    nanfill["veri_data"] = (("d_veri", "d_body"), vdn)
+
+    pattern = os.path.join(tmp_dir, "fofRADAR{fof_type}_%s.nc")
+    paths = {}
+    for name, dataset in (
+        ("ref", ds),
+        ("same", same),
+        ("pert", pert),
+        ("bigpad", bigpad),
+        ("nanfill", nanfill),
+    ):
+        placeholder_path = pattern % name
+        dataset.to_netcdf(placeholder_path.format(fof_type="MLL"))
+        paths[name] = placeholder_path
+    return paths
+
+
+def _run_fof_compare(file1, file2, tolerance, *, tmp_dir, monkeypatch, caplog):
+    monkeypatch.chdir(tmp_dir)
+    runner = CliRunner()
+    with caplog.at_level(logging.INFO):
+        runner.invoke(
+            fof_compare,
+            [
+                "--file1",
+                file1,
+                "--file2",
+                file2,
+                "--fof-types",
+                "MLL",
+                "--tolerance",
+                str(tolerance),
+                "--rules",
+                "{}",
+            ],
+        )
+
+
+def test_fof_compare_conventional_fof(conventional_fof, tmp_dir, monkeypatch, caplog):
+    """ICON/LETKF files: consistent with themselves, a changed value is detected."""
+    ref = conventional_fof
+    vd = ref["veri_data"].values.copy()
+    vd[-1, 2] += 100.0  # sorts last: with several runs its row is beyond n_body
+    pert = ref.assign(veri_data=(("d_veri", "d_body"), vd))
+
+    pattern = os.path.join(tmp_dir, "fofCONV{fof_type}_%s.nc")
+    for name, dataset in (("ref", ref), ("pert", pert)):
+        dataset.to_netcdf((pattern % name).format(fof_type="MLL"))
+
+    _run_fof_compare(
+        pattern % "ref",
+        pattern % "ref",
+        0.01,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
+    )
+    assert "Files are consistent!" in caplog.text
+    caplog.clear()
+
+    _run_fof_compare(
+        pattern % "ref",
+        pattern % "pert",
+        0.01,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
+    )
+    assert "Files are NOT consistent!" in caplog.text
+
+
+@pytest.mark.parametrize("n_reports", [1, 2])
+def test_fof_compare_one_observation_per_report(
+    conventional_fof, n_reports, tmp_dir, monkeypatch, caplog
+):
+    """Files with one observation per report (n_hdr == n_body) compare normally."""
+    ref = conventional_fof.isel(
+        d_hdr=slice(0, n_reports), d_body=[0, 1][:n_reports]
+    ).assign(
+        l_body=(("d_hdr",), np.ones(n_reports)),
+        i_body=(("d_hdr",), np.arange(1.0, n_reports + 1)),
+    )
+    ref.attrs.update(n_hdr=n_reports, n_body=n_reports)
+    vd = ref["veri_data"].values.copy()
+    vd[-1, -1] += 100.0
+    pert = ref.assign(veri_data=(("d_veri", "d_body"), vd))
+
+    pattern = os.path.join(tmp_dir, "fofONE{fof_type}_%s.nc")
+    for name, dataset in (("ref", ref), ("pert", pert)):
+        dataset.to_netcdf((pattern % name).format(fof_type="MLL"))
+
+    _run_fof_compare(
+        pattern % "ref",
+        pattern % "ref",
+        0.01,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
+    )
+    assert "Files are consistent!" in caplog.text
+    caplog.clear()
+
+    _run_fof_compare(
+        pattern % "ref",
+        pattern % "pert",
+        0.01,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
+    )
+    assert "Files are NOT consistent!" in caplog.text
+
+
+def test_fof_compare_radar_consistent(radar_fof_paths, tmp_dir, monkeypatch, caplog):
+    """Two identical padded radar fof files compare as consistent."""
+    _run_fof_compare(
+        radar_fof_paths["ref"],
+        radar_fof_paths["same"],
+        1.0,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
+    )
+    assert "Files are consistent!" in caplog.text
+
+
+def test_fof_compare_radar_not_consistent(
+    radar_fof_paths, tmp_dir, monkeypatch, caplog
+):
+    """A single real-region veri_data value out of tolerance is detected."""
+    _run_fof_compare(
+        radar_fof_paths["ref"],
+        radar_fof_paths["pert"],
+        1.0,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
+    )
+    assert "Files are NOT consistent!" in caplog.text
+
+
+def test_fof_compare_radar_different_padding(
+    radar_fof_paths, tmp_dir, monkeypatch, caplog
+):
+    """
+    Two radar files with the same n_body but different d_body (padding) must still
+    compare -- the size gate and tolerance length use n_body, not d_body.
+    """
+    _run_fof_compare(
+        radar_fof_paths["ref"],
+        radar_fof_paths["bigpad"],
+        1.0,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
+    )
+    assert "Files are consistent!" in caplog.text
+
+
+def test_fof_compare_radar_nan_vs_real(radar_fof_paths, tmp_dir, monkeypatch, caplog):
+    """A value missing in one file but present in the other is flagged."""
+    _run_fof_compare(
+        radar_fof_paths["ref"],
+        radar_fof_paths["nanfill"],
+        1.0,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
+    )
+    assert "Files are NOT consistent!" in caplog.text
+
+
+def test_fof_compare_radar_multiple_veri_runs(
+    sample_dataset_radar_fof, tmp_dir, monkeypatch, caplog
+):
+    """With several verification runs every run is compared."""
+    ds = sample_dataset_radar_fof
+    n_body = ds.attrs["n_body"]
+    vd = ds["veri_data"].values
+    multi = np.concatenate([vd, vd + 1.0, vd + 2.0], axis=0)
+    ref = ds.drop_vars(["veri_data", "d_veri"])
+    ref = ref.assign(veri_data=(("d_veri", "d_body"), multi))
+
+    dlat = ds["dlat"].values[:n_body]
+    late = np.zeros(ds.sizes["d_body"], dtype=bool)
+    late[:n_body] = dlat > np.nanmedian(dlat)
+    assert np.isfinite(multi[2, late]).any()
+    changed = multi.copy()
+    changed[2, late] += 100.0
+    pert = ref.assign(veri_data=(("d_veri", "d_body"), changed))
+
+    pattern = os.path.join(tmp_dir, "fofRADAR{fof_type}_%s.nc")
+    for name, dataset in (("multi_ref", ref), ("multi_pert", pert)):
+        dataset.to_netcdf((pattern % name).format(fof_type="MLL"))
+
+    _run_fof_compare(
+        pattern % "multi_ref",
+        pattern % "multi_ref",
+        1.0,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
+    )
+    assert "Files are consistent!" in caplog.text
+    caplog.clear()
+
+    _run_fof_compare(
+        pattern % "multi_ref",
+        pattern % "multi_pert",
+        1.0,
+        tmp_dir=tmp_dir,
+        monkeypatch=monkeypatch,
+        caplog=caplog,
+    )
+    assert "Files are NOT consistent!" in caplog.text
