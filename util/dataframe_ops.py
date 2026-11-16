@@ -125,7 +125,26 @@ def read_input_file(label, file_name, specification):
     return pd.concat(var_dfs, axis=0)
 
 
-def df_from_file_ids(file_id, input_dir, file_specification):
+def filter_variables(df, variables, file_pattern):
+    """
+    Keep only the rows of the given variables. All of them have to be present.
+    """
+    available = df.index.get_level_values("variable")
+    missing = [v for v in variables if v not in available]
+    if missing:
+        logger.error(
+            "The variable(s) %s selected by the variable filter are not "
+            "available for file_pattern `%s`. Available: %s",
+            missing,
+            file_pattern,
+            list(dict.fromkeys(available)),
+        )
+        sys.exit(1)
+
+    return df[available.isin(variables)]
+
+
+def df_from_file_ids(file_id, input_dir, file_specification, variable_filter=None):
     """
     file_id: [[file_type, file_pattern], [file_type, file_pattern], ...]
         List of 2-tuples. The 2-tuple combines two strings. The first sets the
@@ -148,6 +167,9 @@ def df_from_file_ids(file_id, input_dir, file_specification):
                     List possible horizontal dimensions. If multiple horizontal
                     dimensions are used their names must be combined in one string
                     separated by ":".
+    variable_filter: {file_pattern: [variable, ...], ...}
+        Restricts the variables of the files of a file_pattern to the listed
+        ones. All variables are used for a file_pattern that is not a key.
     """
 
     # Collect data frames for each combination of file id (fid) and
@@ -186,7 +208,12 @@ def df_from_file_ids(file_id, input_dir, file_specification):
 
         # same file IDs and file type specification will have same variables but
         # with different timestamps: concatenate along time axis
-        fid_dfs.append(pd.concat(file_dfs, axis=1))
+        fid_df = pd.concat(file_dfs, axis=1)
+        if variable_filter and file_pattern in variable_filter:
+            fid_df = filter_variables(
+                fid_df, variable_filter[file_pattern], file_pattern
+            )
+        fid_dfs.append(fid_df)
 
     if len(fid_dfs) == 0:
         logger.error("Could not find any file.")

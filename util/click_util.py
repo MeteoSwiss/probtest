@@ -92,6 +92,28 @@ class CommaSeparatedStrings(click.ParamType):
         return list(filter(lambda x: x != "", value.split(",")))
 
 
+class JsonDict(click.ParamType):
+    """
+    A custom Click parameter type for a JSON object.
+
+    On the command line the object is given as a JSON string. In the json
+    config file it can be given directly as an object.
+    """
+
+    name = "JsonDict"
+
+    def convert(self, value, param, ctx):
+        if isinstance(value, dict):
+            return value
+        try:
+            parsed = json.loads(value)
+        except (TypeError, json.JSONDecodeError) as e:
+            self.fail(f"Input must be a JSON object: {e}", param, ctx)
+        if not isinstance(parsed, dict):
+            self.fail(f"Input must be a JSON object, found {value}", param, ctx)
+        return parsed
+
+
 cli_help = {
     "model_input_dir": r"The directory where the model input is stored.",
     "perturbed_model_input_dir": r"Template for the directory where the perturbed "
@@ -142,6 +164,10 @@ cli_help = {
     "file_specification": "Specify how different file types shall be read. This "
     + r"option must be defined in the json config file. See doc string of  "
     + r"df_from_file_ids for the specification.",
+    "variable_filter": r"Restrict the statistics to the given variables. JSON "
+    + r"object assigning a list of variable names to a FILE_PATTERN of "
+    + r"""--file-id, e.g. '{"*_2d.nc": ["ps", "tas"]}'. All variables are """
+    + r"used for file patterns that are not listed.",
     "reference_files": r"List of reference file/s to check against, "
     + r"both for stats and fof files.",
     "current_files": r"List of current files to be tested, "

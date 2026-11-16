@@ -147,7 +147,11 @@ def run_perturb_cli(model_input_dir, files, perturb_amplitude, member_ids=range(
 
 
 def run_stats_cli(
-    model_output_dir, stats_file_name, ensemble, perturbed_model_output_dir=None
+    model_output_dir,
+    stats_file_name,
+    ensemble,
+    perturbed_model_output_dir=None,
+    variable_filter=None,
 ):
     args = [
         "--model-output-dir",
@@ -175,6 +179,7 @@ def run_stats_cli(
         if perturbed_model_output_dir
         else []
     )
+    args += ["--variable-filter", variable_filter] if variable_filter else []
     args.append("--ensemble" if ensemble else "--no-ensemble")
 
     run_cli(stats, args)
