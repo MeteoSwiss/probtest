@@ -26,6 +26,7 @@ from util.click_util import load_defaults
 from util.log_handler import initialize_logger
 from visualize.cdo_table_reader import cdo_table_reader
 from visualize.check_plot import check_plot
+from visualize.ensemble_plot import ensemble_plot
 from visualize.performance_meta_data import performance_meta_data
 from visualize.performance_plot import performance_plot
 
@@ -65,6 +66,7 @@ cli.add_command(select_members)
 cli.add_command(run_ensemble)
 cli.add_command(performance)
 cli.add_command(check_plot)
+cli.add_command(ensemble_plot)
 cli.add_command(performance_plot)
 cli.add_command(performance_meta_data)
 cli.add_command(performance_check)

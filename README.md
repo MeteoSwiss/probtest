@@ -60,6 +60,10 @@ Runs an ICON experiment that is set up with mkexp and checks it against the refe
 
 Creates a plot visualizing the results of the comparison conducted with `check`.
 
+### ensemble-plot
+
+Plots the horizontal mean of each variable for every ensemble member and for a current run over time, as the difference to the unperturbed reference. This visualizes the min/max test of `check --method extreme_values`.
+
 ### cdo-table
 
 Often people like to compare model output using `cdo diff`. This tool compares each point of each variable and time step and reports the largest relative error for each. This is different from `stats` which computes differences on statistics (min, max, mean) of each model level and time step. However, the perturbed ensemble can be used to estimate expected errors with `cdo diff` by applying the same algorithm and storing the output in a database.
@@ -341,6 +345,18 @@ with 1 if the test failed.
 Further options are `--environment` (e.g. `levante_gpu`), `--mkexp-option
 KEY=VALUE` for additional mkexp settings and `--output-dirname`. The
 experiments are run in `<build-dir>/experiments`.
+
+The ensemble and the tested run can be compared visually. The grey lines are
+the ensemble members, the black line is the tested run; it has to stay within
+the range of the members to pass with a factor of 1:
+
+```console
+python externals/probtest/probtest.py ensemble-plot \
+    --ensemble-files "<reference-build-dir>/experiments/aes_amip/stats_{member_id}.csv" \
+    --current-files <test-build-dir>/experiments/aes_amip/stats_aes_amip.csv \
+    --member-ids 1,2,3,4,5,6,7,8,9,10 \
+    --savedir <plot-dir>
+```
 
 Both commands chain `run-ensemble`, `stats` and `tolerance` or `check`. To run
 these one by one, write the configuration they use to a file:

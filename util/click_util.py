@@ -220,6 +220,8 @@ cli_help = {
     + r"the log file of each run for the run to be considered successful.",
     "run_log_name": r"Only for the mkexp backend: name of the log file of a run, "
     + r"located next to its run script. \{experiment_name\} is replaced.",
+    "plot_variables": r"Only plot the given variables (comma separated list). "
+    + r"By default all variables are plotted.",
     "savedir": r"The directory where the plots are stored.",
     "cdo_table_file": r"File to store the cdo table into.",
     "variables": r"Select variables to print CDO diff from ensemble.",
