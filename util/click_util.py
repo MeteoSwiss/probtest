@@ -195,6 +195,12 @@ cli_help = {
     + r"member. 'extreme_values': store the reference, minimum and maximum of "
     + r"the horizontal mean over the ensemble for the min/max test "
     + r"(stats files only).",
+    "npz_dimensions": r"Only for the 'extreme_values' method with tolerance "
+    + r"files in the .npz format (file name with the placeholder {dim}). JSON "
+    + r"object assigning a file ID to each dimension, e.g. "
+    + r"""'{"2d": "NetCDF:*_2d.nc", "3d": "NetCDF:*_3d.nc"}'. """
+    + r"By default, the file ID whose variables have a single level is '2d' "
+    + r"and the one with several levels is '3d'.",
     "check_method": r"How the current files are checked. Has to match the "
     + r"method the tolerance files were created with. With 'extreme_values' "
     + r"the reference is read from the tolerance files and --reference-files "

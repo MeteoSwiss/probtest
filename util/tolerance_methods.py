@@ -29,6 +29,7 @@ from util.dataframe_ops import (
     force_monotonic,
     parse_probtest_stats,
 )
+from util.ensemble_stats_io import ENSEMBLE_STATISTICS, read_ensemble_statistics
 from util.log_handler import logger
 from util.utils import FileType
 
@@ -38,8 +39,6 @@ TOLERANCE_METHODS = [METHOD_RELATIVE, METHOD_EXTREME_VALUES]
 
 # statistic of the stats files the extreme-values method is applied to
 EXTREME_VALUES_STATISTIC = "mean"
-# column labels of an ensemble-statistics file
-ENSEMBLE_STATISTICS = ["ref", "min", "max"]
 
 _STATISTIC_LEVEL = 1
 
@@ -187,9 +186,14 @@ def check_extreme_values(df_ens, df_cur, factor):
     )
 
 
-def check_file_with_extreme_values(tolerance_file_name, input_file_cur, factor):
+def check_file_with_extreme_values(
+    tolerance_file_name, input_file_cur, factor, dimensions=None
+):
     """
     Check a current stats file against an ensemble-statistics file.
+
+    dimensions: only for ensemble statistics in the .npz format, see
+        util.ensemble_stats_io.read_npz_set
     """
     if input_file_cur.file_type is not FileType.STATS:
         logger.critical(
@@ -197,8 +201,10 @@ def check_file_with_extreme_values(tolerance_file_name, input_file_cur, factor):
         )
         sys.exit(1)
 
-    df_ens = parse_ensemble_statistics(tolerance_file_name)
     df_cur = parse_probtest_stats(input_file_cur.path, index_col=[0, 1, 2])
+    df_ens = read_ensemble_statistics(
+        tolerance_file_name, df_cur=df_cur, dimensions=dimensions
+    )
 
     logger.info("applying a factor of %s to the spread", factor)
     logger.info(
@@ -208,26 +214,3 @@ def check_file_with_extreme_values(tolerance_file_name, input_file_cur, factor):
     )
 
     return check_extreme_values(df_ens, df_cur, factor)
-
-
-def parse_ensemble_statistics(path):
-    """
-    Read an ensemble-statistics file written by the extreme-values method.
-    """
-    df = parse_probtest_stats(path, index_col=[0, 1, 2])
-
-    labels = set(df.columns.get_level_values(_STATISTIC_LEVEL))
-    if labels != set(ENSEMBLE_STATISTICS):
-        logger.critical(
-            "%s is not an ensemble-statistics file of the %s method "
-            "(expected the statistics %s, found %s). "
-            "Was it created with 'tolerance --method %s'? Abort.",
-            path,
-            METHOD_EXTREME_VALUES,
-            ENSEMBLE_STATISTICS,
-            sorted(labels),
-            METHOD_EXTREME_VALUES,
-        )
-        sys.exit(1)
-
-    return df

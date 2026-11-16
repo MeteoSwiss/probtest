@@ -6,6 +6,7 @@ computes relative differences, and determines the tolerance levels for various
 ensemble members.
 """
 
+import json
 import os
 import sys
 
@@ -13,6 +14,7 @@ import click
 
 from util.click_util import CommaSeparatedInts, CommaSeparatedStrings, cli_help
 from util.dataframe_ops import file_name_parser, has_enough_data
+from util.ensemble_stats_io import write_ensemble_statistics
 from util.log_handler import logger
 from util.tolerance_methods import (
     METHOD_EXTREME_VALUES,
@@ -67,6 +69,11 @@ from util.utils import FileInfo, FileType, expand_fof, expand_members
     default=METHOD_RELATIVE,
     help=cli_help["tolerance_method"],
 )
+@click.option(
+    "--npz-dimensions",
+    default=None,
+    help=cli_help["npz_dimensions"],
+)
 def tolerance(
     ensemble_files,
     tolerance_files,
@@ -75,7 +82,10 @@ def tolerance(
     fof_types,
     minimum_tolerance,
     method,
+    npz_dimensions,
 ):  # pylint: disable=too-many-positional-arguments
+
+    dimensions = json.loads(npz_dimensions) if npz_dimensions else None
 
     files_list = zip(ensemble_files, tolerance_files)
     expanded_zip = expand_fof(files_list, fof_types)
@@ -122,4 +132,7 @@ def tolerance(
             os.makedirs(tolerance_dir, exist_ok=True)
 
         logger.info("writing tolerance file to %s", tol)
-        df_max.to_csv(tol)
+        if method == METHOD_EXTREME_VALUES:
+            write_ensemble_statistics(df_max, tol, dimensions=dimensions)
+        else:
+            df_max.to_csv(tol)

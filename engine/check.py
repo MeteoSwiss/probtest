@@ -66,6 +66,11 @@ from util.utils import FileInfo, expand_fof
     default=METHOD_RELATIVE,
     help=cli_help["check_method"],
 )
+@click.option(
+    "--npz-dimensions",
+    default=None,
+    help=cli_help["npz_dimensions"],
+)
 def check(
     reference_files,
     current_files,
@@ -75,6 +80,7 @@ def check(
     rules: str,
     verbose: bool,
     method: str,
+    npz_dimensions,
 ):  # pylint: disable=too-many-positional-arguments
 
     parsed_rules = json.loads(rules)
@@ -86,7 +92,10 @@ def check(
             zip(current_files, tolerance_files), fof_types
         ):
             result = check_file_with_extreme_values(
-                tolerance_file, FileInfo(current_file), factor
+                tolerance_file,
+                FileInfo(current_file),
+                factor,
+                dimensions=json.loads(npz_dimensions) if npz_dimensions else None,
             )
             log_extreme_values_report(logger, result, verbose=verbose)
             logger.info(

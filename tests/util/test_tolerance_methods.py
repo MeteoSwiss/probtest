@@ -6,17 +6,16 @@ method, on the level of the functions and of the tolerance and check CLIs.
 import logging
 
 import numpy as np
-import pandas as pd
 import pytest
 from click.testing import CliRunner
 
 from engine.check import check
 from engine.tolerance import tolerance
+from tests.helpers import make_mean_stats
+from util.ensemble_stats_io import ENSEMBLE_STATISTICS, parse_ensemble_statistics
 from util.tolerance_methods import (
-    ENSEMBLE_STATISTICS,
     build_extreme_values_statistics,
     check_extreme_values,
-    parse_ensemble_statistics,
 )
 
 N_TIME = 4
@@ -30,21 +29,7 @@ ROWS = [
 
 
 def make_stats(mean):
-    """
-    Stats DataFrame in the layout of the stats files from an array of
-    horizontal means with the shape (rows, time).
-    """
-    index = pd.MultiIndex.from_tuples(ROWS, names=["file_ID", "variable", "height"])
-    columns = pd.MultiIndex.from_product(
-        [range(mean.shape[1]), ["mean", "max", "min"]], names=["time", "statistic"]
-    )
-    df = pd.DataFrame(index=index, columns=columns, dtype=np.float64)
-    for t in range(mean.shape[1]):
-        df[(t, "mean")] = mean[:, t]
-        # max and min of the field must not influence the method
-        df[(t, "max")] = mean[:, t] + 1000.0
-        df[(t, "min")] = mean[:, t] - 1000.0
-    return df
+    return make_mean_stats(ROWS, mean)
 
 
 def reference_extreme_values(x, ref, ens_min, ens_max, factor):
