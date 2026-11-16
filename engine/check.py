@@ -12,7 +12,7 @@ import sys
 
 import click
 
-from util.click_util import CommaSeparatedStrings, cli_help
+from util.click_util import CommaSeparatedStrings, JsonDict, cli_help
 from util.dataframe_ops import check_file_with_tolerances, compute_division
 from util.log_handler import log_dataframe, log_extreme_values_report, logger
 from util.tolerance_methods import (
@@ -68,6 +68,7 @@ from util.utils import FileInfo, expand_fof
 )
 @click.option(
     "--npz-dimensions",
+    type=JsonDict(),
     default=None,
     help=cli_help["npz_dimensions"],
 )
@@ -95,7 +96,7 @@ def check(
                 tolerance_file,
                 FileInfo(current_file),
                 factor,
-                dimensions=json.loads(npz_dimensions) if npz_dimensions else None,
+                dimensions=npz_dimensions,
             )
             log_extreme_values_report(logger, result, verbose=verbose)
             logger.info(

@@ -38,6 +38,15 @@ def load_defaults(sections):
                 logger.error("failed to load configfile %s", configfile)
                 logger.error(err)
 
+    return merge_defaults(config, sections)
+
+
+def merge_defaults(config, sections):
+    """
+    Defaults of a command from a config: the section "default", overridden by
+    the sections of the command (e.g. "run" and "run-ensemble" for the
+    sections ["run", "ensemble"]).
+    """
     tmp = {}
     if config:
         # set default variables
@@ -243,6 +252,16 @@ cli_help = {
     + r"""'{"2d": "NetCDF:*_2d.nc", "3d": "NetCDF:*_3d.nc"}'. """
     + r"By default, the file ID whose variables have a single level is '2d' "
     + r"and the one with several levels is '3d'.",
+    "npz_times": r"Only for the 'extreme_values' method with tolerance files in "
+    + r"the .npz format. JSON object assigning to a dimension the model output "
+    + r"file(s) the time axis is read from and stored in the tolerance files, "
+    + r"""e.g. '{"2d": "experiments/exp/*_2d.nc"}'. By default, the indices of """
+    + r"the time steps are stored.",
+    "chilitest_config": r"Create the configuration from a chilitest application "
+    + r"configuration file (see the commands mkexp-reference and mkexp-test) "
+    + r"instead of the template given by --template-name. Requires "
+    + r"--mkexp-config, --build-dir and --stats-dir. All other options except "
+    + r"--config and the ones listed below are ignored.",
     "check_method": r"How the current files are checked. Has to match the "
     + r"method the tolerance files were created with. With 'extreme_values' "
     + r"the reference is read from the tolerance files and --reference-files "

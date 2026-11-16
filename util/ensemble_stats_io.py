@@ -33,6 +33,7 @@ import sys
 
 import numpy as np
 import pandas as pd
+import xarray as xr
 
 from util.dataframe_ops import parse_probtest_stats
 from util.log_handler import logger
@@ -160,8 +161,7 @@ def _file_ids_by_dimension(df_ens, dimensions):
     file_ids = list(dict.fromkeys(df_ens.index.get_level_values("file_ID")))
 
     if dimensions is not None:
-        unknown = set(dimensions.values()) - set(file_ids)
-        if unknown or set(dimensions.values()) != set(file_ids):
+        if set(dimensions.values()) != set(file_ids):
             _abort(
                 "The dimensions %s do not match the file IDs of the ensemble "
                 "statistics %s.",
@@ -184,6 +184,21 @@ def _file_ids_by_dimension(df_ens, dimensions):
             )
         by_dimension[dim] = file_id
     return by_dimension
+
+
+def read_netcdf_times(pattern, time_dim="time"):
+    """
+    The decoded time axis of the model output file(s) matching pattern.
+    """
+    file_names = sorted(glob.glob(str(pattern)))
+    if not file_names:
+        _abort("No file found for %s to read the time axis from.", pattern)
+
+    times = []
+    for file_name in file_names:
+        with xr.open_dataset(file_name) as ds:
+            times.append(ds[time_dim].to_numpy())
+    return np.concatenate(times)
 
 
 def write_npz_set(df_ens, path, dimensions=None, times=None):
@@ -210,13 +225,17 @@ def write_npz_set(df_ens, path, dimensions=None, times=None):
         if dim == DIM_2D and not single_level:
             _abort("%s has several levels and cannot be stored as %s.", file_id, dim)
 
-        arrays = {
-            "times": (
-                np.asarray(times[dim])
-                if times is not None and dim in times
-                else np.arange(n_time, dtype=np.float64)
-            )
-        }
+        arrays = {"times": np.arange(n_time, dtype=np.float64)}
+        if times is not None and dim in times:
+            arrays["times"] = np.asarray(times[dim])
+            if len(arrays["times"]) != n_time:
+                _abort(
+                    "The time axis given for the dimension %s has %s entries, "
+                    "but the ensemble statistics have %s time steps.",
+                    dim,
+                    len(arrays["times"]),
+                    n_time,
+                )
         if dim != DIM_2D:
             arrays["plev"] = np.asarray(next(iter(levels.values())), dtype=np.float64)
 

@@ -1,0 +1,64 @@
+{
+    "default":
+        {
+            "experiment_name": "{{experiment_name}}",
+            "perturbed_experiment_name": "{{experiment_name}}_member_id_{member_id}",
+            "model_output_dir": "{{build_dir}}/experiments/{{experiment_name}}/work",
+            "perturbed_model_output_dir": "{{build_dir}}/experiments/{{experiment_name}}_member_id_{member_id}/work",
+            "member_type": "",
+            "ensemble_files": "{{build_dir}}/experiments/{{experiment_name}}/stats_{member_id}.csv",
+            "tolerance_files": "{{stats_dir}}/{{experiment_name}}_stats_{dim}.npz",
+            "file_specification": [{
+                "NetCDF": { "format": "netcdf", "time_dim": "time", "horizontal_dims": ["ncells", "ncells_2", "nedges", "nvertices"] }
+            }]
+        },
+    "run":
+        {
+            "backend": "mkexp",
+            "mkexp_path": "{{mkexp_path}}",
+            "mkexp_config": "{{mkexp_config}}",
+            "mkexp_option": [
+                "namelists.NAMELIST_atm.io_nml.lnetcdf_flt64_output=.TRUE.",
+                "abs_top_srcdir={{src_dir}}",
+                "abs_top_builddir={{build_dir}}",
+                "SCRIPT_DIR={{build_dir}}/experiments/$EXP_ID/scripts",
+                "LOG_DIR={{build_dir}}/experiments/$EXP_ID/log",
+                "WORK_DIR={{build_dir}}/experiments/$EXP_ID/work",
+                "DATA_DIR={{build_dir}}/experiments/$EXP_ID/data",
+                "WRITE_COMPRESSION= ",
+                "EXP_OPTIONS+=rbf_coeffs/read"
+            ],
+            "run_dir": "{{build_dir}}/run",
+            "run_script_name": "{{build_dir}}/experiments/{{experiment_name}}/scripts/{{experiment_name}}.run_start",
+            "perturbed_run_script_name": "{{build_dir}}/experiments/{{experiment_name}}_member_id_{member_id}/scripts/{{experiment_name}}_member_id_{member_id}.run_start",
+            "lhs": ["namelists.NAMELIST_atm.initicon_nml.pinit_seed", "namelists.NAMELIST_atm.initicon_nml.pinit_amplitude"],
+            "submit_command": "sbatch --wait",
+            "parallel": true,
+            "dry": false,
+            "success_marker": "Experiment finished successfully",
+            "run_log_name": "{experiment_name}.run.log"
+        },
+    "stats":
+        {
+            "stats_file_name": "{{build_dir}}/experiments/{{experiment_name}}/stats_{member_id}.csv"
+        },
+    "tolerance":
+        {
+            "method": "extreme_values"
+        },
+    "check":
+        {
+            "method": "extreme_values",
+            "current_files": "{{build_dir}}/experiments/{{experiment_name}}/stats_{{experiment_name}}.csv"
+        },
+    "mkexp_workflow":
+        {
+            "file_type": "NetCDF",
+            "file_patterns": {
+                "2d": "{{output_dirname}}/*_2d.nc",
+                "3d": "{{output_dirname}}/*_3d.nc"
+            },
+            "version_command": ["{{build_dir}}/bin/icon", "--version"],
+            "version_file": "{{stats_dir}}/{{experiment_name}}_version.txt"
+        }
+}
