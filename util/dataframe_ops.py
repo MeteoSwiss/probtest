@@ -55,19 +55,21 @@ def compute_division(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def parse_probtest_stats(path, index_col=None, float_precision=None):
-    """
-    Read a stats or tolerance file.
+# pandas' default float parser may be off by one unit in the last place.
+# All probtest files are read with the exact parser, so that values survive a
+# write/read cycle unchanged (to_csv writes the shortest exact representation).
+CSV_FLOAT_PRECISION = "round_trip"
 
-    float_precision is passed on to pandas.read_csv. The default parser may be
-    off by one unit in the last place; "round_trip" restores the written
-    values exactly.
-    """
+
+def parse_probtest_stats(path, index_col=None):
     if index_col is None:
         index_col = [0, 1, 2]
 
     df = pd.read_csv(
-        path, index_col=index_col, header=[0, 1], float_precision=float_precision
+        path,
+        index_col=index_col,
+        header=[0, 1],
+        float_precision=CSV_FLOAT_PRECISION,
     )
 
     times = df.columns.levels[0].astype(int)
@@ -320,7 +322,9 @@ def parse_check(
                                                 dict of DataFrames for fof files).
     """
     if input_file_ref.file_type == FileType.FOF:
-        df_tol = pd.read_csv(tolerance_file_name, index_col=0)
+        df_tol = pd.read_csv(
+            tolerance_file_name, index_col=0, float_precision=CSV_FLOAT_PRECISION
+        )
         df_ref_rep, df_ref_obs = parse_probtest_fof(input_file_ref.path)
         df_cur_rep, df_cur_obs = parse_probtest_fof(input_file_cur.path)
 

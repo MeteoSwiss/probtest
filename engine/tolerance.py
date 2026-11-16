@@ -20,15 +20,8 @@ from util.tolerance_methods import (
     TOLERANCE_METHODS,
     build_extreme_values_statistics,
     build_relative_tolerance,
-    parse_stats_exact,
 )
 from util.utils import FileInfo, FileType, expand_fof, expand_members
-
-
-def _parser(info, method):
-    if method == METHOD_EXTREME_VALUES and info.file_type is FileType.STATS:
-        return parse_stats_exact
-    return file_name_parser[info.file_type]
 
 
 @click.command()
@@ -93,7 +86,7 @@ def tolerance(
             mem, member_ids=member_ids, member_type=member_type
         )
         dfs = [
-            _parser(info, method)(info.path)
+            file_name_parser[info.file_type](info.path)
             for file in ensemble_files
             for info in [FileInfo(file)]
         ]
@@ -101,7 +94,7 @@ def tolerance(
         ref_info = FileInfo(mem.format(member_id="ref", member_type=""))
         if ref_info.file_type is FileType.FOF:
             ref_info.path = ref_info.path.replace("ref", "")
-        df_ref = _parser(ref_info, method)(ref_info.path)
+        df_ref = file_name_parser[ref_info.file_type](ref_info.path)
 
         has_enough_data(dfs)
         df_ref = df_ref["veri_data"] if ref_info.file_type is FileType.FOF else df_ref

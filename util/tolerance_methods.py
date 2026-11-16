@@ -44,15 +44,6 @@ ENSEMBLE_STATISTICS = ["ref", "min", "max"]
 _STATISTIC_LEVEL = 1
 
 
-def parse_stats_exact(path):
-    """
-    Read a stats file without rounding errors. The extreme-values method
-    compares values down to the machine epsilon, so every file it reads has to
-    be parsed exactly.
-    """
-    return parse_probtest_stats(path, index_col=[0, 1, 2], float_precision="round_trip")
-
-
 def build_relative_tolerance(df_ref, dfs, file_type, minimum_tolerance):
     """
     Largest relative difference between the reference and any member.
@@ -207,7 +198,7 @@ def check_file_with_extreme_values(tolerance_file_name, input_file_cur, factor):
         sys.exit(1)
 
     df_ens = parse_ensemble_statistics(tolerance_file_name)
-    df_cur = parse_stats_exact(input_file_cur.path)
+    df_cur = parse_probtest_stats(input_file_cur.path, index_col=[0, 1, 2])
 
     logger.info("applying a factor of %s to the spread", factor)
     logger.info(
@@ -223,7 +214,7 @@ def parse_ensemble_statistics(path):
     """
     Read an ensemble-statistics file written by the extreme-values method.
     """
-    df = parse_stats_exact(path)
+    df = parse_probtest_stats(path, index_col=[0, 1, 2])
 
     labels = set(df.columns.get_level_values(_STATISTIC_LEVEL))
     if labels != set(ENSEMBLE_STATISTICS):

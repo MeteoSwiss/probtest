@@ -206,7 +206,12 @@ def parse_csv(file_id, filename, specification):
     """
     logger.debug("parse CSV file %s", filename)
 
-    csv = pd.read_csv(filename, **specification["parser_args"])
+    parser_args = dict(specification["parser_args"])
+    # read all digits exactly; the python engine always does and rejects the option
+    if parser_args.get("engine") != "python":
+        parser_args.setdefault("float_precision", "round_trip")
+
+    csv = pd.read_csv(filename, **parser_args)
 
     # transpose data such that time is along columns
     csv = csv.transpose()
