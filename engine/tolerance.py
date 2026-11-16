@@ -7,19 +7,28 @@ ensemble members.
 """
 
 import os
+import sys
 
 import click
-import pandas as pd
 
 from util.click_util import CommaSeparatedInts, CommaSeparatedStrings, cli_help
-from util.dataframe_ops import (
-    compute_rel_diff_dataframe,
-    file_name_parser,
-    force_monotonic,
-    has_enough_data,
-)
+from util.dataframe_ops import file_name_parser, has_enough_data
 from util.log_handler import logger
+from util.tolerance_methods import (
+    METHOD_EXTREME_VALUES,
+    METHOD_RELATIVE,
+    TOLERANCE_METHODS,
+    build_extreme_values_statistics,
+    build_relative_tolerance,
+    parse_stats_exact,
+)
 from util.utils import FileInfo, FileType, expand_fof, expand_members
+
+
+def _parser(info, method):
+    if method == METHOD_EXTREME_VALUES and info.file_type is FileType.STATS:
+        return parse_stats_exact
+    return file_name_parser[info.file_type]
 
 
 @click.command()
@@ -59,6 +68,12 @@ from util.utils import FileInfo, FileType, expand_fof, expand_members
     default="0.0",
     help=cli_help["minimum_tolerance"],
 )
+@click.option(
+    "--method",
+    type=click.Choice(TOLERANCE_METHODS),
+    default=METHOD_RELATIVE,
+    help=cli_help["tolerance_method"],
+)
 def tolerance(
     ensemble_files,
     tolerance_files,
@@ -66,6 +81,7 @@ def tolerance(
     member_type,
     fof_types,
     minimum_tolerance,
+    method,
 ):  # pylint: disable=too-many-positional-arguments
 
     files_list = zip(ensemble_files, tolerance_files)
@@ -77,7 +93,7 @@ def tolerance(
             mem, member_ids=member_ids, member_type=member_type
         )
         dfs = [
-            file_name_parser[info.file_type](info.path)
+            _parser(info, method)(info.path)
             for file in ensemble_files
             for info in [FileInfo(file)]
         ]
@@ -85,7 +101,7 @@ def tolerance(
         ref_info = FileInfo(mem.format(member_id="ref", member_type=""))
         if ref_info.file_type is FileType.FOF:
             ref_info.path = ref_info.path.replace("ref", "")
-        df_ref = file_name_parser[ref_info.file_type](ref_info.path)
+        df_ref = _parser(ref_info, method)(ref_info.path)
 
         has_enough_data(dfs)
         df_ref = df_ref["veri_data"] if ref_info.file_type is FileType.FOF else df_ref
@@ -95,21 +111,16 @@ def tolerance(
             else dfs
         )
 
-        rdiff = [compute_rel_diff_dataframe(df_ref, df) for df in dfs]
-
-        if ref_info.file_type is FileType.STATS:
-            rdiff_max = [r.groupby(["file_ID", "variable"]).max() for r in rdiff]
-            df_max = pd.concat(rdiff_max).groupby(["file_ID", "variable"]).max()
-            df_max = df_max.map(
-                lambda x: minimum_tolerance if x < minimum_tolerance else x
-            )
-
-            force_monotonic(df_max)
-
-        elif ref_info.file_type is FileType.FOF:
-            df_max = pd.concat(rdiff, axis=1).max(axis=1)
-            df_max = df_max.map(
-                lambda x: minimum_tolerance if x < minimum_tolerance else x
+        if method == METHOD_EXTREME_VALUES:
+            if ref_info.file_type is not FileType.STATS:
+                logger.critical(
+                    "The %s method only supports stats files. Abort.", method
+                )
+                sys.exit(1)
+            df_max = build_extreme_values_statistics(df_ref, dfs)
+        else:
+            df_max = build_relative_tolerance(
+                df_ref, dfs, ref_info.file_type, minimum_tolerance
             )
 
         tolerance_dir = os.path.dirname(tol)

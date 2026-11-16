@@ -14,7 +14,13 @@ import click
 
 from util.click_util import CommaSeparatedStrings, cli_help
 from util.dataframe_ops import check_file_with_tolerances, compute_division
-from util.log_handler import log_dataframe, logger
+from util.log_handler import log_dataframe, log_extreme_values_report, logger
+from util.tolerance_methods import (
+    METHOD_EXTREME_VALUES,
+    METHOD_RELATIVE,
+    TOLERANCE_METHODS,
+    check_file_with_extreme_values,
+)
 from util.utils import FileInfo, expand_fof
 
 
@@ -54,6 +60,12 @@ from util.utils import FileInfo, expand_fof
     is_flag=True,
     help=cli_help["verbose"],
 )
+@click.option(
+    "--method",
+    type=click.Choice(TOLERANCE_METHODS),
+    default=METHOD_RELATIVE,
+    help=cli_help["check_method"],
+)
 def check(
     reference_files,
     current_files,
@@ -62,9 +74,29 @@ def check(
     fof_types,
     rules: str,
     verbose: bool,
+    method: str,
 ):  # pylint: disable=too-many-positional-arguments
 
     parsed_rules = json.loads(rules)
+
+    if method == METHOD_EXTREME_VALUES:
+        # the ensemble-statistics file contains the reference
+        all_out = True
+        for current_file, tolerance_file in expand_fof(
+            zip(current_files, tolerance_files), fof_types
+        ):
+            result = check_file_with_extreme_values(
+                tolerance_file, FileInfo(current_file), factor
+            )
+            log_extreme_values_report(logger, result, verbose=verbose)
+            logger.info(
+                "RESULT: check %s for %s",
+                "PASSED" if result.passed else "FAILED",
+                current_file,
+            )
+            all_out = all_out and result.passed
+
+        sys.exit(0 if all_out else 1)
 
     zipped = zip(reference_files, current_files, tolerance_files)
 

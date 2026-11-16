@@ -190,6 +190,15 @@ cli_help = {
     "minimum_tolerance": r"Non-zero value to set variable tolerances to when the "
     + r"calculated tolerances from the ensemble are exactly zero.",
     "verbose": r"Always provide the full DataFrame output.",
+    "tolerance_method": r"How the tolerance is derived from the ensemble. "
+    + r"'relative': largest relative difference between the reference and any "
+    + r"member. 'extreme_values': store the reference, minimum and maximum of "
+    + r"the horizontal mean over the ensemble for the min/max test "
+    + r"(stats files only).",
+    "check_method": r"How the current files are checked. Has to match the "
+    + r"method the tolerance files were created with. With 'extreme_values' "
+    + r"the reference is read from the tolerance files and --reference-files "
+    + r"is not used.",
     "rules": (
         "JSON object specifying the rules for comparison. "
         'Example: \'{"check":[13,18,32],"state":[1,5,7,9]}\''

@@ -55,11 +55,20 @@ def compute_division(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def parse_probtest_stats(path, index_col=None):
+def parse_probtest_stats(path, index_col=None, float_precision=None):
+    """
+    Read a stats or tolerance file.
+
+    float_precision is passed on to pandas.read_csv. The default parser may be
+    off by one unit in the last place; "round_trip" restores the written
+    values exactly.
+    """
     if index_col is None:
         index_col = [0, 1, 2]
 
-    df = pd.read_csv(path, index_col=index_col, header=[0, 1])
+    df = pd.read_csv(
+        path, index_col=index_col, header=[0, 1], float_precision=float_precision
+    )
 
     times = df.columns.levels[0].astype(int)
     df.columns = df.columns.set_levels(times, level=0)
