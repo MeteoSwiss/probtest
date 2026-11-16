@@ -195,6 +195,22 @@ cli_help = {
     "submit_command": r"How a model simulation is submitted.",
     "parallel": r"Run jobs in parallel.",
     "dry": r"Only generate runscripts, do not run the model.",
+    "run_backend": r"How the run scripts are created. 'runscript': copy "
+    + r"the run script and replace assignments in it. 'mkexp': generate them "
+    + r"with mkexp, see --mkexp-path, --mkexp-config and --mkexp-option. With "
+    + r"'mkexp', --lhs and --rhs-new are passed to mkexp as KEY=VALUE for the "
+    + r"members, and the run script names are the scripts mkexp generates.",
+    "mkexp_path": r"Path to the mkexp executable.",
+    "mkexp_config": r"Experiment configuration file passed to mkexp.",
+    "mkexp_option": r"Setting passed to mkexp for all runs, overriding the "
+    + r"experiment configuration. Use KEY+=VALUE to append to a setting. Can be "
+    + r"given multiple times.",
+    "restart": r"Only for the mkexp backend: continue a previous run of the "
+    + r"experiments instead of starting from the beginning.",
+    "success_marker": r"Only for the mkexp backend: text that has to appear in "
+    + r"the log file of each run for the run to be considered successful.",
+    "run_log_name": r"Only for the mkexp backend: name of the log file of a run, "
+    + r"located next to its run script. \{experiment_name\} is replaced.",
     "savedir": r"The directory where the plots are stored.",
     "cdo_table_file": r"File to store the cdo table into.",
     "variables": r"Select variables to print CDO diff from ensemble.",
