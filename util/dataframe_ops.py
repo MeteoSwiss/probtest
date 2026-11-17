@@ -7,7 +7,7 @@ reference datasets with specified tolerances.
 
 import sys
 import warnings
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -334,7 +334,7 @@ def check_file_with_tolerances(
     input_file_ref,
     input_file_cur,
     factor,
-    rules: Optional[dict[str, list[int]]] = None,
+    rules: Optional[dict[str, Union[list[int], float]]] = None,
 ):
     """
     This function calculates the relative difference between the current file and
@@ -435,13 +435,23 @@ file_name_parser = {
 }
 
 
+def within_rel_tolerance(ref, cur, tol) -> bool:
+    """True if |ref - cur| <= tol * (1 + |ref|); non-numeric values never are."""
+    try:
+        return bool(abs(ref - cur) <= tol * (1.0 + abs(ref)))
+    except TypeError:
+        return False
+
+
 def compare_cells_rules(
-    ref_df, cur_df, cols, rules: dict[str, list[int]], detailed_logger
+    ref_df, cur_df, cols, rules: dict[str, Union[list[int], float]], detailed_logger
 ):
     """
     This function compares two DataFrames cell by cell for a selected set of columns.
-    For each row and column, it ignores values that are equal or whose differences
-    are allowed by predefined rules.
+    For each row and column, it ignores values that are equal, missing in both, or
+    whose differences are allowed by the rule of the column: a list of values that
+    may replace each other, or a number, the admitted relative difference
+    |ref - cur| / (1 + |ref|), not scaled by the tolerance factor.
     All other differences not admitted are stored in a log file.
     """
     errors = False
@@ -452,11 +462,14 @@ def compare_cells_rules(
             val1 = getattr(row1, col)
             val2 = getattr(row2, col)
 
-            if val1 == val2:
+            if val1 == val2 or (pd.isna(val1) and pd.isna(val2)):
                 continue
 
-            allowed = rules.get(col, [])
-            if val1 in allowed and val2 in allowed:
+            rule = rules.get(col, [])
+            if isinstance(rule, list):
+                if val1 in rule and val2 in rule:
+                    continue
+            elif within_rel_tolerance(val1, val2, rule):
                 continue
 
             detailed_logger.info(
@@ -472,7 +485,7 @@ def compare_cells_rules(
 
 
 def check_multiple_solutions_from_dict(
-    dict_ref, dict_cur, rules: dict[str, list[int]], log_file_name
+    dict_ref, dict_cur, rules: dict[str, Union[list[int], float]], log_file_name
 ):
     """
     This function compares two Python dictionaries, each containing DataFrames under
@@ -504,7 +517,7 @@ def check_multiple_solutions_from_dict(
                 return True
 
         if cols_with_rules:
-            errors = compare_cells_rules(
+            errors |= compare_cells_rules(
                 ref_df, cur_df, cols_with_rules, rules, detailed_logger
             )
     clean_logger_file_if_only_details(log_file_name)
