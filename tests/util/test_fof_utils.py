@@ -6,6 +6,7 @@ from unittest.mock import mock_open, patch
 
 import numpy as np
 import pytest
+import xarray as xr
 
 from util.fof_utils import (  # write_lines,
     clean_value,
@@ -123,6 +124,25 @@ def fixture_sample_dataset_veri(sample_dataset_fof):
     return ds_veri
 
 
+def test_get_variables_by_dimension_not_size():
+    """Variables are selected by dimension, not size (all sizes are 2 here)."""
+    ds = xr.Dataset(
+        {
+            "lat": (("d_hdr",), [46.5, 47.2]),
+            "statid": (("d_hdr",), ["a", "b"]),
+            "obs": (("d_body",), [1.0, 2.0]),
+            "varno": (("d_body",), [2.0, 3.0]),
+            "veri_data": (("d_veri", "d_body"), [[1.5, 2.5], [1.6, 2.6]]),
+            "veri_model": (("d_veri",), ["m1", "m2"]),
+            "radar_azimuth": (("d_radar",), [0.0, 1.0]),
+            "scalar": ((), 1.0),
+        }
+    )
+
+    assert get_report_variables(ds) == ["lat", "statid"]
+    assert get_observation_variables(ds) == ["obs", "varno"]
+
+
 def test_split_report(ds1, ds_report, ds_obs):
     """
     Test that the dataset is correctly split into reports, observations
@@ -131,6 +151,159 @@ def test_split_report(ds1, ds_report, ds_obs):
     reports, observations = split_feedback_dataset(ds1)
 
     assert reports == ds_report and observations == ds_obs
+
+
+def test_split_multiple_veri_runs(sample_dataset_radar_fof):
+    """All verification runs are kept (d_veri > 1, as in LETKF files)."""
+    ds = sample_dataset_radar_fof
+    n_body = ds.attrs["n_body"]
+
+    # stack the single run into three distinct verification runs
+    vd = ds["veri_data"].values
+    multi = np.concatenate([vd, vd + 1.0, vd + 2.0], axis=0)  # (3, d_body)
+    ds = ds.drop_vars(["veri_data", "d_veri"])
+    ds = ds.assign(veri_data=(("d_veri", "d_body"), multi))
+    ds = ds.assign_coords(d_veri=np.arange(3))
+
+    _, observations = split_feedback_dataset(ds)
+
+    # all runs survive, padding stripped on the body axis only
+    assert observations["veri_data"].sizes["d_veri"] == 3
+    assert observations["veri_data"].sizes["d_body"] == n_body
+
+
+def test_split_radar_fof(sample_dataset_radar_fof):
+    """
+    Radar padding is stripped by the n_* counts, real NaNs are kept, observations
+    are sorted by dlat.
+    """
+    ds = sample_dataset_radar_fof
+    n_hdr = ds.attrs["n_hdr"]
+    n_body = ds.attrs["n_body"]
+
+    reports, observations = split_feedback_dataset(ds)
+
+    # padding stripped to the real counts on both dimensions
+    assert reports.sizes["d_hdr"] == n_hdr
+    assert observations.sizes["d_body"] == n_body
+
+    # report padding rows are gone -> only the real station ids remain
+    assert list(reports["statid"].values.astype(str)) == ["r1", "r2", "r3"]
+
+    # 2-D veri_data (d_veri, d_body) survives the slice with the right body length
+    assert observations["veri_data"].sizes["d_body"] == n_body
+
+    # a real-region NaN in veri_data is preserved (only padding is removed, by count)
+    assert np.isnan(observations["veri_data"].values).any()
+
+    # observations are deterministically ordered by dlat (radar branch)
+    dlat_vals = observations["dlat"].values
+    assert list(dlat_vals) == sorted(dlat_vals), "observations not sorted by dlat"
+
+
+def test_split_radar_fof_scattered_padding_raises(sample_dataset_radar_fof):
+    """A real radar observation inside the padding raises."""
+    ds = sample_dataset_radar_fof.copy(deep=True)
+    # move a real observation into the padding
+    dlat = ds["dlat"].values.copy()
+    dlat[5], dlat[7] = dlat[7], dlat[5]
+    ds["dlat"] = (("d_body",), dlat)
+    with pytest.raises(ValueError, match="not front-packed"):
+        split_feedback_dataset(ds)
+
+
+def test_split_feedback_sort_is_deterministic(
+    sample_dataset_radar_fof, sample_dataset_fof
+):
+    """The order after splitting does not depend on the stored order."""
+    cases = [
+        # reverse the 3 observations of the last header block (body indices 3,4,5)
+        (sample_dataset_radar_fof, [0, 1, 2, 5, 4, 3, 6, 7]),
+        # reverse the 2 observations of the last header block (body indices 4,5)
+        (sample_dataset_fof, [0, 1, 2, 3, 5, 4]),
+    ]
+    for ds, body_perm in cases:
+        rep1, obs1 = split_feedback_dataset(ds.copy(deep=True))
+        rep2, obs2 = split_feedback_dataset(ds.isel(d_body=body_perm))
+        xr.testing.assert_identical(obs1, obs2)
+        xr.testing.assert_identical(rep1, rep2)
+
+
+@pytest.mark.parametrize(
+    "obstypes, expected_levels",
+    [
+        ([13.0, 13.0, 13.0], [1, 2, 3, 6, 5, 4]),
+        ([5.0, 5.0, 5.0], [1, 2, 3, 4, 5, 6]),
+        ([1.0, 1.0, 1.0], [1, 2, 3, 4, 5, 6]),
+        ([13.0, 13.0, 5.0], [1, 2, 3, 4, 5, 6]),
+    ],
+    ids=["radar", "temp", "synop", "mixed"],
+)
+def test_split_fof_sort_keys_follow_obstype(
+    sample_dataset_radar_fof, obstypes, expected_levels
+):
+    """
+    Radar files (obstype 13 in every report) are sorted by dlat/dlon, others by
+    lat/lon.
+    """
+    ds = sample_dataset_radar_fof.copy(deep=True)
+    dlat = ds["dlat"].values.copy()
+    dlon = ds["dlon"].values.copy()
+    dlat[3:6] = dlat[3:6][::-1]
+    dlon[3:6] = dlon[3:6][::-1]
+    obst = ds["obstype"].values.copy()
+    obst[: ds.attrs["n_hdr"]] = obstypes
+    ds = ds.assign(
+        dlat=(("d_body",), dlat),
+        dlon=(("d_body",), dlon),
+        obstype=(("d_hdr",), obst),
+    )
+
+    _, observations = split_feedback_dataset(ds)
+
+    assert list(observations["level"].values) == expected_levels
+
+
+def test_split_conventional_fof(conventional_fof):
+    """
+    ICON/LETKF files keep all reports, observations and runs, sorted by lat/lon
+    independently of the stored order.
+    """
+    ds = conventional_fof
+
+    reports, observations = split_feedback_dataset(ds.copy(deep=True))
+
+    assert reports.sizes["d_hdr"] == ds.attrs["n_hdr"]
+    assert observations.sizes["d_body"] == ds.attrs["n_body"]
+    assert observations["veri_data"].sizes["d_veri"] == ds.sizes["d_veri"]
+    lat = list(observations["lat"].values)
+    assert lat == sorted(lat)
+
+    # reverse the three observations of the last report
+    rep2, obs2 = split_feedback_dataset(ds.isel(d_body=[0, 1, 2, 5, 4, 3]))
+    xr.testing.assert_identical(observations, obs2)
+    xr.testing.assert_identical(reports, rep2)
+
+
+@pytest.mark.parametrize(
+    "dlat_body",
+    [
+        [np.nan] * 6,
+        [47.3, 47.2, 47.1, np.nan, np.nan, np.nan],
+    ],
+    ids=["all_nan", "partly_set"],
+)
+def test_split_non_radar_fof_with_dlat(sample_dataset_fof, dlat_body):
+    """Non-radar files with dlat/dlon (all NaN, or partly set) split as without."""
+    base = sample_dataset_fof.assign(obstype=(("d_hdr",), np.full(5, 5.0)))
+    dlat = np.array(dlat_body)
+    ds = base.assign(dlat=(("d_body",), dlat), dlon=(("d_body",), dlat + 1.0))
+
+    rep_ref, obs_ref = split_feedback_dataset(base.copy(deep=True))
+    rep, obs = split_feedback_dataset(ds)
+
+    xr.testing.assert_identical(rep, rep_ref)
+    xr.testing.assert_identical(obs.drop_vars(["dlat", "dlon"]), obs_ref)
 
 
 @pytest.fixture(name="arr1", scope="function")

@@ -257,12 +257,12 @@ def unify_time_index(fid_dfs):
 def check_intersection(df_ref, df_cur):
     # Check if variable names in reference and test case have any intersection
     # Check if numbers of time steps agree
-    skip_test = 0
+    skip_test = False
     if not set(df_ref.index.intersection(df_cur.index)):
         logger.info(
             "WARNING: No intersection between variables in input and reference file."
         )
-        skip_test = 1
+        skip_test = True
         return skip_test, df_ref, df_cur
 
     # Check if there are variable missing in the reference or test case
@@ -283,12 +283,14 @@ def check_intersection(df_ref, df_cur):
             f" reference case and therefore not tested: {', '.join(missing_in_ref)}"
         )
         warnings.warn(warning_msg, UserWarning)
+        skip_test = True
     if missing_in_cur:
         warning_msg = (
             "WARNING: The following variables are in the reference case but not in the"
             f" test case and therefore not tested: {', '.join(missing_in_cur)}"
         )
         warnings.warn(warning_msg, UserWarning)
+        skip_test = True
 
     # Remove rows without intersection
     df_ref = df_ref[~df_ref.index.isin(non_common_vars)]
@@ -410,7 +412,7 @@ def check_file_with_tolerances(
         # check if variables are available in reference file
         skip_test, df_ref, df_cur = check_intersection(df_ref, df_cur)
 
-        if skip_test:  # No intersection
+        if skip_test:  # No intersection or mismatched variable sets
             logger.error("RESULT: check FAILED")
             sys.exit(1)
 
@@ -426,6 +428,12 @@ def check_file_with_tolerances(
         df_ref = df_ref["observation"]["veri_data"]
         df_cur = df_cur["observation"]["veri_data"]
         df_tol.columns = ["veri_data"]
+        # a missing tolerance row would leave its veri_data row unchecked
+        if len(df_tol) != len(df_ref):
+            raise ValueError(
+                f"tolerance has {len(df_tol)} rows but veri_data has {len(df_ref)} "
+                f"rows in {input_file_ref.path}"
+            )
 
     # compute relative difference
     diff_df = compute_rel_diff_dataframe(df_ref, df_cur)
@@ -443,6 +451,7 @@ def check_file_with_tolerances(
     if input_file_ref.file_type == FileType.STATS:
         diff_df = diff_df.groupby(["file_ID", "variable"]).max()
 
+    # FOF veri_data is a Series; check_variable expects a DataFrame
     if input_file_ref.file_type == FileType.FOF:
         diff_df = diff_df.to_frame()
 

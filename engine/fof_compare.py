@@ -3,7 +3,8 @@ CLI for checking two fof files
 
 This module provides a command-line interface (CLI) to check that
 two given fof files are consistent.
-Veri data are not considered, only reports and observations are compared.
+Reports and observations must match exactly (apart from --rules); veri_data
+is compared within the given relative tolerance.
 """
 
 import json
@@ -18,8 +19,14 @@ from util.dataframe_ops import check_file_with_tolerances
 from util.fof_utils import (
     get_log_file_name,
 )
-from util.log_handler import initialize_detailed_logger, logger
+from util.log_handler import initialize_detailed_logger, log_dataframe, logger
 from util.utils import FileInfo
+
+
+def _fof_sizes(file_path):
+    """Real observation count n_body and number of verification runs d_veri."""
+    with xr.open_dataset(file_path) as ds:
+        return int(ds.attrs["n_body"]), ds.sizes.get("d_veri", 1)
 
 
 @click.command()
@@ -57,11 +64,16 @@ def fof_compare(file1, file2, fof_types, tolerance, rules: str):
         file1_path = file1.format(fof_type=fof_type)
         file2_path = file2.format(fof_type=fof_type)
 
-        n_rows_file1 = xr.open_dataset(file1_path).sizes["d_body"]
-        n_rows_file2 = xr.open_dataset(file2_path).sizes["d_body"]
+        # real counts (radar files are padded); veri_data has n_body * d_veri rows
+        sizes_file1 = _fof_sizes(file1_path)
+        sizes_file2 = _fof_sizes(file2_path)
 
-        if n_rows_file1 != n_rows_file2:
-            raise ValueError("Files have different numbers of lines!")
+        if sizes_file1 != sizes_file2:
+            raise ValueError(
+                f"Files differ in size: (n_body, d_veri) = {sizes_file1} vs "
+                f"{sizes_file2}"
+            )
+        n_rows_file1 = sizes_file1[0] * sizes_file1[1]
 
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".csv", delete=True, dir="/dev/shm"
@@ -90,11 +102,12 @@ def fof_compare(file1, file2, fof_types, tolerance, rules: str):
                         "DETAILS", log_level="DEBUG", log_file=log_file_name
                     )
 
-                    detailed_logger.info(
-                        "Differences, veri_data outside of tolerance range"
+                    log_dataframe(
+                        detailed_logger,
+                        "Differences of veri_data",
+                        err,
                     )
-                    detailed_logger.info(err)
-                    detailed_logger.info(tol)
+                    log_dataframe(detailed_logger, "Tolerances of veri_data", tol)
 
 
 if __name__ == "__main__":

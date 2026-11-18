@@ -10,33 +10,17 @@ import xarray as xr
 
 from util.log_handler import logger
 
+OBSTYPE_RADAR = 13
+
 
 def get_report_variables(ds):
-    """
-    Get variable names of reports.
-    """
-    vars_shape_report = []
-    shape_report = ds.attrs["n_hdr"]
-
-    for var in ds.data_vars:
-        if ds[var].shape[0] == shape_report:
-            vars_shape_report.append(var)
-
-    return vars_shape_report
+    """Names of the variables along d_hdr (by dimension: sizes can coincide)."""
+    return [var for var in ds.data_vars if ds[var].dims[:1] == ("d_hdr",)]
 
 
 def get_observation_variables(ds):
-    """
-    Get variable names of observations.
-    """
-    vars_shape_observation = []
-    shape_observation = ds.attrs["n_body"]
-
-    for var in ds.data_vars:
-        if ds[var].shape[0] == shape_observation:
-            vars_shape_observation.append(var)
-
-    return vars_shape_observation
+    """Names of the variables along d_body (by dimension: sizes can coincide)."""
+    return [var for var in ds.data_vars if ds[var].dims[:1] == ("d_body",)]
 
 
 def split_feedback_dataset(ds):
@@ -45,6 +29,30 @@ def split_feedback_dataset(ds):
     expand lat, lon, statid and time_nomi according to l_body
     and sort them to assure unique order.
     """
+    nhdr = ds.attrs["n_hdr"]
+    nbody = ds.attrs["n_body"]
+
+    # by obstype: TEMP files also have dlat/dlon (all NaN)
+    is_radar = (
+        "obstype" in ds.data_vars
+        and "dlat" in ds.data_vars
+        and "dlon" in ds.data_vars
+        and ds["dlat"].dims == ("d_body",)
+        and bool(np.all(ds["obstype"].values[:nhdr] == OBSTYPE_RADAR))
+    )
+
+    # padding is stripped by count: real radar observations must fill [0:n_body]
+    if is_radar:
+        dlat_isnan = np.isnan(ds["dlat"].values)
+        if dlat_isnan[:nbody].any() or not dlat_isnan[nbody:].all():
+            raise ValueError(
+                "radar fof body is not front-packed: dlat must be non-NaN on "
+                f"[0:{nbody}] and NaN after"
+            )
+
+    ds = ds.isel(d_hdr=slice(0, nhdr), d_body=slice(0, nbody))
+
+    # all verification runs are compared; both files must store them in the same order
     report_variables = get_report_variables(ds)
     ds_reports = ds[report_variables]
 
@@ -64,7 +72,10 @@ def split_feedback_dataset(ds):
     observation_variables.append("veri_data")
 
     ds_obs = ds[observation_variables]
-    sort_keys_obs = ["lat", "lon", "statid", "varno", "level", "time_nomi"]
+    if is_radar:
+        sort_keys_obs = ["dlat", "dlon", "statid", "varno", "level", "time_nomi"]
+    else:
+        sort_keys_obs = ["lat", "lon", "statid", "varno", "level", "time_nomi"]
     ds_obs_sorted = ds_obs.sortby(sort_keys_obs)
 
     return ds_report_sorted, ds_obs_sorted

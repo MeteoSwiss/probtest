@@ -38,6 +38,8 @@ jobs:
       - name: Create and push tag
         if: steps.check_tag.outputs.exists == 'false'
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           TAG="${{ steps.version.outputs.tag }}"
           git tag -a "$TAG" -m "Release $TAG"
           git push origin "$TAG"
