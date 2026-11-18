@@ -16,6 +16,7 @@ from util.fof_utils import (  # write_lines,
     get_report_variables,
     replace_nan_with_sentinel_float64,
     split_feedback_dataset,
+    validate_fof_tolerance_vars,
 )
 from util.log_handler import initialize_detailed_logger
 
@@ -421,9 +422,38 @@ def test_compare_var_and_attr_ds(ds1, ds2):
             "DETAILS", log_level="DEBUG", log_file="test_log.log"
         )
 
+        # veri_data (6 values) is compared unless it is a tolerance variable
         total1, equal1 = compare_var_and_attr_ds(ds1, ds2, detailed_logger)
+        assert (total1, equal1) == (109, 108)
 
-        assert (total1, equal1) == (103, 102)
+        total2, equal2 = compare_var_and_attr_ds(
+            ds1, ds2, detailed_logger, skip_vars=["veri_data", "e_o"]
+        )
+        assert (total2, equal2) == (97, 96)
+
+
+@pytest.mark.parametrize(
+    "tol_vars, rules, match",
+    [
+        (["veri_data", "level"], None, "sort keys"),
+        (["dlat"], None, "sort keys"),
+        (["veri_data", "state"], {"state": [1, 5]}, "--rules"),
+        (["veri_data", "missing"], None, "not found"),
+        ([], None, "at least one"),
+    ],
+)
+def test_validate_fof_tolerance_vars_rejects(tol_vars, rules, match):
+    obs_columns = ["veri_data", "e_o", "plevel", "level", "state", "dlat"]
+    with pytest.raises(ValueError, match=match):
+        validate_fof_tolerance_vars(tol_vars, obs_columns, rules)
+
+
+def test_validate_fof_tolerance_vars_accepts():
+    validate_fof_tolerance_vars(
+        ["veri_data", "e_o", "plevel"],
+        ["veri_data", "e_o", "plevel", "state"],
+        {"state": [1, 5]},
+    )
 
 
 @pytest.fixture(name="ds3")

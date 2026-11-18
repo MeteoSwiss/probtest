@@ -3,8 +3,9 @@ CLI for checking two fof files
 
 This module provides a command-line interface (CLI) to check that
 two given fof files are consistent.
-Reports and observations must match exactly (apart from --rules); veri_data
-is compared within the given relative tolerance.
+Reports and observations must match exactly (apart from --rules); the
+variables given by --fof-tolerance-vars (default: veri_data) are compared
+within the given relative tolerance.
 """
 
 import json
@@ -51,12 +52,20 @@ def _fof_sizes(file_path):
     default=1e-12,
 )
 @click.option(
+    "--fof-tolerance-vars",
+    type=CommaSeparatedStrings(),
+    default="veri_data",
+    help=cli_help["fof_tolerance_vars"],
+)
+@click.option(
     "--rules",
     default="{}",
     type=str,
     help=cli_help["rules"],
 )
-def fof_compare(file1, file2, fof_types, tolerance, rules: str):
+def fof_compare(
+    file1, file2, fof_types, tolerance, fof_tolerance_vars, rules: str
+):  # pylint: disable=too-many-positional-arguments
 
     parsed_rules = json.loads(rules)
 
@@ -64,7 +73,7 @@ def fof_compare(file1, file2, fof_types, tolerance, rules: str):
         file1_path = file1.format(fof_type=fof_type)
         file2_path = file2.format(fof_type=fof_type)
 
-        # real counts (radar files are padded); veri_data has n_body * d_veri rows
+        # real counts (radar files are padded); observations have n_body * d_veri rows
         sizes_file1 = _fof_sizes(file1_path)
         sizes_file2 = _fof_sizes(file2_path)
 
@@ -78,7 +87,9 @@ def fof_compare(file1, file2, fof_types, tolerance, rules: str):
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".csv", delete=True, dir="/dev/shm"
         ) as tmp:
-            df = pd.DataFrame({"tolerance": [tolerance] * n_rows_file1})
+            df = pd.DataFrame(
+                {var: [tolerance] * n_rows_file1 for var in fof_tolerance_vars}
+            )
             df.to_csv(tmp.name)
 
             out, err, tol = check_file_with_tolerances(
@@ -104,10 +115,12 @@ def fof_compare(file1, file2, fof_types, tolerance, rules: str):
 
                     log_dataframe(
                         detailed_logger,
-                        "Differences of veri_data",
+                        "Differences of tolerance variables",
                         err,
                     )
-                    log_dataframe(detailed_logger, "Tolerances of veri_data", tol)
+                    log_dataframe(
+                        detailed_logger, "Tolerances of tolerance variables", tol
+                    )
 
 
 if __name__ == "__main__":

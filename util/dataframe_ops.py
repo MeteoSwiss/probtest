@@ -16,10 +16,12 @@ import xarray as xr
 from util.constants import CHECK_THRESHOLD, compute_statistics
 from util.file_system import file_names_from_pattern
 from util.fof_utils import (
+    DEFAULT_FOF_TOLERANCE_VARS,
     clean_logger_file_if_only_details,
     compare_var_and_attr_ds,
     get_log_file_name,
     split_feedback_dataset,
+    validate_fof_tolerance_vars,
 )
 from util.log_handler import initialize_detailed_logger, logger
 from util.model_output_parser import model_output_parser
@@ -319,6 +321,16 @@ def parse_check(
 
         df_ref = {"reports": df_ref_rep, "observation": df_ref_obs}
         df_cur = {"reports": df_cur_rep, "observation": df_cur_obs}
+
+        # legacy tolerance files hold a single unnamed (or "tolerance") column
+        # that always applied to veri_data
+        if len(df_tol.columns) == 1 and df_tol.columns[0] not in df_ref_obs.columns:
+            logger.warning(
+                "tolerance file %s has a single column '%s'; using it for veri_data",
+                tolerance_file_name,
+                df_tol.columns[0],
+            )
+            df_tol.columns = ["veri_data"]
     else:
         df_tol = parse_probtest_stats(tolerance_file_name, index_col=[0, 1])
         df_ref = parse_probtest_stats(input_file_ref.path, index_col=[0, 1, 2])
@@ -358,9 +370,13 @@ def check_file_with_tolerances(
     )
 
     if input_file_ref.file_type == FileType.FOF:
+        # the tolerance file columns are the variables compared with a tolerance
+        tol_vars = list(df_tol.columns)
+        validate_fof_tolerance_vars(tol_vars, df_ref["observation"].columns, rules)
+
         log_file_name = get_log_file_name(input_file_ref.path)
         errors = check_multiple_solutions_from_dict(
-            df_ref, df_cur, rules, log_file_name
+            df_ref, df_cur, rules, log_file_name, tolerance_vars=tol_vars
         )
 
         if errors:
@@ -385,14 +401,13 @@ def check_file_with_tolerances(
     )
 
     if input_file_ref.file_type == FileType.FOF:
-        df_ref = df_ref["observation"]["veri_data"]
-        df_cur = df_cur["observation"]["veri_data"]
-        df_tol.columns = ["veri_data"]
-        # a missing tolerance row would leave its veri_data row unchecked
+        df_ref = df_ref["observation"][tol_vars]
+        df_cur = df_cur["observation"][tol_vars]
+        # a missing tolerance row would leave its observation row unchecked
         if len(df_tol) != len(df_ref):
             raise ValueError(
-                f"tolerance has {len(df_tol)} rows but veri_data has {len(df_ref)} "
-                f"rows in {input_file_ref.path}"
+                f"tolerance has {len(df_tol)} rows but observations have "
+                f"{len(df_ref)} rows in {input_file_ref.path}"
             )
 
     # compute relative difference
@@ -410,10 +425,6 @@ def check_file_with_tolerances(
     # if stats, take maximum over height
     if input_file_ref.file_type == FileType.STATS:
         diff_df = diff_df.groupby(["file_ID", "variable"]).max()
-
-    # FOF veri_data is a Series; check_variable expects a DataFrame
-    if input_file_ref.file_type == FileType.FOF:
-        diff_df = diff_df.to_frame()
 
     out, err, tol = check_variable(diff_df, df_tol)
 
@@ -472,13 +483,18 @@ def compare_cells_rules(
 
 
 def check_multiple_solutions_from_dict(
-    dict_ref, dict_cur, rules: dict[str, list[int]], log_file_name
+    dict_ref,
+    dict_cur,
+    rules: dict[str, list[int]],
+    log_file_name,
+    tolerance_vars=DEFAULT_FOF_TOLERANCE_VARS,
 ):
     """
     This function compares two Python dictionaries, each containing DataFrames under
     the keys "reports" and "observation", row by row and column by column, according
     to rules defined in a separate dictionary. If the variable does not need to follow
-    specific rules, the values must be identical.
+    specific rules, the values must be identical. Observation variables in
+    tolerance_vars are skipped here; they are checked against tolerances.
     It records the row, column and invalid values in a log file.
     """
 
@@ -499,12 +515,13 @@ def check_multiple_solutions_from_dict(
                 ref_df[list(cols_without_rules)].to_xarray(),
                 cur_df[list(cols_without_rules)].to_xarray(),
                 detailed_logger,
+                skip_vars=tolerance_vars if key == "observation" else (),
             )
             if t != e:
                 return True
 
         if cols_with_rules:
-            errors = compare_cells_rules(
+            errors |= compare_cells_rules(
                 ref_df, cur_df, cols_with_rules, rules, detailed_logger
             )
     clean_logger_file_if_only_details(log_file_name)
