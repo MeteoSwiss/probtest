@@ -18,6 +18,7 @@ from util.dataframe_ops import (
     force_monotonic,
     has_enough_data,
 )
+from util.fof_utils import validate_fof_tolerance_vars
 from util.log_handler import logger
 from util.utils import FileInfo, FileType, expand_fof, expand_members
 
@@ -54,6 +55,12 @@ from util.utils import FileInfo, FileType, expand_fof, expand_members
     help=cli_help["fof_types"],
 )
 @click.option(
+    "--fof-tolerance-vars",
+    type=CommaSeparatedStrings(),
+    default="veri_data",
+    help=cli_help["fof_tolerance_vars"],
+)
+@click.option(
     "--minimum-tolerance",
     type=float,
     default="0.0",
@@ -65,6 +72,7 @@ def tolerance(
     member_ids,
     member_type,
     fof_types,
+    fof_tolerance_vars,
     minimum_tolerance,
 ):  # pylint: disable=too-many-positional-arguments
 
@@ -88,12 +96,10 @@ def tolerance(
         df_ref = file_name_parser[ref_info.file_type](ref_info.path)
 
         has_enough_data(dfs)
-        df_ref = df_ref["veri_data"] if ref_info.file_type is FileType.FOF else df_ref
-        dfs = (
-            [df["veri_data"] for df in dfs]
-            if ref_info.file_type is FileType.FOF
-            else dfs
-        )
+        if ref_info.file_type is FileType.FOF:
+            validate_fof_tolerance_vars(fof_tolerance_vars, df_ref.columns)
+            df_ref = df_ref[fof_tolerance_vars]
+            dfs = [df[fof_tolerance_vars] for df in dfs]
 
         rdiff = [compute_rel_diff_dataframe(df_ref, df) for df in dfs]
 
@@ -107,7 +113,8 @@ def tolerance(
             force_monotonic(df_max)
 
         elif ref_info.file_type is FileType.FOF:
-            df_max = pd.concat(rdiff, axis=1).max(axis=1)
+            # one column per tolerance variable, maximum over the members
+            df_max = pd.concat(rdiff).groupby(level=0).max()
             df_max = df_max.map(
                 lambda x: minimum_tolerance if x < minimum_tolerance else x
             )

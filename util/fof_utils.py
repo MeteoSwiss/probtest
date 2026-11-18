@@ -12,6 +12,17 @@ from util.log_handler import logger
 
 OBSTYPE_RADAR = 13
 
+# observation sort keys (radar files use dlat/dlon instead of lat/lon); they define
+# the row order and must therefore always be compared exactly
+SORT_KEYS_OBS = ["lat", "lon", "statid", "varno", "level", "time_nomi"]
+SORT_KEYS_OBS_RADAR = ["dlat", "dlon", "statid", "varno", "level", "time_nomi"]
+FOF_SORT_KEYS = frozenset(SORT_KEYS_OBS + SORT_KEYS_OBS_RADAR)
+
+# bookkeeping variables that are never compared
+FOF_ALWAYS_SKIP = ("source", "i_body", "l_body", "record")
+
+DEFAULT_FOF_TOLERANCE_VARS = ("veri_data",)
+
 
 def get_report_variables(ds):
     """Names of the variables along d_hdr (by dimension: sizes can coincide)."""
@@ -72,10 +83,7 @@ def split_feedback_dataset(ds):
     observation_variables.append("veri_data")
 
     ds_obs = ds[observation_variables]
-    if is_radar:
-        sort_keys_obs = ["dlat", "dlon", "statid", "varno", "level", "time_nomi"]
-    else:
-        sort_keys_obs = ["lat", "lon", "statid", "varno", "level", "time_nomi"]
+    sort_keys_obs = SORT_KEYS_OBS_RADAR if is_radar else SORT_KEYS_OBS
     ds_obs_sorted = ds_obs.sortby(sort_keys_obs)
 
     return ds_report_sorted, ds_obs_sorted
@@ -185,14 +193,42 @@ def write_different_size_log(var, size1, size2, detailed_logger):
     )
 
 
-def compare_var_and_attr_ds(ds1, ds2, detailed_logger):
+def validate_fof_tolerance_vars(tol_vars, obs_columns, rules=None):
+    """
+    Make sure the variables compared with a tolerance are observation variables
+    that are neither sort keys (which must match exactly) nor handled by --rules.
+    """
+    tol_vars = list(tol_vars)
+    if not tol_vars:
+        raise ValueError("at least one fof tolerance variable is required")
+
+    sort_keys = sorted(FOF_SORT_KEYS.intersection(tol_vars))
+    if sort_keys:
+        raise ValueError(
+            f"fof tolerance variables {sort_keys} are sort keys and must match exactly"
+        )
+
+    with_rules = sorted(set(rules or {}).intersection(tol_vars))
+    if with_rules:
+        raise ValueError(
+            f"fof tolerance variables {with_rules} are also given in --rules; "
+            "use either a tolerance or a rule"
+        )
+
+    missing = [var for var in tol_vars if var not in obs_columns]
+    if missing:
+        raise ValueError(f"fof tolerance variables {missing} not found in observations")
+
+
+def compare_var_and_attr_ds(ds1, ds2, detailed_logger, skip_vars=()):
     """
     Variable by variable and attribute by attribute,
-    comparison of the two datasets.
+    comparison of the two datasets. Variables in skip_vars (e.g. the ones
+    compared with a tolerance) are left out.
     """
 
     total_all, equal_all = 0, 0
-    list_to_skip = ["source", "i_body", "l_body", "veri_data", "record"]
+    list_to_skip = [*FOF_ALWAYS_SKIP, *skip_vars]
 
     for var in set(ds1.data_vars).union(ds2.data_vars):
         if var in ds1.data_vars and var in ds2.data_vars and var not in list_to_skip:

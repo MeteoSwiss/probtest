@@ -190,6 +190,9 @@ cli_help = {
     "minimum_tolerance": r"Non-zero value to set variable tolerances to when the "
     + r"calculated tolerances from the ensemble are exactly zero.",
     "verbose": r"Always provide the full DataFrame output.",
+    "fof_tolerance_vars": r"Comma-separated fof observation variables that are "
+    + r"compared with a relative tolerance (one column each in the tolerance file); "
+    + r"all other variables must match exactly or follow --rules.",
     "rules": (
         "JSON object specifying the rules for comparison. "
         'Example: \'{"check":[13,18,32],"state":[1,5,7,9]}\''

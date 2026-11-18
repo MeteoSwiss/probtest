@@ -222,6 +222,15 @@ Alternatively, if FOF files are also to be considered(fof_type must be replaced 
 python ../externals/probtest/probtest.py tolerance --fof-types {fof_type}
 ```
 
+By default only `veri_data` gets a tolerance; all other observation variables
+must match exactly (QC fields such as `state`, `flags` or `check` can be relaxed
+with `--rules`). Further observation variables can be given a tolerance with
+`--fof-tolerance-vars`, e.g. `--fof-tolerance-vars veri_data,e_o,plevel`. The
+tolerance file then contains one column per variable, and `check` takes the
+list of variables from these columns, so it needs no extra option. Sort keys
+(`lat`, `lon`, `dlat`, `dlon`, `statid`, `varno`, `level`, `time_nomi`) always
+have to match exactly. `fof-compare` accepts the same option.
+
 These commands will generate a number of files:
 
 - `stats_ref.csv`: contains the post-processed output from the unperturbed reference run
