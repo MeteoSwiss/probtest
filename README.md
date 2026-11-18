@@ -88,14 +88,16 @@ Even though probtest is used exclusively with ICON at the moment, it does not co
 ### Setup probtest
 
 All requirements for using probtest can be easily installed with pip or poetry.
+Probtest supports Python 3.10 - 3.13 (all tested in CI).
 
 #### Setup with pip
 
 To set up the virtual environment and install the required dependencies:
 
 ```console
-# Create a Python 3.10 virtual environment
-python3.10 -m venv venv
+# Create a virtual environment with a supported Python version (3.10 - 3.13),
+# e.g. python3.12 to pick a specific one
+python3 -m venv venv
 
 # Activate the virtual environment
 source venv/bin/activate
@@ -112,11 +114,11 @@ ensures all dependencies are compatible and locked to tested versions.
 #### Setup with Poetry
 
 This setup is required if you want to **change or add dependencies**.
-It assumes you have **Poetry installed** and are using **Python 3.10**.
+It assumes you have **Poetry installed** and are using **Python 3.10 - 3.13**.
 
 ```console
-# Use Python 3.10 for the Poetry virtual environment
-poetry env use python3.10
+# Use a supported Python version (3.10 - 3.13) for the Poetry virtual environment, e.g.
+poetry env use python3.12
 
 # Install all project dependencies
 poetry install
