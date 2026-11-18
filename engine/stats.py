@@ -12,14 +12,18 @@ from pathlib import Path
 
 import click
 
-from util.click_util import CommaSeparatedInts, cli_help
+from util.click_util import CommaSeparatedInts, JsonDict, cli_help
 from util.dataframe_ops import df_from_file_ids
 from util.log_handler import logger
 from util.utils import prepend_type_to_member_id
 
 
-def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specification):
-    df = df_from_file_ids(file_id, input_dir, file_specification)
+def create_stats_dataframe(
+    input_dir, file_id, stats_file_name, file_specification, variable_filter=None
+):  # pylint: disable=too-many-positional-arguments
+    df = df_from_file_ids(
+        file_id, input_dir, file_specification, variable_filter=variable_filter
+    )
 
     logger.info("writing stats file to %s", stats_file_name)
 
@@ -72,6 +76,12 @@ def create_stats_dataframe(input_dir, file_id, stats_file_name, file_specificati
     type=list,
     help=cli_help["file_specification"],
 )
+@click.option(
+    "--variable-filter",
+    type=JsonDict(),
+    default=None,
+    help=cli_help["variable_filter"],
+)
 def stats(
     ensemble,
     stats_file_name,
@@ -81,6 +91,7 @@ def stats(
     member_type,
     perturbed_model_output_dir,
     file_specification,
+    variable_filter,
 ):  # pylint: disable=too-many-positional-arguments
     file_specification = file_specification[0]  # can't store dicts as defaults in click
     assert isinstance(file_specification, dict), "must be dict"
@@ -106,6 +117,7 @@ def stats(
                     file_id,
                     stats_file_name.format(member_id=typed_member_id),
                     file_specification,
+                    variable_filter,
                 )
             )
 
@@ -118,4 +130,5 @@ def stats(
             file_id,
             stats_file_name.format(member_id=os.path.basename(model_output_dir)),
             file_specification,
+            variable_filter,
         )

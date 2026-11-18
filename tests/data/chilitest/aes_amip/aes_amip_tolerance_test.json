@@ -1,0 +1,10 @@
+{
+  "statistics": {
+    "include": "aes_amip_analysis.json"
+  },
+  "test": {
+    "extreme_values": {
+      "factor": 1
+    }
+  }
+}

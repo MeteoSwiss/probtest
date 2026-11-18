@@ -1,0 +1,18 @@
+{
+  "variables": {
+    "2d": [
+      "pr",
+      "tas",
+      "ps",
+      "rsut"
+    ],
+    "3d":[
+      "hus",
+      "ta"
+    ]
+  },
+  "spatial_average_type": {
+    "2d": "global_mean",
+    "3d": "surface_mean_per_p_level"
+  }
+}

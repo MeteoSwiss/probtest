@@ -147,7 +147,11 @@ def run_perturb_cli(model_input_dir, files, perturb_amplitude, member_ids=range(
 
 
 def run_stats_cli(
-    model_output_dir, stats_file_name, ensemble, perturbed_model_output_dir=None
+    model_output_dir,
+    stats_file_name,
+    ensemble,
+    perturbed_model_output_dir=None,
+    variable_filter=None,
 ):
     args = [
         "--model-output-dir",
@@ -175,6 +179,7 @@ def run_stats_cli(
         if perturbed_model_output_dir
         else []
     )
+    args += ["--variable-filter", variable_filter] if variable_filter else []
     args.append("--ensemble" if ensemble else "--no-ensemble")
 
     run_cli(stats, args)
@@ -299,3 +304,22 @@ def create_random_stats_file(filename, configurations, seed, perturbation):
             f.write(line + "\n")
         for row in data:
             f.write(row + "\n")
+
+
+def make_mean_stats(rows, mean):
+    """
+    Stats DataFrame in the layout of the stats files from an array of
+    horizontal means with the shape (rows, time). rows are the index tuples
+    (file_ID, variable, height).
+    """
+    index = pd.MultiIndex.from_tuples(rows, names=["file_ID", "variable", "height"])
+    columns = pd.MultiIndex.from_product(
+        [range(mean.shape[1]), ["mean", "max", "min"]], names=["time", "statistic"]
+    )
+    df = pd.DataFrame(index=index, columns=columns, dtype=np.float64)
+    for t in range(mean.shape[1]):
+        df[(t, "mean")] = mean[:, t]
+        # the max and min of the field differ clearly from the mean
+        df[(t, "max")] = mean[:, t] + 1000.0
+        df[(t, "min")] = mean[:, t] - 1000.0
+    return df
