@@ -209,8 +209,8 @@ def _set(section, key, value):
         (TEST_CONFIG, _set("test", "extreme_values", {}), "missing key 'factor'"),
         (
             TEST_CONFIG,
-            _set("statistics", "variabels", {}),
-            "unknown key 'variabels'.*'variables'",
+            _set("statistics", "vrbls", {}),
+            "unknown key 'vrbls'.*'variables'",
         ),
         (
             TEST_CONFIG,
