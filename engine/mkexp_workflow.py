@@ -65,7 +65,16 @@ def save_version_info(command, version_file):
         )
         return
 
-    process = subprocess.run(command, check=True, capture_output=True, text=True)
+    process = subprocess.run(command, check=False, capture_output=True, text=True)
+    if process.returncode != 0:
+        logger.warning(
+            "'%s' failed with exit code %d, the model version is not stored in %s:\n%s",
+            " ".join(command),
+            process.returncode,
+            version_file,
+            process.stderr or process.stdout,
+        )
+        return
     os.makedirs(os.path.dirname(version_file), exist_ok=True)
     with open(version_file, "w", encoding="utf-8") as f:
         # ICON prints its version information to stderr

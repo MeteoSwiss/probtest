@@ -194,11 +194,24 @@ def read_netcdf_times(pattern, time_dim="time"):
     if not file_names:
         _abort("No file found for %s to read the time axis from.", pattern)
 
-    times = []
-    for file_name in file_names:
-        with xr.open_dataset(file_name) as ds:
-            times.append(ds[time_dim].to_numpy())
-    return np.concatenate(times)
+    def read(decode_times):
+        times = []
+        for file_name in file_names:
+            with xr.open_dataset(file_name, decode_times=decode_times) as ds:
+                times.append(ds[time_dim].to_numpy())
+        return np.concatenate(times)
+
+    times = read(decode_times=True)
+    if times.dtype == object:
+        # non-standard calendars decode to cftime objects, which np.savez
+        # would pickle and np.load cannot read back: keep the raw numbers
+        logger.warning(
+            "The time axis of %s cannot be stored as datetime64 (non-standard "
+            "calendar?), storing its raw values instead.",
+            pattern,
+        )
+        times = read(decode_times=False)
+    return times
 
 
 def write_npz_set(df_ens, path, dimensions=None, times=None):

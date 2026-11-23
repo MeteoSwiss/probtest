@@ -132,14 +132,13 @@ def filter_variables(df, variables, file_pattern):
     available = df.index.get_level_values("variable")
     missing = [v for v in variables if v not in available]
     if missing:
-        logger.error(
-            "The variable(s) %s selected by the variable filter are not "
-            "available for file_pattern `%s`. Available: %s",
-            missing,
-            file_pattern,
-            list(dict.fromkeys(available)),
+        # raise instead of sys.exit: this also runs in multiprocessing workers,
+        # where SystemExit kills the worker and the pool waits forever
+        raise ValueError(
+            f"The variable(s) {missing} selected by the variable filter are not "
+            f"available for file_pattern `{file_pattern}`. "
+            f"Available: {list(dict.fromkeys(available))}"
         )
-        sys.exit(1)
 
     return df[available.isin(variables)]
 

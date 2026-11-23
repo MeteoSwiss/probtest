@@ -298,7 +298,12 @@ def run_ensemble_mkexp(
             f"The mkexp backend requires the option(s) {', '.join(missing)}."
         )
 
+    # resolve relative paths against the caller's directory before the chdir;
+    # an mkexp_path without a directory is looked up in PATH
     run_dir = os.path.abspath(run_dir)
+    mkexp_config = os.path.abspath(mkexp_config)
+    if os.sep in mkexp_path:
+        mkexp_path = os.path.abspath(mkexp_path)
     os.chdir(run_dir)
 
     # experiment name, run script and the mkexp arguments of the perturbation
