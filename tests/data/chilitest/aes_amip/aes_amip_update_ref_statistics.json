@@ -1,0 +1,14 @@
+{
+  "ensemble": {
+    "perturbation_method": "pinit_nml_params",
+    "size": 10,
+    "perturbation_amplitude": 1e-07
+  },
+  "ensemble_statistics": {
+    "include": "aes_amip_analysis.json",
+    "statistics": [
+      "min",
+      "max"
+    ]
+  }
+}

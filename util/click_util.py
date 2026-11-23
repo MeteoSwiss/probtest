@@ -38,6 +38,15 @@ def load_defaults(sections):
                 logger.error("failed to load configfile %s", configfile)
                 logger.error(err)
 
+    return merge_defaults(config, sections)
+
+
+def merge_defaults(config, sections):
+    """
+    Defaults of a command from a config: the section "default", overridden by
+    the sections of the command (e.g. "run" and "run-ensemble" for the
+    sections ["run", "ensemble"]).
+    """
     tmp = {}
     if config:
         # set default variables
@@ -92,6 +101,28 @@ class CommaSeparatedStrings(click.ParamType):
         return list(filter(lambda x: x != "", value.split(",")))
 
 
+class JsonDict(click.ParamType):
+    """
+    A custom Click parameter type for a JSON object.
+
+    On the command line the object is given as a JSON string. In the json
+    config file it can be given directly as an object.
+    """
+
+    name = "JsonDict"
+
+    def convert(self, value, param, ctx):
+        if isinstance(value, dict):
+            return value
+        try:
+            parsed = json.loads(value)
+        except (TypeError, json.JSONDecodeError) as e:
+            self.fail(f"Input must be a JSON object: {e}", param, ctx)
+        if not isinstance(parsed, dict):
+            self.fail(f"Input must be a JSON object, found {value}", param, ctx)
+        return parsed
+
+
 cli_help = {
     "model_input_dir": r"The directory where the model input is stored.",
     "perturbed_model_input_dir": r"Template for the directory where the perturbed "
@@ -142,6 +173,10 @@ cli_help = {
     "file_specification": "Specify how different file types shall be read. This "
     + r"option must be defined in the json config file. See doc string of  "
     + r"df_from_file_ids for the specification.",
+    "variable_filter": r"Restrict the statistics to the given variables. JSON "
+    + r"object assigning a list of variable names to a FILE_PATTERN of "
+    + r"""--file-id, e.g. '{"*_2d.nc": ["ps", "tas"]}'. All variables are """
+    + r"used for file patterns that are not listed.",
     "reference_files": r"List of reference file/s to check against, "
     + r"both for stats and fof files.",
     "current_files": r"List of current files to be tested, "
@@ -169,6 +204,24 @@ cli_help = {
     "submit_command": r"How a model simulation is submitted.",
     "parallel": r"Run jobs in parallel.",
     "dry": r"Only generate runscripts, do not run the model.",
+    "run_backend": r"How the run scripts are created. 'runscript': copy "
+    + r"the run script and replace assignments in it. 'mkexp': generate them "
+    + r"with mkexp, see --mkexp-path, --mkexp-config and --mkexp-option. With "
+    + r"'mkexp', --lhs and --rhs-new are passed to mkexp as KEY=VALUE for the "
+    + r"members, and the run script names are the scripts mkexp generates.",
+    "mkexp_path": r"Path to the mkexp executable.",
+    "mkexp_config": r"Experiment configuration file passed to mkexp.",
+    "mkexp_option": r"Setting passed to mkexp for all runs, overriding the "
+    + r"experiment configuration. Use KEY+=VALUE to append to a setting. Can be "
+    + r"given multiple times.",
+    "restart": r"Only for the mkexp backend: continue a previous run of the "
+    + r"experiments instead of starting from the beginning.",
+    "success_marker": r"Only for the mkexp backend: text that has to appear in "
+    + r"the log file of each run for the run to be considered successful.",
+    "run_log_name": r"Only for the mkexp backend: name of the log file of a run, "
+    + r"located next to its run script. \{experiment_name\} is replaced.",
+    "plot_variables": r"Only plot the given variables (comma separated list). "
+    + r"By default all variables are plotted.",
     "savedir": r"The directory where the plots are stored.",
     "cdo_table_file": r"File to store the cdo table into.",
     "variables": r"Select variables to print CDO diff from ensemble.",
@@ -190,6 +243,31 @@ cli_help = {
     "minimum_tolerance": r"Non-zero value to set variable tolerances to when the "
     + r"calculated tolerances from the ensemble are exactly zero.",
     "verbose": r"Always provide the full DataFrame output.",
+    "tolerance_method": r"How the tolerance is derived from the ensemble. "
+    + r"'relative': largest relative difference between the reference and any "
+    + r"member. 'extreme_values': store the reference, minimum and maximum of "
+    + r"the horizontal mean over the ensemble for the min/max test "
+    + r"(stats files only).",
+    "npz_dimensions": r"Only for the 'extreme_values' method with tolerance "
+    + r"files in the .npz format (file name with the placeholder {dim}). JSON "
+    + r"object assigning a file ID to each dimension, e.g. "
+    + r"""'{"2d": "NetCDF:*_2d.nc", "3d": "NetCDF:*_3d.nc"}'. """
+    + r"By default, the file ID whose variables have a single level is '2d' "
+    + r"and the one with several levels is '3d'.",
+    "npz_times": r"Only for the 'extreme_values' method with tolerance files in "
+    + r"the .npz format. JSON object assigning to a dimension the model output "
+    + r"file(s) the time axis is read from and stored in the tolerance files, "
+    + r"""e.g. '{"2d": "experiments/exp/*_2d.nc"}'. By default, the indices of """
+    + r"the time steps are stored.",
+    "chilitest_config": r"Create the configuration from a chilitest application "
+    + r"configuration file (see the commands mkexp-reference and mkexp-test) "
+    + r"instead of the template given by --template-name. Requires "
+    + r"--mkexp-config, --build-dir and --stats-dir. All other options except "
+    + r"--config and the ones listed below are ignored.",
+    "check_method": r"How the current files are checked. Has to match the "
+    + r"method the tolerance files were created with. With 'extreme_values' "
+    + r"the reference is read from the tolerance files and --reference-files "
+    + r"is not used.",
     "rules": (
         "JSON object specifying the rules for comparison. "
         'Example: \'{"check":[13,18,32],"state":[1,5,7,9]}\''

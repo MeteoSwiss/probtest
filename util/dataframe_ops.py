@@ -55,11 +55,22 @@ def compute_division(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+# pandas' default float parser may be off by one unit in the last place.
+# All probtest files are read with the exact parser, so that values survive a
+# write/read cycle unchanged (to_csv writes the shortest exact representation).
+CSV_FLOAT_PRECISION = "round_trip"
+
+
 def parse_probtest_stats(path, index_col=None):
     if index_col is None:
         index_col = [0, 1, 2]
 
-    df = pd.read_csv(path, index_col=index_col, header=[0, 1])
+    df = pd.read_csv(
+        path,
+        index_col=index_col,
+        header=[0, 1],
+        float_precision=CSV_FLOAT_PRECISION,
+    )
 
     times = df.columns.levels[0].astype(int)
     df.columns = df.columns.set_levels(times, level=0)
@@ -114,7 +125,25 @@ def read_input_file(label, file_name, specification):
     return pd.concat(var_dfs, axis=0)
 
 
-def df_from_file_ids(file_id, input_dir, file_specification):
+def filter_variables(df, variables, file_pattern):
+    """
+    Keep only the rows of the given variables. All of them have to be present.
+    """
+    available = df.index.get_level_values("variable")
+    missing = [v for v in variables if v not in available]
+    if missing:
+        # raise instead of sys.exit: this also runs in multiprocessing workers,
+        # where SystemExit kills the worker and the pool waits forever
+        raise ValueError(
+            f"The variable(s) {missing} selected by the variable filter are not "
+            f"available for file_pattern `{file_pattern}`. "
+            f"Available: {list(dict.fromkeys(available))}"
+        )
+
+    return df[available.isin(variables)]
+
+
+def df_from_file_ids(file_id, input_dir, file_specification, variable_filter=None):
     """
     file_id: [[file_type, file_pattern], [file_type, file_pattern], ...]
         List of 2-tuples. The 2-tuple combines two strings. The first sets the
@@ -137,6 +166,9 @@ def df_from_file_ids(file_id, input_dir, file_specification):
                     List possible horizontal dimensions. If multiple horizontal
                     dimensions are used their names must be combined in one string
                     separated by ":".
+    variable_filter: {file_pattern: [variable, ...], ...}
+        Restricts the variables of the files of a file_pattern to the listed
+        ones. All variables are used for a file_pattern that is not a key.
     """
 
     # Collect data frames for each combination of file id (fid) and
@@ -175,7 +207,12 @@ def df_from_file_ids(file_id, input_dir, file_specification):
 
         # same file IDs and file type specification will have same variables but
         # with different timestamps: concatenate along time axis
-        fid_dfs.append(pd.concat(file_dfs, axis=1))
+        fid_df = pd.concat(file_dfs, axis=1)
+        if variable_filter and file_pattern in variable_filter:
+            fid_df = filter_variables(
+                fid_df, variable_filter[file_pattern], file_pattern
+            )
+        fid_dfs.append(fid_df)
 
     if len(fid_dfs) == 0:
         logger.error("Could not find any file.")
@@ -313,7 +350,9 @@ def parse_check(
                                                 dict of DataFrames for fof files).
     """
     if input_file_ref.file_type == FileType.FOF:
-        df_tol = pd.read_csv(tolerance_file_name, index_col=0)
+        df_tol = pd.read_csv(
+            tolerance_file_name, index_col=0, float_precision=CSV_FLOAT_PRECISION
+        )
         df_ref_rep, df_ref_obs = parse_probtest_fof(input_file_ref.path)
         df_cur_rep, df_cur_obs = parse_probtest_fof(input_file_cur.path)
 

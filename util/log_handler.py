@@ -76,3 +76,28 @@ def log_dataframe(
 
     log.info(title)
     log.info("%s", df.to_string() if verbose else df)
+
+
+def log_extreme_values_report(log: logging.Logger, result, verbose: bool = False):
+    """
+    Log the outcome of an extreme-values check: one line per variable and,
+    for the failing ones, the values outside the allowed range.
+    """
+    for (file_id, variable), row in result.summary.iterrows():
+        if row["failed"] == 0:
+            log.info("passed: %s %s", file_id, variable)
+        else:
+            log.info(
+                "FAILED: %s %s (%s of %s values outside the ensemble range)",
+                file_id,
+                variable,
+                row["failed"],
+                row["total"],
+            )
+
+    if result.failures.empty:
+        return
+
+    log.info("\nValues outside the ensemble range (lower <= difference <= upper)")
+    with pd.option_context("display.float_format", lambda x: f"{x:.6e}"):
+        log.info("%s", result.failures.to_string() if verbose else result.failures)

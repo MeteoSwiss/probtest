@@ -8,113 +8,23 @@ scripts with specified perturbations and managing job submissions.
 """
 
 import os
-import re
 import subprocess
 import time
 from pathlib import Path
-from typing import List, Optional
 
 import click
 
 from util.click_util import CommaSeparatedInts, CommaSeparatedStrings, cli_help
 from util.log_handler import logger
+from util.run_backends import BACKEND_MKEXP, BACKEND_RUNSCRIPT, RUN_BACKENDS
+from util.run_backends.mkexp import (
+    check_success_marker,
+    generate_mkexp_runscript,
+    perturbation_arguments,
+    run_log_file,
+)
+from util.run_backends.runscript import prepare_perturbed_run_script
 from util.utils import get_seed_from_member_id, prepend_type_to_member_id
-
-
-# replace an assignment statement (left=*right* to left=new)
-# "right" is used here to identify multiple assignments of "left"
-def replace_assignment(line, left, right_new, right_old, seed):
-    if line.strip().startswith("#") or (left not in line):
-        return line
-
-    # make sure this is a regular assign statement (X = Y)
-    split = line.split("=")
-    if len(split) != 2:
-        return line
-
-    lhs, rhs = split
-    lhs = lhs.strip()
-    rhs = rhs.strip()
-
-    if right_old and (right_old not in rhs):
-        return line
-
-    if lhs != left:
-        return line
-
-    right_new = right_new.format(seed=seed)
-
-    out_line = f"{left}={right_new}\n"
-    logger.info("generating new line: %s", out_line.replace("\n", ""))
-    return out_line
-
-
-# replace all strings matching "old" substring by "new" substring
-def replace_string(line, old, new):
-    out_line = re.sub(old, new, line) if old in line else line
-    return out_line
-
-
-def prepare_perturbed_run_script(  # pylint: disable=too-many-positional-arguments
-    runscript: str,
-    perturbed_runscript: str,
-    experiment_name: str,
-    modified_experiment_name: str,
-    lhs: List[str],
-    rhs_new: List[str],
-    rhs_old: Optional[List],
-    seed: int,
-) -> None:
-    """
-    Prepare a `perturbed_runscript` by copying `runscript` and replacing
-    namelist values and experiment names.
-    Raises RuntimeError if no lines are modified.
-    """
-
-    modified = False  # Track if any line was changed
-
-    with open(runscript, "r", encoding="utf-8") as in_file:
-        with open(perturbed_runscript, "w", encoding="utf-8") as out_file:
-
-            if rhs_old is None:
-                rhs_old = [None] * len(rhs_new)
-            if 1 == len(rhs_old) < len(rhs_new) and rhs_old[0] == "None":
-                rhs_old = [None] * len(rhs_new)
-            rhs_old = [None if r == "None" else r for r in rhs_old]
-
-            # only modify namelist if lhs,rhs_old or rhs_new are not equal None
-            if any(
-                any(item is not None for item in entry)
-                for entry in [lhs, rhs_old, rhs_new]
-            ):
-                for line in in_file:
-                    out_line = line
-                    # replace input directory with the ones given in config file
-                    for lh, rh_old, rh_new in zip(lhs, rhs_old, rhs_new):
-                        out_line = replace_assignment(line, lh, rh_new, rh_old, seed)
-                        # replace first match
-                        if out_line != line:
-                            modified = True
-                            break
-
-                    # rename the experiment name
-                    if line == out_line:
-                        out_line = replace_string(
-                            line, experiment_name, modified_experiment_name
-                        )
-
-                    out_file.write(out_line)
-            else:
-                out_file.write(in_file.read())
-
-            if not modified:
-                raise RuntimeError(
-                    f"No lines were modified in the runscript '{perturbed_runscript}'. "
-                    f"Check lhs({lhs}) and rhs_new({rhs_new}) values "
-                    f"or experiment names({experiment_name})."
-                )
-
-            logger.info("writing model run script to: %s", perturbed_runscript)
 
 
 def append_job(job, job_list, parallel):
@@ -216,6 +126,41 @@ def check_job_returncode(job):
     type=CommaSeparatedStrings(),
     help=cli_help["rhs_old"],
 )
+@click.option(
+    "--backend",
+    type=click.Choice(RUN_BACKENDS),
+    default=BACKEND_RUNSCRIPT,
+    help=cli_help["run_backend"],
+)
+@click.option(
+    "--mkexp-path",
+    help=cli_help["mkexp_path"],
+)
+@click.option(
+    "--mkexp-config",
+    help=cli_help["mkexp_config"],
+)
+@click.option(
+    "--mkexp-option",
+    multiple=True,
+    metavar="KEY=VALUE",
+    help=cli_help["mkexp_option"],
+)
+@click.option(
+    "--restart/--no-restart",
+    is_flag=True,
+    help=cli_help["restart"],
+)
+@click.option(
+    "--success-marker",
+    default=None,
+    help=cli_help["success_marker"],
+)
+@click.option(
+    "--run-log-name",
+    default="{experiment_name}.run.log",
+    help=cli_help["run_log_name"],
+)
 def run_ensemble(
     run_dir,
     perturbed_run_dir,
@@ -231,7 +176,37 @@ def run_ensemble(
     lhs,
     rhs_new,
     rhs_old,
+    backend,
+    mkexp_path,
+    mkexp_config,
+    mkexp_option,
+    restart,
+    success_marker,
+    run_log_name,
 ):  # pylint: disable=too-many-positional-arguments
+    if backend == BACKEND_MKEXP:
+        run_ensemble_mkexp(
+            run_dir=run_dir,
+            run_script_name=run_script_name,
+            perturbed_run_script_name=perturbed_run_script_name,
+            experiment_name=experiment_name,
+            perturbed_experiment_name=perturbed_experiment_name,
+            submit_command=submit_command,
+            member_ids=member_ids,
+            member_type=member_type,
+            parallel=parallel,
+            dry=dry,
+            lhs=lhs,
+            rhs_new=rhs_new,
+            mkexp_path=mkexp_path,
+            mkexp_config=mkexp_config,
+            mkexp_options=list(mkexp_option),
+            restart=restart,
+            success_marker=success_marker,
+            run_log_name=run_log_name,
+        )
+        return
+
     perturbed_run_dir = perturbed_run_dir if perturbed_run_dir else run_dir
     os.chdir(run_dir)
     job_list = []
@@ -277,5 +252,106 @@ def run_ensemble(
             append_job(job, job_list, parallel)
 
     finalize_jobs(job_list, dry, parallel)
+
+    logger.info("model finished!")
+
+
+def run_ensemble_mkexp(
+    *,
+    run_dir,
+    run_script_name,
+    perturbed_run_script_name,
+    experiment_name,
+    perturbed_experiment_name,
+    submit_command,
+    member_ids,
+    member_type,
+    parallel,
+    dry,
+    lhs,
+    rhs_new,
+    mkexp_path,
+    mkexp_config,
+    mkexp_options,
+    restart,
+    success_marker,
+    run_log_name,
+):
+    """
+    Generate the run scripts of the unperturbed reference and of the members
+    with mkexp and submit them.
+
+    run_script_name and perturbed_run_script_name are the scripts mkexp
+    generates, relative to run_dir or absolute.
+    """
+    missing = [
+        name
+        for name, value in [
+            ("--mkexp-path", mkexp_path),
+            ("--mkexp-config", mkexp_config),
+            ("--run-dir", run_dir),
+        ]
+        if not value
+    ]
+    if missing:
+        raise click.UsageError(
+            f"The mkexp backend requires the option(s) {', '.join(missing)}."
+        )
+
+    # resolve relative paths against the caller's directory before the chdir;
+    # an mkexp_path without a directory is looked up in PATH
+    run_dir = os.path.abspath(run_dir)
+    mkexp_config = os.path.abspath(mkexp_config)
+    if os.sep in mkexp_path:
+        mkexp_path = os.path.abspath(mkexp_path)
+    os.chdir(run_dir)
+
+    # experiment name, run script and the mkexp arguments of the perturbation
+    experiments = [(experiment_name, os.path.join(run_dir, run_script_name), [])]
+    for member_id in member_ids:
+        typed_member_id = prepend_type_to_member_id(member_type, member_id)
+        experiments.append(
+            (
+                perturbed_experiment_name.format(member_id=typed_member_id),
+                os.path.join(
+                    run_dir, perturbed_run_script_name.format(member_id=typed_member_id)
+                ),
+                perturbation_arguments(
+                    lhs, rhs_new, get_seed_from_member_id(member_id)
+                ),
+            )
+        )
+
+    job_list = []
+    for name, runscript, perturbation in experiments:
+        generate_mkexp_runscript(
+            mkexp_path=mkexp_path,
+            mkexp_config=mkexp_config,
+            experiment_name=name,
+            options=mkexp_options + perturbation,
+            mkexp_search_path=run_dir,
+            runscript=runscript,
+            restart=restart,
+        )
+
+        if not dry:
+            job = submit_command.split() + [runscript]
+            logger.info("running the model with '%s'", " ".join(job))
+            append_job(job, job_list, parallel)
+
+    finalize_jobs(job_list, dry, parallel)
+
+    if success_marker and not dry:
+        failed = [
+            log_file
+            for name, runscript, _ in experiments
+            for log_file in [run_log_file(runscript, run_log_name, name)]
+            if not check_success_marker(log_file, success_marker)
+        ]
+        if failed:
+            raise RuntimeError(
+                f"'{success_marker}' not found in the log file(s) of the "
+                f"following run(s): {', '.join(failed)}"
+            )
 
     logger.info("model finished!")

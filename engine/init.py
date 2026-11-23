@@ -14,6 +14,8 @@ from pathlib import Path
 import click
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
+from util import chilitest_config as chilitest_config_module
+from util.chilitest_config import RuntimeOptions, runtime_options
 from util.click_util import CommaSeparatedInts, cli_help
 from util.log_handler import logger
 
@@ -82,7 +84,66 @@ from util.log_handler import logger
     default=False,
     help=cli_help["append_time"],
 )
+@click.option(
+    "--chilitest-config",
+    type=click.Path(exists=True),
+    default=None,
+    help=cli_help["chilitest_config"],
+)
+@runtime_options
 def init(
+    codebase_install,
+    experiment_name,
+    file_id,
+    reference,
+    config,
+    template_name,
+    member_ids,
+    member_type,
+    factor,
+    perturb_amplitude,
+    timing_current,
+    timing_reference,
+    append_time,
+    chilitest_config,
+    **mkexp_runtime_options,
+):  # pylint: disable=too-many-positional-arguments
+
+    if chilitest_config:
+        return init_from_chilitest_config(
+            chilitest_config, RuntimeOptions(**mkexp_runtime_options), config
+        )
+
+    return init_from_template(
+        codebase_install,
+        experiment_name,
+        file_id,
+        reference,
+        config,
+        template_name,
+        member_ids,
+        member_type,
+        factor,
+        perturb_amplitude,
+        timing_current,
+        timing_reference,
+        append_time,
+    )
+
+
+def init_from_chilitest_config(chilitest_config, runtime, config):
+    """
+    Write the configuration translated from a chilitest application
+    configuration.
+    """
+    json_dict, _ = chilitest_config_module.probtest_config(chilitest_config, runtime)
+    with open(config, "w", encoding="utf-8") as probtest_config_file:
+        probtest_config_file.write(json.dumps(json_dict, indent=2))
+    print("Successfully wrote probtest configuration to " + config)
+    return 0
+
+
+def init_from_template(
     codebase_install,
     experiment_name,
     file_id,
