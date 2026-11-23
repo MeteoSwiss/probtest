@@ -10,7 +10,12 @@ on:
 
 jobs:
   probtest-pytest:
+    name: pytest (py${{ matrix.python-version }})
     runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     defaults:
       run:
         shell: bash -l {0}
@@ -19,13 +24,13 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.10"
+        python-version: ${{ matrix.python-version }}
     - name: Install Poetry
       run: |
         curl -sSL https://install.python-poetry.org | python3 -
     - name: Configure Poetry to use the right Python version
       run: |
-        poetry env use python3.10
+        poetry env use python${{ matrix.python-version }}
     - name: Install dependencies with Poetry
       run: |
         poetry install --without=dev
